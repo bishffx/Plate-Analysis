@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlateOD · ELISA Plate OD Analyzer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 22'><rect width='28' height='22' rx='4' fill='%230D131B'/><circle cx='5' cy='5' r='2' fill='%23F5A524'/><circle cx='10' cy='5' r='2' fill='%23F5A524'/><circle cx='5' cy='11' r='2' fill='%232DD4BF'/></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Accessibility Skip to Main Content Link -->
+  <a href="#analyzer" class="skip-link">Skip to main content</a>
+
+<!-- Sticky Site Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="#home" class="header-brand" aria-label="PlateOD Home">
+        <svg class="logo-mark" viewBox="0 0 28 22" fill="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="27" height="21" rx="3.5" fill="#0D131B" stroke="rgba(255,255,255,0.18)"/>
+          <circle cx="5" cy="5" r="1.8" fill="#F5A524" opacity="0.95"/>
+          <circle cx="10" cy="5" r="1.8" fill="#F5A524" opacity="0.75"/>
+          <circle cx="15" cy="5" r="1.8" fill="#F5A524" opacity="0.45"/>
+          <circle cx="20" cy="5" r="1.8" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="25" cy="5" r="1.8" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="5" cy="11" r="1.8" fill="#2DD4BF" opacity="0.95"/>
+          <circle cx="10" cy="11" r="1.8" fill="#F5A524" opacity="0.85"/>
+          <circle cx="15" cy="11" r="1.8" fill="#F5A524" opacity="0.6"/>
+          <circle cx="20" cy="11" r="1.8" fill="#F5A524" opacity="0.3"/>
+          <circle cx="25" cy="11" r="1.8" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="5" cy="17" r="1.8" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="10" cy="17" r="1.8" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="15" cy="17" r="1.8" fill="#F5A524" opacity="0.5"/>
+          <circle cx="20" cy="17" r="1.8" fill="#F5A524" opacity="0.85"/>
+          <circle cx="25" cy="17" r="1.8" fill="#2DD4BF" opacity="0.85"/>
+        </svg>
+        <div class="brand-text-group">
+          <span class="brand-name">PlateOD</span>
+          <span class="brand-tagline">ELISA Plate OD Analyzer</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="site-nav" id="site-nav" aria-label="Main Navigation">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#analyzer" class="nav-link">Analyzer</a>
+        <a href="#how-it-works" class="nav-link">How it works</a>
+        <a href="#assays" class="nav-link">Assays</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </nav>
+
+      <!-- Header Actions: Theme Toggle, Server Status, Mobile Hamburger -->
+      <div class="header-actions">
+        <!-- Theme Switcher (Light / Dark / System) -->
+        <div class="theme-switch" role="group" aria-label="Theme mode switcher">
+          <button type="button" class="theme-btn" data-theme-val="light" title="Light mode" aria-label="Light mode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+          <button type="button" class="theme-btn active" data-theme-val="dark" title="Dark mode" aria-label="Dark mode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          <button type="button" class="theme-btn" data-theme-val="system" title="System preference" aria-label="System preference">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Server Status Chip -->
+        <div class="status-chip online" id="server-status" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span class="status-text">Connected</span>
+        </div>
+
+        <!-- Mobile Navigation Toggle -->
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Menu Dropdown -->
+    <div class="mobile-nav" id="mobile-nav" hidden>
+      <a href="#home" class="nav-link active">Home</a>
+      <a href="#analyzer" class="nav-link">Analyzer</a>
+      <a href="#how-it-works" class="nav-link">How it works</a>
+      <a href="#assays" class="nav-link">Assays</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+    </div>
+  </header>
+
+  <!-- Main Application Content -->
+  <div class="content-wrapper">
+
+    <!-- 1. HERO (Home) -->
+    <section class="hero-section reveal" id="home" aria-labelledby="hero-heading">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>Scientific Optical Density Quantification</span>
+        </div>
+        <h1 id="hero-heading" class="hero-title">From plate photo to optical density in seconds</h1>
+        <p class="hero-subheading">Photograph a 96-well ELISA plate, place the grid, get blank-referenced OD, PP or PI and classification.</p>
+        <div class="hero-actions">
+          <a href="#analyzer" class="btn btn-primary hero-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Open analyzer
+          </a>
+          <a href="#how-it-works" class="btn btn-secondary hero-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            How it works
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="plate-illust-container">
+<svg class="hero-plate-svg" viewBox="0 0 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Animated 96-well microplate illustration">
+  <!-- Plate Base with standard A1 notched corner -->
+  <rect x="12" y="12" width="496" height="336" rx="16" fill="var(--card-bg)" stroke="var(--card-border)" stroke-width="2"/>
+  <rect x="24" y="24" width="472" height="312" rx="12" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+  <!-- Column Labels (1-12) -->
+  <text x="72" y="48" text-anchor="middle" class="plate-illust-label">1</text>
+  <text x="107" y="48" text-anchor="middle" class="plate-illust-label">2</text>
+  <text x="142" y="48" text-anchor="middle" class="plate-illust-label">3</text>
+  <text x="177" y="48" text-anchor="middle" class="plate-illust-label">4</text>
+  <text x="212" y="48" text-anchor="middle" class="plate-illust-label">5</text>
+  <text x="247" y="48" text-anchor="middle" class="plate-illust-label">6</text>
+  <text x="282" y="48" text-anchor="middle" class="plate-illust-label">7</text>
+  <text x="317" y="48" text-anchor="middle" class="plate-illust-label">8</text>
+  <text x="352" y="48" text-anchor="middle" class="plate-illust-label">9</text>
+  <text x="387" y="48" text-anchor="middle" class="plate-illust-label">10</text>
+  <text x="422" y="48" text-anchor="middle" class="plate-illust-label">11</text>
+  <text x="457" y="48" text-anchor="middle" class="plate-illust-label">12</text>
+  <!-- Row Labels (A-H) -->
+  <text x="42" y="78" text-anchor="middle" class="plate-illust-label">A</text>
+  <text x="42" y="111" text-anchor="middle" class="plate-illust-label">B</text>
+  <text x="42" y="144" text-anchor="middle" class="plate-illust-label">C</text>
+  <text x="42" y="177" text-anchor="middle" class="plate-illust-label">D</text>
+  <text x="42" y="210" text-anchor="middle" class="plate-illust-label">E</text>
+  <text x="42" y="243" text-anchor="middle" class="plate-illust-label">F</text>
+  <text x="42" y="276" text-anchor="middle" class="plate-illust-label">G</text>
+  <text x="42" y="309" text-anchor="middle" class="plate-illust-label">H</text>
+  <!-- 96 Well Cavities -->
+  <circle cx="72" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:0;" />
+  <circle cx="107" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:1;" />
+  <circle cx="142" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:2;" />
+  <circle cx="177" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:3;" />
+  <circle cx="212" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:4;" />
+  <circle cx="247" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:5;" />
+  <circle cx="282" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:6;" />
+  <circle cx="317" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:7;" />
+  <circle cx="352" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:8;" />
+  <circle cx="387" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:9;" />
+  <circle cx="422" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:10;" />
+  <circle cx="457" cy="74" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:11;" />
+  <circle cx="72" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:0;" />
+  <circle cx="107" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:1;" />
+  <circle cx="142" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:2;" />
+  <circle cx="177" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:3;" />
+  <circle cx="212" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:4;" />
+  <circle cx="247" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:5;" />
+  <circle cx="282" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:6;" />
+  <circle cx="317" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:7;" />
+  <circle cx="352" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:8;" />
+  <circle cx="387" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:9;" />
+  <circle cx="422" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:10;" />
+  <circle cx="457" cy="107" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:11;" />
+  <circle cx="72" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:0;" />
+  <circle cx="107" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:1;" />
+  <circle cx="142" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:2;" />
+  <circle cx="177" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:3;" />
+  <circle cx="212" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:4;" />
+  <circle cx="247" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:5;" />
+  <circle cx="282" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:6;" />
+  <circle cx="317" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:7;" />
+  <circle cx="352" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:8;" />
+  <circle cx="387" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:9;" />
+  <circle cx="422" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:10;" />
+  <circle cx="457" cy="140" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:11;" />
+  <circle cx="72" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:0;" />
+  <circle cx="107" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:1;" />
+  <circle cx="142" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:2;" />
+  <circle cx="177" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:3;" />
+  <circle cx="212" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:4;" />
+  <circle cx="247" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:5;" />
+  <circle cx="282" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:6;" />
+  <circle cx="317" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:7;" />
+  <circle cx="352" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:8;" />
+  <circle cx="387" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:9;" />
+  <circle cx="422" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:10;" />
+  <circle cx="457" cy="173" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:11;" />
+  <circle cx="72" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:0;" />
+  <circle cx="107" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:1;" />
+  <circle cx="142" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:2;" />
+  <circle cx="177" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:3;" />
+  <circle cx="212" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:4;" />
+  <circle cx="247" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:5;" />
+  <circle cx="282" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:6;" />
+  <circle cx="317" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:7;" />
+  <circle cx="352" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:8;" />
+  <circle cx="387" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:9;" />
+  <circle cx="422" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:10;" />
+  <circle cx="457" cy="206" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:11;" />
+  <circle cx="72" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:0;" />
+  <circle cx="107" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:1;" />
+  <circle cx="142" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:2;" />
+  <circle cx="177" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:3;" />
+  <circle cx="212" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:4;" />
+  <circle cx="247" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:5;" />
+  <circle cx="282" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:6;" />
+  <circle cx="317" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:7;" />
+  <circle cx="352" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:8;" />
+  <circle cx="387" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:9;" />
+  <circle cx="422" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:10;" />
+  <circle cx="457" cy="239" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:11;" />
+  <circle cx="72" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:0;" />
+  <circle cx="107" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:1;" />
+  <circle cx="142" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:2;" />
+  <circle cx="177" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:3;" />
+  <circle cx="212" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:4;" />
+  <circle cx="247" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:5;" />
+  <circle cx="282" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:6;" />
+  <circle cx="317" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:7;" />
+  <circle cx="352" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:8;" />
+  <circle cx="387" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:9;" />
+  <circle cx="422" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:10;" />
+  <circle cx="457" cy="272" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:11;" />
+  <circle cx="72" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="72" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:0;" />
+  <circle cx="107" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="107" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:1;" />
+  <circle cx="142" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="142" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:2;" />
+  <circle cx="177" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="177" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:3;" />
+  <circle cx="212" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="212" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:4;" />
+  <circle cx="247" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="247" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:5;" />
+  <circle cx="282" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="282" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:6;" />
+  <circle cx="317" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="317" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:7;" />
+  <circle cx="352" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="352" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:8;" />
+  <circle cx="387" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="387" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:9;" />
+  <circle cx="422" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="422" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:10;" />
+  <circle cx="457" cy="305" r="14" class="plate-illust-rim" />
+  <circle cx="457" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:11;" />
+</svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TRUST STRIP -->
+    <section class="trust-strip-section reveal" aria-label="Key Capabilities">
+      <div class="trust-card">
+        <div class="trust-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </div>
+        <div class="trust-text">
+          <div class="trust-title">96 wells in one image</div>
+          <div class="trust-desc">Automated parallel ROI extraction from a single overhead capture</div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="trust-text">
+          <div class="trust-title">Perspective-correct grid</div>
+          <div class="trust-desc">4-corner projective homography rectifies angled captures</div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 9l-5 5-4-4-3 3"></path>
+          </svg>
+        </div>
+        <div class="trust-text">
+          <div class="trust-title">sRGB linearised OD</div>
+          <div class="trust-desc">Gamma-corrected blank-subtracted absorbance with transmittance math</div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <polyline points="9 12 11 14 15 10"></polyline>
+          </svg>
+        </div>
+        <div class="trust-text">
+          <div class="trust-title">Built-in QC checks</div>
+          <div class="trust-desc">Automated validation for blank brightness, control separation &amp; CV</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYZER APPLICATION WORKBENCH -->
+    <div id="analyzer" class="analyzer-section">
+      <main>
+        <!-- LEFT PANEL: Sticky Numbered Stepper Workspace -->
+        <aside class="stepper-aside" aria-label="Analysis Configuration Stepper">
+          <h2 class="sr-only">Analysis Parameters</h2>
+          <!-- Step 1: Plate and image -->
+          <details open class="card step-card" id="step-card-1">
+            <summary class="step-summary">
+              <div class="step-header-left">
+                <span class="step-badge" id="step-badge-1">1</span>
+                <span class="step-title">Plate and image</span>
+              </div>
+              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="step-body">
+              <div class="form-group">
+                <label for="file">Plate photo</label>
+                <input id="file" type="file" accept="image/*">
+                <span class="field-hint">Select stopped ELISA photograph</span>
+              </div>
+
+              <div class="row">
+                <div class="form-group">
+                  <label for="rows">Rows</label>
+                  <input id="rows" type="number" min="2" max="16" value="8">
+                  <span class="field-hint">Standard: 8 (A–H)</span>
+                </div>
+                <div class="form-group">
+                  <label for="cols">Columns</label>
+                  <input id="cols" type="number" min="2" max="24" value="12">
+                  <span class="field-hint">Standard: 12 (1–12)</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="slider-label-row">
+                  <label for="radius">ROI radius (× well pitch)</label>
+                  <b id="rv" class="slider-bubble">0.28</b>
+                </div>
+                <input id="radius" type="range" min="0.1" max="0.45" step="0.01" value="0.28">
+                <span class="field-hint">Well sampling radius (default: 0.28)</span>
+              </div>
+            </div>
+          </details>
+
+          <!-- Assay Protocol Card -->
+          <div class="card assay-picker-card" id="card-assay" hidden>
+            <div class="assay-card-header">
+              <div class="assay-card-title">
+                <span class="step-badge star-badge">★</span>
+                <h3>Assay type</h3>
+              </div>
+              <span id="badge-customised" class="badge-customised" hidden>Customised</span>
+            </div>
+            <p class="field-hint" style="margin: 4px 0 10px;">Select protocol to populate control wells and diagnostic threshold.</p>
+            <div class="segmented-control" id="assay-selector" role="radiogroup" aria-label="Assay type selection">
+              <button type="button" class="seg-btn" id="btn-assay-spce" role="radio" aria-checked="false">SPCE</button>
+              <button type="button" class="seg-btn" id="btn-assay-diva" role="radio" aria-checked="false">DIVA</button>
+            </div>
+            <div id="assay-info" class="assay-info" hidden></div>
+          </div>
+
+          <!-- Step 2: Well roles -->
+          <details open class="card step-card" id="step-roles">
+            <summary class="step-summary">
+              <div class="step-header-left">
+                <span class="step-badge" id="step-badge-2">2</span>
+                <span class="step-title">Well roles</span>
+              </div>
+              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="step-body">
+              <div class="roles-subbar">
+                <span class="field-hint" style="margin:0">Ranges: <code>E1-H1</code>, <code>A1,A2</code></span>
+                <label class="check-label" for="customise-wells" style="margin:0; font-size:12px; font-weight:600">
+                  <input type="checkbox" id="customise-wells"> Customise wells
+                </label>
+              </div>
+
+              <div class="form-group" id="pos-wrap">
+                <label for="pos">Positive control wells</label>
+                <input id="pos" value="A1-B1" readonly>
+                <div class="field-error" id="pos-err" hidden>Invalid well format (e.g. A1, A1-B2)</div>
+                <span class="field-hint">High OD reference wells (PP mode)</span>
+              </div>
+
+              <div class="form-group" id="neg-wrap">
+                <label for="neg">Negative control wells</label>
+                <input id="neg" value="C1-D1" readonly>
+                <div class="field-error" id="neg-err" hidden>Invalid well format (e.g. C1-D1)</div>
+                <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA</span>
+              </div>
+
+              <div class="form-group" id="blank-wrap">
+                <label for="blank">Blank wells (substrate only / empty)</label>
+                <input id="blank" value="E1-H1" readonly>
+                <div class="field-error" id="blank-err" hidden>Invalid well format (e.g. E1-H1)</div>
+                <span class="field-hint">Substrate reference wells for optical baseline</span>
+              </div>
+            </div>
+          </details>
+
+          <!-- Step 3: Measurement -->
+          <details open class="card step-card" id="step-card-3">
+            <summary class="step-summary">
+              <div class="step-header-left">
+                <span class="step-badge" id="step-badge-3">3</span>
+                <span class="step-title">Measurement</span>
+              </div>
+              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="step-body">
+              <div class="row">
+                <div class="form-group">
+                  <label for="channel">Channel</label>
+                  <select id="channel">
+                    <option value="B">B (450 nm yellow)</option>
+                    <option value="G">G (broad range)</option>
+                    <option value="GRAY">GRAY (luminance)</option>
+                    <option value="R">R (red channel)</option>
+                  </select>
+                  <span class="field-hint">Absorbance wavelength</span>
+                </div>
+                <div class="form-group">
+                  <label for="dark">Dark level (0–100)</label>
+                  <input id="dark" type="number" min="0" max="100" value="0">
+                  <span class="field-hint">Sensor dark baseline</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="check-label" for="lin">
+                  <input id="lin" type="checkbox" checked>
+                  Linearise sRGB (recommended)
+                </label>
+              </div>
+
+              <div class="row">
+                <div class="form-group">
+                  <label for="mode">Assay mode</label>
+                  <select id="mode">
+                    <option value="PP">PP – indirect</option>
+                    <option value="PI">PI – competitive</option>
+                  </select>
+                  <span class="field-hint">Diagnostic calculation</span>
+                </div>
+                <div class="form-group">
+                  <label for="cutoff">Cutoff (%)</label>
+                  <input id="cutoff" type="number" step="any" value="40">
+                  <span class="field-hint">Diagnostic threshold</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="cutlow">Doubtful lower cutoff (optional)</label>
+                <input id="cutlow" type="number" step="any" placeholder="none">
+                <span class="field-hint">Borderline gray-zone limit</span>
+              </div>
+            </div>
+          </details>
+
+          <!-- Step 4: Calibration -->
+          <details open class="card step-card" id="step-card-4">
+            <summary class="step-summary">
+              <div class="step-header-left">
+                <span class="step-badge" id="step-badge-4">4</span>
+                <span class="step-title">Calibration</span>
+              </div>
+              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="step-body">
+              <div class="row">
+                <div class="form-group">
+                  <label for="slope">Slope</label>
+                  <input id="slope" type="number" step="any" value="1">
+                  <span class="field-hint">Scale factor (m)</span>
+                </div>
+                <div class="form-group">
+                  <label for="icpt">Intercept</label>
+                  <input id="icpt" type="number" step="any" value="0">
+                  <span class="field-hint">Offset constant (c)</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="reader">Plate-reader ODs (A1,0.123 per line, or a rows×cols grid)</label>
+                <textarea id="reader" placeholder="A1, 0.123&#10;A2, 0.456"></textarea>
+                <span class="field-hint">Reference spectrophotometer values</span>
+              </div>
+
+              <button type="button" class="sec" id="fit" style="width:100%; margin-top:4px">Fit slope from reader</button>
+              <p class="hint" id="fitnote"></p>
+            </div>
+          </details>
+
+          <!-- Full-width gradient Run button with spinner support -->
+          <button id="run" class="btn-run-full" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>Run analysis</span>
+          </button>
+        </aside>
+
+        <!-- RIGHT PANEL: Image Dropzone & Interactive Grid Canvas -->
+        <section class="workbench-main">
+          <div class="card grid-card">
+            <div class="grid-card-header">
+              <div class="grid-header-left">
+                <h2>1 · Place the grid</h2>
+                <p class="hint" style="margin: 0 0 4px;">Drag the four corner handles onto corner wells (A1, A12, H12, H1). Click a handle to nudge with arrow keys (Shift for 10px).</p>
+              </div>
+
+              <div class="grid-toolbar">
+                <div class="zoom-controls" role="group" aria-label="Canvas zoom levels">
+                  <button type="button" class="sec btn-xs zoom-btn active" data-zoom="1" id="zoom-100" title="100% Zoom">100%</button>
+                  <button type="button" class="sec btn-xs zoom-btn" data-zoom="1.5" id="zoom-150" title="150% Zoom">150%</button>
+                  <button type="button" class="sec btn-xs zoom-btn" data-zoom="2" id="zoom-200" title="200% Zoom">200%</button>
+                </div>
+                <div class="toolbar-sep"></div>
+                <button type="button" class="sec btn-xs" id="btn-reset-grid" title="Reset corners to default position">Reset grid</button>
+                <button type="button" class="sec btn-xs" id="btn-fit-grid" title="Fit corners to image edges">Fit to image</button>
+                <button type="button" class="sec btn-xs" id="btn-toggle-circles" title="Toggle visibility of measurement circles">Hide circles</button>
+              </div>
+            </div>
+
+            <!-- Toolbar & Readout Strip -->
+            <div class="grid-readout-strip" id="grid-readout">
+              <span class="readout-tag" id="readout-dims">8 × 12 plate</span>
+              <span class="readout-sep">•</span>
+              <span class="readout-tag" id="readout-radius">ROI radius: –</span>
+              <span class="readout-sep">•</span>
+              <span class="readout-tag readout-handle" id="readout-handle">Click a corner handle to nudge</span>
+            </div>
+
+            <!-- File Name / Size Chip (revealed once photo loaded) -->
+            <div id="file-chip" class="file-chip" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span id="file-chip-name" class="file-chip-name">plate.jpg</span>
+              <span id="file-chip-size" class="file-chip-size"></span>
+              <button type="button" id="btn-change-file" class="file-chip-change-btn">Change photo</button>
+            </div>
+
+            <!-- Canvas Stage & Dropzone -->
+            <div id="stage">
+              <div id="ph" class="dropzone-box">
+                <div class="drop-icon-box">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                </div>
+                <span class="drop-primary-txt">Drop a plate photo or click to browse</span>
+                <span class="drop-sub-txt">Supports JPG, PNG, TIFF, WebP up to 80 MB</span>
+              </div>
+              <canvas id="cv" hidden tabindex="0" role="img" aria-label="Interactive plate grid canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Persistent Problems Card Container -->
+          <div id="banner"></div>
+
+          <!-- Results Section with Dashboard Header & Actions -->
+          <div class="card results-dashboard-card" id="results" hidden>
+            <div class="results-header-row">
+              <div class="results-header-left">
+                <h2 class="results-title">2 · Results</h2>
+                <div class="qc-status-pill qc-pass" id="qc-pill">
+                  <span class="qc-dot"></span>
+                  <span id="qc-pill-text">PASS</span>
+                </div>
+                <div class="results-meta-tag">
+                  <span class="meta-label">Protocol:</span>
+                  <span class="meta-val" id="results-meta-assay">SPCE</span>
+                </div>
+                <div class="results-meta-tag">
+                  <span class="meta-label">Run:</span>
+                  <span class="meta-val" id="results-meta-time">--:--:--</span>
+                </div>
+              </div>
+              <div class="results-header-actions">
+                <button class="sec btn-action" id="csv" title="Download CSV">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download CSV</span>
+                </button>
+                <button type="button" class="sec btn-action" id="btn-print-report" title="Print laboratory report">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                  <span>Print report</span>
+                </button>
+                <button type="button" class="sec btn-action" id="btn-rerun" title="Re-run analysis">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                  <span>Re-run</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="cards kpi-cards-grid" id="stats"></div>
+            <div id="reference-panel" hidden></div>
+            <div id="summary-strip"></div>
+            <div class="tabs accessible-tabs" id="tabs"></div>
+            <div id="view"></div>
+            <div id="print-bundle" class="print-view-bundle"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- 3. HOW IT WORKS TIMELINE -->
+    <section id="how-it-works" class="info-section reveal" aria-labelledby="how-heading">
+      <div class="section-header-block">
+        <span class="section-eyebrow">Methodology</span>
+        <h2 id="how-heading" class="info-section-title">How it works</h2>
+        <p class="info-section-desc">PlateOD executes an automated analytical pipeline that takes raw photographic captures to calibrated diagnostic results in four steps.</p>
+      </div>
+
+      <div class="timeline-container">
+        <div class="timeline-step">
+          <div class="step-indicator">
+            <div class="step-num">1</div>
+            <div class="step-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 class="timeline-title">Photograph</h3>
+            <p class="timeline-text">Capture a well-lit, overhead photo of your stopped microtitre plate under diffuse illumination.</p>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="step-indicator">
+            <div class="step-num">2</div>
+            <div class="step-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="22" y1="12" x2="18" y2="12"></line>
+                <line x1="6" y1="12" x2="2" y2="12"></line>
+                <line x1="12" y1="6" x2="12" y2="2"></line>
+                <line x1="12" y1="22" x2="12" y2="18"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 class="timeline-title">Place grid</h3>
+            <p class="timeline-text">Drag the four corner handles over wells A1, A12, H12, and H1 to set the perspective grid.</p>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="step-indicator">
+            <div class="step-num">3</div>
+            <div class="step-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 class="timeline-title">Set controls</h3>
+            <p class="timeline-text">Select an assay preset (SPCE or DIVA) or configure custom blank and control well locations.</p>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="step-indicator">
+            <div class="step-num">4</div>
+            <div class="step-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 class="timeline-title">Read results</h3>
+            <p class="timeline-text">Inspect calibrated OD heatmaps, positivity/inhibition ratios, and export CSV audit reports.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. ASSAYS SECTION -->
+    <section id="assays" class="info-section reveal" aria-labelledby="assays-heading">
+      <div class="section-header-block">
+        <span class="section-eyebrow">Protocols</span>
+        <h2 id="assays-heading" class="info-section-title">Supported Assays &amp; Standards</h2>
+        <p class="info-section-desc">Built-in protocol configurations adhering to international diagnostic guidelines, with verified well mappings, mathematical formulas, and automatic validation.</p>
+      </div>
+
+      <div class="assay-cards-grid">
+        <!-- SPCE Card -->
+        <div class="assay-protocol-card">
+          <div class="protocol-card-header">
+            <div class="protocol-badge-group">
+              <span class="protocol-pill spce-pill">Competitive ELISA</span>
+              <span class="protocol-mode-tag">PI Mode</span>
+            </div>
+            <h3 class="protocol-name">SPCE (Solid Phase Competition)</h3>
+            <p class="protocol-subtitle">Percentage inhibition protocol for competitive antibody detection.</p>
+          </div>
+
+          <div class="formula-box" aria-label="SPCE Formula">
+            <div class="formula-label">Calculation Formula</div>
+            <code class="formula-code">PI (%) = 100 × [ 1 − (OD<sub>sample</sub> / OD<sub>max</sub>) ]</code>
+          </div>
+
+          <div class="protocol-specs">
+            <div class="spec-row">
+              <span class="spec-label">Antigen (max-signal) wells</span>
+              <span class="spec-value"><code>A1–A4</code> (uninhibited maximum signal)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Substrate blank wells</span>
+              <span class="spec-value"><code>A5–A6</code> (empty / clear substrate)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Positive control</span>
+              <span class="spec-value">Optional (none required by protocol)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Diagnostic Cutoff</span>
+              <span class="spec-value"><strong>50.0%</strong> inhibition (≥ 50% = Positive)</span>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary preset-act-btn" data-preset="SPCE">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            Use this preset
+          </button>
+        </div>
+
+        <!-- DIVA Card -->
+        <div class="assay-protocol-card">
+          <div class="protocol-card-header">
+            <div class="protocol-badge-group">
+              <span class="protocol-pill diva-pill">Differential ELISA</span>
+              <span class="protocol-mode-tag">PP Mode</span>
+            </div>
+            <h3 class="protocol-name">DIVA (Differential / Indirect)</h3>
+            <p class="protocol-subtitle">Percentage positivity protocol differentiating infected from vaccinated animals.</p>
+          </div>
+
+          <div class="formula-box" aria-label="DIVA Formula">
+            <div class="formula-label">Calculation Formula</div>
+            <code class="formula-code">PP (%) = 100 × [ (OD<sub>sample</sub> − OD<sub>neg</sub>) / (OD<sub>pos</sub> − OD<sub>neg</sub>) ]</code>
+          </div>
+
+          <div class="protocol-specs">
+            <div class="spec-row">
+              <span class="spec-label">Positive control wells</span>
+              <span class="spec-value"><code>H7–H8</code> (strongly positive reference)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Negative control wells</span>
+              <span class="spec-value"><code>H9–H10</code> (negative serum reference)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Substrate blank wells</span>
+              <span class="spec-value"><code>H11–H12</code> (substrate baseline)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Diagnostic Cutoff</span>
+              <span class="spec-value"><strong>40.0%</strong> positivity (≥ 40% = Positive)</span>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary preset-act-btn" data-preset="DIVA">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            Use this preset
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. PHOTO TIPS SECTION -->
+    <section id="photo-tips" class="info-section reveal" aria-labelledby="tips-heading">
+      <div class="photo-tips-card">
+        <div class="tips-header">
+          <div class="tips-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </div>
+          <div>
+            <h2 id="tips-heading" class="tips-title">Plate Photography Best Practices</h2>
+            <p class="tips-subtitle">Follow these laboratory imaging guidelines for maximum quantitative photometric accuracy.</p>
+          </div>
+        </div>
+
+        <div class="tips-grid">
+          <div class="tip-item">
+            <div class="tip-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="tip-body">
+              <strong>Straight-down shot</strong>
+              <span>Hold the camera perpendicular (90°) directly above the plate to eliminate perspective parallax and sidewall shadowing.</span>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <div class="tip-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="tip-body">
+              <strong>Light box or diffuse illumination</strong>
+              <span>Place the plate on a uniform white light box or use diffuse ambient daylight. Avoid harsh single-point ceiling lights.</span>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <div class="tip-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="tip-body">
+              <strong>Locked exposure &amp; white balance</strong>
+              <span>Lock auto-exposure (AE/AF lock) and disable computational HDR on your phone to prevent per-shot brightness drift.</span>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <div class="tip-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="tip-body">
+              <strong>Avoid meniscus glare</strong>
+              <span>Tap the plate gently to dislodge air bubbles. Ensure reflections from overhead lamps do not fall on the liquid menisci.</span>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <div class="tip-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="tip-body">
+              <strong>Use PNG or original camera file</strong>
+              <span>Upload uncompressed PNGs or original camera JPEGs. Avoid transferring images through WhatsApp or messaging apps that compress files.</span>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <div class="tip-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="tip-body">
+              <strong>Keep blank wells in frame</strong>
+              <span>Always include designated substrate/empty blank wells in the photograph under identical lighting for blank-referencing.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. ACCESSIBLE FAQ ACCORDION -->
+    <section id="faq" class="info-section reveal" aria-labelledby="faq-heading">
+      <div class="section-header-block">
+        <span class="section-eyebrow">Knowledge Base</span>
+        <h2 id="faq-heading" class="info-section-title">Frequently Asked Questions</h2>
+        <p class="info-section-desc">Common technical questions regarding optical density calculations, quality control checks, and photometric imaging.</p>
+      </div>
+
+      <div class="faq-accordion" role="region" aria-label="Frequently Asked Questions Accordion">
+        <!-- Q1 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="faq-btn-1" aria-expanded="false" aria-controls="faq-panel-1">
+            <span class="accordion-question">Why is my OD 0?</span>
+            <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="accordion-panel" id="faq-panel-1" role="region" aria-labelledby="faq-btn-1" hidden>
+            <div class="accordion-body">
+              <p>Optical density is calculated relative to your blank wells using the transmittance equation: <code>OD = −log₁₀(I_sample / I_blank)</code>. When a well has an intensity equal to or higher than the blank wells (i.e. It is as bright as or brighter than the blank), absorbance calculates to 0.000.</p>
+              <p>Verify that your designated blank wells contain clear, unreacted substrate rather than colored chromogen or high-concentration sample.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="faq-btn-2" aria-expanded="false" aria-controls="faq-panel-2">
+            <span class="accordion-question">Which colour channel should I use?</span>
+            <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="accordion-panel" id="faq-panel-2" role="region" aria-labelledby="faq-btn-2" hidden>
+            <div class="accordion-body">
+              <p>For standard stopped TMB assays (yellow chromogen absorbing at 450 nm), the <strong>Blue channel (B)</strong> provides the greatest dynamic range and highest sensitivity because yellow absorbs complementary blue light strongly.</p>
+              <p>If high-concentration wells saturate the blue channel (near 0 pixel intensity), switch to the <strong>Green channel (G)</strong> or <strong>GRAY (luminance)</strong> for extended dynamic range.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="faq-btn-3" aria-expanded="false" aria-controls="faq-panel-3">
+            <span class="accordion-question">Why did QC fail?</span>
+            <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="accordion-panel" id="faq-panel-3" role="region" aria-labelledby="faq-btn-3" hidden>
+            <div class="accordion-body">
+              <p>The built-in Quality Control engine flags runs whenever physical or logical assay rules are violated:</p>
+              <ul>
+                <li><strong>Blank intensity too low:</strong> If blank wells are darker than samples, transmittance math fails.</li>
+                <li><strong>Controls inverted or swapped:</strong> In DIVA/PP assays, positive control OD must exceed negative control OD by at least 0.15 OD.</li>
+                <li><strong>Low signal in antigen control:</strong> In SPCE/PI assays, max-signal antigen wells must exhibit minimum OD ≥ 0.05.</li>
+                <li><strong>High replicate CV:</strong> If control replicates differ significantly, check for meniscus bubbles or pipette volume variation.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="faq-btn-4" aria-expanded="false" aria-controls="faq-panel-4">
+            <span class="accordion-question">What is the difference between PP and PI?</span>
+            <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="accordion-panel" id="faq-panel-4" role="region" aria-labelledby="faq-btn-4" hidden>
+            <div class="accordion-body">
+              <p><strong>Percentage Positivity (PP)</strong> is used in indirect and sandwich ELISAs where optical density scales proportionally with antibody presence. Samples are scored against positive and negative reference controls.</p>
+              <p><strong>Percentage Inhibition (PI)</strong> is used in competitive and blocking ELISAs. Higher sample antibody concentrations block tracer binding, reducing signal relative to the uninhibited antigen control.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="faq-btn-5" aria-expanded="false" aria-controls="faq-panel-5">
+            <span class="accordion-question">Can I trust image OD?</span>
+            <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="accordion-panel" id="faq-panel-5" role="region" aria-labelledby="faq-btn-5" hidden>
+            <div class="accordion-body">
+              <p>Image OD provides reliable screening and relative discrimination (ranking, cutoff classification, % positivity) under controlled diffuse lighting.</p>
+              <p>For absolute quantitative concordance with microplate readers, use Step 4 (<strong>Fit from reader</strong>) to calibrate linear slope and intercept values against reference reader measurements, compensating for camera gamma and sensor spectral curves.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="faq-btn-6" aria-expanded="false" aria-controls="faq-panel-6">
+            <span class="accordion-question">What file types work?</span>
+            <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="accordion-panel" id="faq-panel-6" role="region" aria-labelledby="faq-btn-6" hidden>
+            <div class="accordion-body">
+              <p>PlateOD supports <strong>PNG, JPEG, TIFF, and WebP</strong> images up to 80 MB. All processing occurs locally on your machine.</p>
+              <p>Lossless 24-bit PNG or original camera JPEG files without aggressive post-processing offer optimal color depth for optical density quantification.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<!-- Lightbox Modal -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Annotated plate full view modal" hidden>
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close lightbox">&times;</button>
+    <img id="lightbox-img" class="lightbox-img" src="" alt="Annotated Plate Full View">
+  </div>
+
+  <!-- Floating Heatmap Tooltip -->
+  <div id="heat-tooltip" class="heat-tooltip"></div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>About PlateOD</h4>
+          <p>A specialized computer-vision analysis workbench developed for blank-referenced optical density quantification and quality control of 96-well microtitre plates.</p>
+          <p>Built for offline, reliable analytical workflows with instant automated QA validation.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul class="footer-links">
+            <li><a href="#analyzer">Interactive Analyzer</a></li>
+            <li><a href="#how-it-works">Image Processing Pipeline</a></li>
+            <li><a href="#assays">Preset Specifications</a></li>
+            <li><a href="#faq">Best Practices &amp; FAQ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Notice</h4>
+          <div class="notice-box">
+            <strong>Important Regulatory Notice</strong>
+            For research and educational use. Not a diagnostic device. Always validate results against a plate reader.
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 PlateOD Laboratory Systems. All rights reserved.</span>
+        <span>Version 2.4 · Offline Scientific Edition</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+<div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+</body>
+</html>
