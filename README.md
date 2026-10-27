@@ -13,7 +13,7 @@ Plate photo -> linearised, blank-referenced OD -> PP (indirect) or PI (competiti
 1. Upload the plate photo.
 2. Drag the 4 orange handles onto the centres of A1, A12, H12, H1. Green circles = measured areas.
 3. Set Positive / Negative / **Blank** wells to match your plate map (blank = substrate only or empty wells).
-4. Pick channel B (G if wells are very dark), mode PP or PI (SPCE = PI), cutoff. Run.
+4. Pick channel B (492 nm filter; G if wells are very dark), mode PP or PI (SPCE = PI), cutoff. Run.
 5. Optional: paste plate-reader ODs and press "Fit slope from reader" to calibrate.
 
 ## QC rules (the run is marked FAIL and nothing is classified when violated)
