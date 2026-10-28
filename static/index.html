@@ -45,7 +45,9 @@
         <a href="#analyzer" class="nav-link">Analyzer</a>
         <a href="#how-it-works" class="nav-link">How it works</a>
         <a href="#assays" class="nav-link">Assays</a>
-        <a href="#faq" class="nav-link">FAQ</a>
+        <a href="#batch-mode" class="nav-link">Batch mode</a>
+      <a href="#batch-mode" class="nav-link">Batch mode</a>
+      <a href="#faq" class="nav-link">FAQ</a>
       </nav>
 
       <!-- Header Actions: Theme Toggle, Server Status, Mobile Hamburger -->
@@ -102,6 +104,8 @@
       <a href="#analyzer" class="nav-link">Analyzer</a>
       <a href="#how-it-works" class="nav-link">How it works</a>
       <a href="#assays" class="nav-link">Assays</a>
+      <a href="#batch-mode" class="nav-link">Batch mode</a>
+      <a href="#batch-mode" class="nav-link">Batch mode</a>
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
   </header>
@@ -419,7 +423,12 @@
     <div id="analyzer" class="analyzer-section">
       <main>
         <!-- LEFT PANEL: Sticky Numbered Stepper Workspace -->
-        <aside class="stepper-aside" aria-label="Analysis Configuration Stepper">
+                <aside class="stepper-aside" aria-label="Analysis Configuration Stepper">
+          <div class="config-actions-strip" style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
+            <button type="button" class="sec btn-xs" id="btn-save-cfg" title="Export settings to JSON">💾 Save config</button>
+            <button type="button" class="sec btn-xs" id="btn-load-cfg" title="Import settings from JSON">📂 Load config</button>
+            <input type="file" id="cfg-file-input" accept=".json" hidden>
+          </div>
           <h2 class="sr-only">Analysis Parameters</h2>
           <!-- Step 1: Plate and image -->
           <details open class="card step-card" id="step-card-1">
@@ -532,6 +541,7 @@
                 <div class="form-group">
                   <label for="channel">Channel</label>
                   <select id="channel">
+                    <option value="AUTO">Auto (B, G, GRAY)</option>
                     <option value="B">B (492 nm)</option>
                     <option value="G">G (broad range)</option>
                     <option value="GRAY">GRAY (luminance)</option>
@@ -551,6 +561,14 @@
                   <input id="lin" type="checkbox" checked>
                   Linearise sRGB (recommended)
                 </label>
+              </div>
+
+              <div class="form-group">
+                <label class="check-label" for="chk-flat-field" style="font-weight: 600;">
+                  <input id="chk-flat-field" type="checkbox" checked>
+                  Flat-field correction (recommended)
+                </label>
+                <span class="field-hint">Compensates for uneven illumination across plate</span>
               </div>
 
               <div class="row">
@@ -595,7 +613,15 @@
               <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </summary>
             <div class="step-body">
-              <div class="row">
+              <div class="form-group" style="margin-bottom:8px;">
+                <label style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Fit model</label>
+                <div class="segmented-control" role="radiogroup" aria-label="Calibration model">
+                  <button type="button" class="seg-btn active" id="btn-cal-linear" role="radio" aria-checked="true">Linear</button>
+                  <button type="button" class="seg-btn" id="btn-cal-quad" role="radio" aria-checked="false">Quadratic</button>
+                </div>
+              </div>
+
+              <div id="linear-params" class="row">
                 <div class="form-group">
                   <label for="slope">Slope</label>
                   <input id="slope" type="number" step="any" value="1">
@@ -605,6 +631,21 @@
                   <label for="icpt">Intercept</label>
                   <input id="icpt" type="number" step="any" value="0">
                   <span class="field-hint">Offset constant (c)</span>
+                </div>
+              </div>
+
+              <div id="quad-params" class="row" hidden>
+                <div class="form-group">
+                  <label for="cal-a">a (x²)</label>
+                  <input id="cal-a" type="number" step="any" value="0">
+                </div>
+                <div class="form-group">
+                  <label for="cal-b">b (x)</label>
+                  <input id="cal-b" type="number" step="any" value="1">
+                </div>
+                <div class="form-group">
+                  <label for="cal-c">c</label>
+                  <input id="cal-c" type="number" step="any" value="0">
                 </div>
               </div>
 
@@ -625,6 +666,8 @@
               </label>
               <span class="field-hint">Quantify directly from reader ODs with 100% paper fidelity</span>
               <p class="hint" id="fitnote"></p>
+              <div id="cal-alert" class="msg warn" style="margin-top:6px; display:none;" role="alert"></div>
+              <canvas id="cal-scatter-cv" width="340" height="200" style="display:none; width:100%; border-radius:6px; margin-top:8px; background:var(--input-bg); border:1px solid var(--border-color);"></canvas>
             </div>
           </details>
 
@@ -651,6 +694,7 @@
                   <button type="button" class="sec btn-xs zoom-btn" data-zoom="2" id="zoom-200" title="200% Zoom">200%</button>
                 </div>
                 <div class="toolbar-sep"></div>
+                <button type="button" class="sec btn-xs" id="btn-auto-grid" title="Auto-detect grid corners with computer vision">✨ Auto grid</button>
                 <button type="button" class="sec btn-xs" id="btn-reset-grid" title="Reset corners to default position">Reset grid</button>
                 <button type="button" class="sec btn-xs" id="btn-fit-grid" title="Fit corners to image edges">Fit to image</button>
                 <button type="button" class="sec btn-xs" id="btn-toggle-circles" title="Toggle visibility of measurement circles">Hide circles</button>
@@ -753,6 +797,71 @@
         </section>
       </main>
     </div>
+
+    <!-- BATCH MODE SECTION -->
+    <section id="batch-mode" class="analyzer-section reveal" style="margin-top: 32px;" aria-labelledby="batch-heading">
+      <div class="card" style="padding: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+          <div>
+            <div class="hero-badge" style="margin-bottom:8px;"><span class="badge-dot"></span><span>Multi-Plate Automation</span></div>
+            <h2 id="batch-heading" style="font-size:20px; font-weight:700; margin:0 0 6px;">Batch Analysis Mode</h2>
+            <p class="hint" style="margin:0;">Upload multiple ELISA plate photographs. The active configuration (protocol, grid corners, channel, flat-field, cutoffs, calibration) will be applied across all plates.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-batch-csv" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Download Combined CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Batch Upload Box -->
+        <div id="batch-dropzone" class="dropzone-box" style="padding: 28px 16px; border-style:dashed;">
+          <input type="file" id="batch-file-input" multiple accept="image/*" style="display:none;">
+          <div class="drop-icon-box">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          </div>
+          <span class="drop-primary-txt">Select or drop multiple plate photos for batch processing</span>
+          <span class="drop-sub-txt">Process 2 to 50+ plates sequentially with unified CSV export</span>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-select-batch" style="margin-top:12px;">Choose Photos</button>
+        </div>
+
+        <!-- Batch Progress -->
+        <div id="batch-progress-wrap" style="margin-top:20px;" hidden>
+          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:6px;">
+            <span id="batch-status-text">Processing plate 1 of 5...</span>
+            <span id="batch-pct-text">20%</span>
+          </div>
+          <div style="width:100%; height:8px; background:var(--input-bg); border-radius:4px; overflow:hidden; border:1px solid var(--border-color);">
+            <div id="batch-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #F5A524, #FF7A18); transition:width 0.3s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Batch Summary Table -->
+        <div id="batch-results-wrap" style="margin-top:24px;" hidden>
+          <h3 style="font-size:15px; font-weight:700; margin-bottom:12px;">Batch Plates Summary</h3>
+          <div class="table-scroll-container">
+            <table class="data-table" id="batch-summary-table">
+              <thead>
+                <tr>
+                  <th>Plate</th>
+                  <th>Assay</th>
+                  <th>QC Status</th>
+                  <th>Positive</th>
+                  <th>Negative</th>
+                  <th>Doubtful</th>
+                  <th>Blank OD</th>
+                  <th>Delta OD</th>
+                </tr>
+              </thead>
+              <tbody id="batch-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
 
     <!-- 3. HOW IT WORKS TIMELINE -->
     <section id="how-it-works" class="info-section reveal" aria-labelledby="how-heading">

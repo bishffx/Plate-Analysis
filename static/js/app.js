@@ -788,12 +788,15 @@ const val = (id, def) => {
 
 function cfg() {
   const useReader = Boolean($("chk-use-reader") && $("chk-use-reader").checked);
+  const flatField = Boolean($("chk-flat-field") ? $("chk-flat-field").checked : true);
+  const calMode = S.calMode || "linear";
   return {
     rows: val("rows", 8),
     cols: val("cols", 12),
     radius: val("radius", 0.28),
     corners: S.corners,
     channel: $("channel").value,
+    flat_field: flatField,
     linearize: $("lin").checked,
     dark_level: val("dark", 0),
     pos: $("pos").value,
@@ -804,6 +807,10 @@ function cfg() {
     cutoff_low: val("cutlow", null),
     slope: val("slope", 1),
     intercept: val("icpt", 0),
+    cal_mode: calMode,
+    cal_a: val("cal-a", 0),
+    cal_b: val("cal-b", 1),
+    cal_c: val("cal-c", 0),
     assay: S.selectedAssay,
     blank_correction: $("blank-correction") ? $("blank-correction").checked : true,
     use_reader: useReader,
@@ -1803,4 +1810,410 @@ function showSkeletonLoading() {
     view.innerHTML = `<div class="skeleton-box" style="height: 280px; width: 100%;"></div>`;
   }
   res.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+
+/* ---------- Calibration Fit Model & Interactive Scatter Plot ---------- */
+S.calMode = "linear";
+S.lastCal = null;
+
+if ($("btn-cal-linear") && $("btn-cal-quad")) {
+  $("btn-cal-linear").onclick = () => {
+    S.calMode = "linear";
+    $("btn-cal-linear").classList.add("active");
+    $("btn-cal-linear").setAttribute("aria-checked", "true");
+    $("btn-cal-quad").classList.remove("active");
+    $("btn-cal-quad").setAttribute("aria-checked", "false");
+    if ($("linear-params")) $("linear-params").hidden = false;
+    if ($("quad-params")) $("quad-params").hidden = true;
+    if (S.lastCal) drawCalibrationPlot(S.lastCal);
+  };
+
+  $("btn-cal-quad").onclick = () => {
+    S.calMode = "quadratic";
+    $("btn-cal-quad").classList.add("active");
+    $("btn-cal-quad").setAttribute("aria-checked", "true");
+    $("btn-cal-linear").classList.remove("active");
+    $("btn-cal-linear").setAttribute("aria-checked", "false");
+    if ($("linear-params")) $("linear-params").hidden = true;
+    if ($("quad-params")) $("quad-params").hidden = false;
+    if (S.lastCal) drawCalibrationPlot(S.lastCal);
+  };
+}
+
+function drawCalibrationPlot(cal) {
+  const cv = $("cal-scatter-cv");
+  if (!cv || !cal || !cal.points || !cal.points.length) return;
+  cv.style.display = "block";
+  const ctx = cv.getContext("2d");
+  const w = cv.width, h = cv.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // Background
+  ctx.fillStyle = "rgba(13, 19, 27, 0.95)";
+  ctx.fillRect(0, 0, w, h);
+
+  const padL = 40, padR = 20, padT = 24, padB = 30;
+  const pw = w - padL - padR, ph = h - padT - padB;
+
+  const pts = cal.points;
+  const maxX = Math.max(0.5, ...pts.map(p => p.image_od || 0)) * 1.15;
+  const maxY = Math.max(0.5, ...pts.map(p => p.reader_od || 0)) * 1.15;
+
+  const toX = x => padL + (x / maxX) * pw;
+  const toY = y => padT + ph - (y / maxY) * ph;
+
+  // Grid lines
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = 0; i <= 4; i++) {
+    const xVal = (maxX / 4) * i;
+    const yVal = (maxY / 4) * i;
+    const gx = toX(xVal), gy = toY(yVal);
+    ctx.moveTo(gx, padT); ctx.lineTo(gx, padT + ph);
+    ctx.moveTo(padL, gy); ctx.lineTo(padL + pw, gy);
+  }
+  ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ph); ctx.lineTo(padL + pw, padT + ph);
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = "#A3AFBF";
+  ctx.font = "10px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Image OD", padL + pw / 2, h - 8);
+  ctx.save();
+  ctx.translate(12, padT + ph / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Reader OD", 0, 0);
+  ctx.restore();
+
+  // Fitted curve
+  const isQuad = S.calMode === "quadratic" && cal.quadratic;
+  ctx.strokeStyle = "#F5A524";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const steps = 60;
+  for (let s = 0; s <= steps; s++) {
+    const x = (maxX / steps) * s;
+    let y = 0;
+    if (isQuad) {
+      const q = cal.quadratic;
+      y = q.a * (x ** 2) + q.b * x + q.c;
+    } else {
+      y = cal.slope * x + cal.intercept;
+    }
+    const px = toX(x), py = toY(y);
+    if (s === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Data points
+  pts.forEach(p => {
+    const px = toX(p.image_od), py = toY(p.reader_od);
+    ctx.fillStyle = "rgba(45, 212, 191, 0.85)";
+    ctx.beginPath();
+    ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Fit stats header in canvas
+  ctx.fillStyle = isQuad ? "#2DD4BF" : "#F5A524";
+  ctx.font = "bold 10px system-ui, sans-serif";
+  ctx.textAlign = "right";
+  const r2Text = isQuad ? `Quad R² = ${cal.quadratic.r2.toFixed(3)}, RMSE = ${cal.quadratic.rmse.toFixed(3)}` : `Lin R² = ${cal.r2.toFixed(3)}, RMSE = ${cal.rmse.toFixed(3)}`;
+  ctx.fillText(r2Text, padL + pw, padT - 6);
+}
+
+// Intercept fit button click
+const oldFitClick = $("fit").onclick;
+$("fit").onclick = async () => {
+  const note = $("fitnote");
+  note.textContent = "";
+  if (!S.last) {
+    note.textContent = "Run the analysis first.";
+    return;
+  }
+  try {
+    const od = {};
+    S.last.wells.forEach(w => {
+      if (w.od !== null) od[w.well] = w.od;
+    });
+    const f = await api("/api/calibrate", {
+      rows: val("rows", 8),
+      cols: val("cols", 12),
+      image_od: od,
+      reader: $("reader").value
+    });
+    S.lastCal = f;
+    $("slope").value = f.slope.toFixed(4);
+    $("icpt").value = f.intercept.toFixed(4);
+    if (f.quadratic && $("cal-a") && $("cal-b") && $("cal-c")) {
+      $("cal-a").value = f.quadratic.a.toFixed(5);
+      $("cal-b").value = f.quadratic.b.toFixed(5);
+      $("cal-c").value = f.quadratic.c.toFixed(5);
+    }
+    const isQuad = S.calMode === "quadratic" && f.quadratic;
+    const r2Val = isQuad ? f.quadratic.r2 : f.r2;
+    const rmseVal = isQuad ? f.quadratic.rmse : f.rmse;
+    note.textContent = `Fitted ${isQuad ? "quadratic" : "linear"} on ${f.n} wells: R² = ${r2Val === null ? "n/a" : r2Val.toFixed(3)}, RMSE = ${rmseVal.toFixed(3)} OD. Re-running…`;
+
+    const alertBox = $("cal-alert");
+    if (alertBox) {
+      if (f.warning) {
+        alertBox.style.display = "block";
+        alertBox.textContent = f.warning;
+      } else {
+        alertBox.style.display = "none";
+      }
+    }
+    drawCalibrationPlot(f);
+    await run();
+  } catch (err) {
+    note.textContent = err.message;
+  }
+};
+
+/* ---------- Auto-detect Grid (HoughCircles + RANSAC) ---------- */
+if ($("btn-auto-grid")) {
+  $("btn-auto-grid").onclick = async e => {
+    e.stopPropagation();
+    if (!S.img) {
+      showToast("Upload a plate photo first.", "warning");
+      return;
+    }
+    const btn = $("btn-auto-grid");
+    btn.disabled = true;
+    btn.textContent = "Detecting…";
+    try {
+      const res = await api("/api/detect_grid", {
+        image_id: S.imageId,
+        image: S.dataUrl,
+        config: { rows: val("rows", 8), cols: val("cols", 12) }
+      });
+      if (res.success && res.corners) {
+        S.corners = res.corners;
+        draw();
+        refreshGrid();
+        updateLiveReadout();
+        showToast(res.message, "success");
+      } else {
+        showToast(res.message || "Low detection confidence. Corners unchanged.", "warning");
+      }
+    } catch (err) {
+      showToast("Could not auto-detect grid: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "✨ Auto grid";
+    }
+  };
+}
+
+/* ---------- Save and Load Named Configuration ---------- */
+if ($("btn-save-cfg")) {
+  $("btn-save-cfg").onclick = () => {
+    const name = prompt("Name this configuration:", (S.selectedAssay || "PlateOD") + "_Config") || "PlateOD_Config";
+    const c = cfg();
+    const payload = {
+      app: "PlateOD",
+      version: "2.0",
+      name: name,
+      saved_at: new Date().toISOString(),
+      config: c
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${name.replace(/[^a-zA-Z0-9_-]/g, "_")}.plateod.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`Configuration saved as ${a.download}`, "success");
+  };
+}
+
+if ($("btn-load-cfg") && $("cfg-file-input")) {
+  $("btn-load-cfg").onclick = () => $("cfg-file-input").click();
+  $("cfg-file-input").onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      try {
+        const data = JSON.parse(fr.result);
+        const c = data.config || data;
+        if (c.rows) $("rows").value = c.rows;
+        if (c.cols) $("cols").value = c.cols;
+        if (c.radius) { $("radius").value = c.radius; $("rv").textContent = (+c.radius).toFixed(2); }
+        if (c.channel) $("channel").value = c.channel;
+        if (c.flat_field !== undefined && $("chk-flat-field")) $("chk-flat-field").checked = Boolean(c.flat_field);
+        if (c.linearize !== undefined) $("lin").checked = Boolean(c.linearize);
+        if (c.dark_level !== undefined) $("dark").value = c.dark_level;
+        if (c.pos !== undefined) $("pos").value = c.pos;
+        if (c.neg !== undefined) $("neg").value = c.neg;
+        if (c.blank !== undefined) $("blank").value = c.blank;
+        if (c.mode) $("mode").value = c.mode;
+        if (c.cutoff !== undefined) $("cutoff").value = c.cutoff;
+        if (c.cutoff_low !== undefined) $("cutlow").value = c.cutoff_low || "";
+        if (c.slope !== undefined) $("slope").value = c.slope;
+        if (c.intercept !== undefined) $("icpt").value = c.intercept;
+        if (c.cal_mode && c.cal_mode === "quadratic") {
+          if ($("btn-cal-quad")) $("btn-cal-quad").click();
+          if (c.cal_a !== undefined) $("cal-a").value = c.cal_a;
+          if (c.cal_b !== undefined) $("cal-b").value = c.cal_b;
+          if (c.cal_c !== undefined) $("cal-c").value = c.cal_c;
+        } else if ($("btn-cal-linear")) {
+          $("btn-cal-linear").click();
+        }
+        if (c.blank_correction !== undefined && $("blank-correction")) $("blank-correction").checked = Boolean(c.blank_correction);
+        if (c.corners && Array.isArray(c.corners) && c.corners.length === 4) {
+          S.corners = c.corners;
+        }
+        if (c.assay && S.presets && S.presets[c.assay]) {
+          selectAssay(c.assay);
+        }
+        if (S.img) {
+          draw();
+          refreshGrid();
+          updateLiveReadout();
+        }
+        showToast(`Configuration loaded: ${data.name || f.name}`, "success");
+      } catch (err) {
+        showToast("Could not load config file: " + err.message, "error");
+      }
+      $("cfg-file-input").value = "";
+    };
+    fr.readAsText(f);
+  };
+}
+
+/* ---------- Batch Mode Controller ---------- */
+let batchResults = [];
+const batchInput = $("batch-file-input");
+const batchDrop = $("batch-dropzone");
+const batchSelectBtn = $("btn-select-batch");
+const batchCsvBtn = $("btn-batch-csv");
+
+if (batchSelectBtn && batchInput) {
+  batchSelectBtn.onclick = () => batchInput.click();
+}
+if (batchDrop) {
+  ["dragenter", "dragover"].forEach(evt => batchDrop.addEventListener(evt, e => { e.preventDefault(); batchDrop.classList.add("dragover"); }));
+  ["dragleave", "drop"].forEach(evt => batchDrop.addEventListener(evt, e => { e.preventDefault(); batchDrop.classList.remove("dragover"); }));
+  batchDrop.addEventListener("drop", e => {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length > 0) {
+      runBatch(Array.from(files));
+    }
+  });
+}
+if (batchInput) {
+  batchInput.onchange = e => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) runBatch(files);
+  };
+}
+
+async function runBatch(files) {
+  if (!files.length) return;
+  $("batch-progress-wrap").hidden = false;
+  $("batch-results-wrap").hidden = false;
+  if (batchCsvBtn) batchCsvBtn.disabled = true;
+  batchResults = [];
+  const tbody = $("batch-tbody");
+  tbody.innerHTML = "";
+
+  const activeCfg = cfg();
+  const total = files.length;
+  for (let i = 0; i < total; i++) {
+    const file = files[i];
+    const pct = Math.round((i / total) * 100);
+    $("batch-status-text").textContent = `Processing plate ${i + 1} of ${total} (${file.name})…`;
+    $("batch-pct-text").textContent = `${pct}%`;
+    $("batch-progress-bar").style.width = `${pct}%`;
+
+    try {
+      const dataUrl = await new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.onerror = rej;
+        fr.readAsDataURL(file);
+      });
+
+      const up = await api("/api/upload", { image: dataUrl });
+      const plateCfg = { ...activeCfg };
+      const r = await api("/api/analyze", { image_id: up.id, config: plateCfg });
+      batchResults.push({ name: file.name, result: r });
+
+      const tr = document.createElement("tr");
+      const deltaStr = (r.summary.pos_od !== null && r.summary.neg_od !== null) ? (r.summary.pos_od - r.summary.neg_od).toFixed(3) : "–";
+      tr.innerHTML = `
+        <td><strong>${file.name}</strong></td>
+        <td><span class="badge">${r.assay || r.mode}</span></td>
+        <td><span class="qc-status-pill ${r.valid ? "qc-pass" : "qc-fail"}">${r.valid ? "PASS" : "FAIL"}</span></td>
+        <td>${r.summary.positive}</td>
+        <td>${r.summary.negative}</td>
+        <td>${r.summary.doubtful}</td>
+        <td>${r.summary.blank_od !== null ? r.summary.blank_od.toFixed(3) : "–"}</td>
+        <td>${deltaStr}</td>
+      `;
+      tbody.appendChild(tr);
+    } catch (err) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${file.name}</strong></td>
+        <td colspan="7" style="color:var(--danger); font-size:12px;">Failed: ${err.message}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  $("batch-status-text").textContent = `Batch completed · ${batchResults.length} plates analyzed successfully.`;
+  $("batch-pct-text").textContent = "100%";
+  $("batch-progress-bar").style.width = "100%";
+  if (batchCsvBtn) batchCsvBtn.disabled = batchResults.length === 0;
+  showToast(`Batch completed: ${batchResults.length} plates analyzed.`, "success");
+}
+
+if (batchCsvBtn) {
+  batchCsvBtn.onclick = () => {
+    if (!batchResults.length) return;
+    const rows = [
+      ["Plate", "Well", "Row", "Col", "Role", "Intensity", "OD", "OD_Cal", "Value", "Class", "QC_Status", "Flag"].join(",")
+    ];
+    batchResults.forEach(({ name, result }) => {
+      const qc = result.valid ? "PASS" : "FAIL";
+      result.wells.forEach(w => {
+        rows.push([
+          `"${name.replace(/"/g, '""')}"`,
+          w.well,
+          w.row,
+          w.col,
+          `"${w.role}"`,
+          w.intensity !== null ? w.intensity : "",
+          w.od !== null ? w.od : "",
+          w.od_cal !== null ? w.od_cal : "",
+          w.value !== null ? w.value : "",
+          `"${w.class}"`,
+          qc,
+          `"${w.flag || ""}"`
+        ].join(","));
+      });
+    });
+    const blob = new Blob([rows.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `plateod_batch_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast("Combined batch CSV downloaded.", "success");
+  };
 }

@@ -4,6 +4,9 @@ from __future__ import annotations
 import base64
 import math
 import re
+import threading
+import uuid
+from collections import OrderedDict
 
 import cv2
 import numpy as np
@@ -46,6 +49,49 @@ ASSAYS = {
 
 class AnalysisError(ValueError):
     """A problem the user can fix (bad input); reported as HTTP 400."""
+
+
+class ImageExpiredError(AnalysisError):
+    """The cached image has expired or was evicted from memory; reported as HTTP 410."""
+
+
+class ImageCache:
+    """Thread-safe in-memory LRU cache holding decoded RGB images."""
+
+    def __init__(self, max_size: int = 8):
+        self.max_size = max_size
+        self._cache: OrderedDict[str, np.ndarray] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def put(self, rgb: np.ndarray) -> str:
+        with self._lock:
+            img_id = uuid.uuid4().hex
+            self._cache[img_id] = rgb
+            if len(self._cache) > self.max_size:
+                self._cache.popitem(last=False)
+            return img_id
+
+    def get(self, img_id: str) -> np.ndarray:
+        with self._lock:
+            if not isinstance(img_id, str) or img_id not in self._cache:
+                raise ImageExpiredError("image expired, please re-upload")
+            self._cache.move_to_end(img_id)
+            return self._cache[img_id]
+
+    def contains(self, img_id: str) -> bool:
+        with self._lock:
+            return isinstance(img_id, str) and img_id in self._cache
+
+    def clear(self):
+        with self._lock:
+            self._cache.clear()
+
+    def __len__(self):
+        with self._lock:
+            return len(self._cache)
+
+
+IMAGE_CACHE = ImageCache(max_size=8)
 
 
 # ----------------------------------------------------------------- helpers
@@ -165,12 +211,40 @@ def _jpeg_url(rgb: np.ndarray, quality=90, max_w=None) -> str:
     return "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
 
 
+def upload(image_data) -> dict:
+    rgb = decode_image(data_url_to_bytes(image_data))
+    img_id = IMAGE_CACHE.put(rgb)
+    return {
+        "id": img_id,
+        "width": rgb.shape[1],
+        "height": rgb.shape[0],
+        "preview": _jpeg_url(rgb, 92),
+    }
+
+
 def prepare(image_data_url) -> dict:
-    rgb = decode_image(data_url_to_bytes(image_data_url))
-    return {"width": rgb.shape[1], "height": rgb.shape[0], "preview": _jpeg_url(rgb, 92)}
+    return upload(image_data_url)
 
 
 # ------------------------------------------------------------------- grid
+def is_convex_quad(pts: np.ndarray) -> bool:
+    """True if 4 points form a non-degenerate, strictly convex, non-self-intersecting quad."""
+    if len(pts) != 4:
+        return False
+    cross_products = []
+    for i in range(4):
+        p0 = pts[i]
+        p1 = pts[(i + 1) % 4]
+        p2 = pts[(i + 2) % 4]
+        dx1, dy1 = p1[0] - p0[0], p1[1] - p0[1]
+        dx2, dy2 = p2[0] - p1[0], p2[1] - p1[1]
+        cp = dx1 * dy2 - dy1 * dx2
+        cross_products.append(cp)
+    all_pos = all(cp > 1e-4 for cp in cross_products)
+    all_neg = all(cp < -1e-4 for cp in cross_products)
+    return all_pos or all_neg
+
+
 def parse_corners(c):
     try:
         pts = np.array(c, dtype=np.float64).reshape(4, 2)
@@ -185,8 +259,8 @@ def grid_geometry(corners, rows, cols, radius):
     """Perspective-correct well centres (rows, cols, 2) and per-well ROI radii (rows, cols)."""
     x, y = corners[:, 0], corners[:, 1]
     area = 0.5 * abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
-    if area < 100:
-        raise AnalysisError("The four grid corners are collapsed or in a line. Spread them over the plate.")
+    if area < 100 or not is_convex_quad(corners):
+        raise AnalysisError("The four grid corners are crossed or collapsed. Spread them over the plate.")
     src = np.float32([[0, 0], [1, 0], [1, 1], [0, 1]])
     M = cv2.getPerspectiveTransform(src, corners.astype(np.float32))
     uu, vv = np.meshgrid(np.linspace(0, 1, cols), np.linspace(0, 1, rows))
@@ -207,6 +281,8 @@ def grid_geometry(corners, rows, cols, radius):
 
 
 def grid_api(body: dict) -> dict:
+    if body.get("image_id"):
+        IMAGE_CACHE.get(body.get("image_id"))
     rows = _int(body, "rows", 8, 2, 16)
     cols = _int(body, "cols", 12, 2, 24)
     radius = _num(body, "radius", 0.28, 0.05, 0.5)
@@ -214,13 +290,138 @@ def grid_api(body: dict) -> dict:
     return {"wells": [[ctr[r, c, 0], ctr[r, c, 1], rad[r, c]] for r in range(rows) for c in range(cols)]}
 
 
+def detect_grid(image_or_id, cfg: dict | None = None) -> dict:
+    """Detect wells with HoughCircles, fit a perspective regular grid using RANSAC,
+    and return suggested corner positions or a low-confidence notice.
+    """
+    if cfg is None:
+        cfg = {}
+    if image_or_id is None:
+        image_or_id = cfg.get("image_id") or cfg.get("image")
+    if not image_or_id and not isinstance(image_or_id, np.ndarray):
+        raise AnalysisError("No image supplied.")
+    if isinstance(image_or_id, np.ndarray):
+        rgb = image_or_id
+    elif isinstance(image_or_id, str):
+        if image_or_id.startswith("data:") or len(image_or_id) > 256:
+            rgb = decode_image(data_url_to_bytes(image_or_id))
+        else:
+            rgb = IMAGE_CACHE.get(image_or_id)
+    else:
+        raise AnalysisError("Invalid image parameter.")
+
+    rows = _int(cfg, "rows", 8, 2, 16)
+    cols = _int(cfg, "cols", 12, 2, 24)
+    total_wells = rows * cols
+
+    H, W = rgb.shape[:2]
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    pitch_est = min(W / (cols + 0.8), H / (rows + 0.8))
+    min_r = int(max(6, pitch_est * 0.16))
+    max_r = int(min(H, W, pitch_est * 0.48))
+    min_dist = int(max(10, pitch_est * 0.65))
+
+    blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
+    circles = cv2.HoughCircles(
+        blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=min_dist,
+        param1=50, param2=26, minRadius=min_r, maxRadius=max_r
+    )
+    if circles is None or len(circles[0]) < 10:
+        circles = cv2.HoughCircles(
+            blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=min_dist,
+            param1=38, param2=20, minRadius=min_r, maxRadius=max_r
+        )
+
+    if circles is None or len(circles[0]) < 10:
+        return {
+            "success": False,
+            "confidence": 0.0,
+            "message": "Low grid detection confidence: too few circular wells identified. Please place corners manually.",
+            "corners": None,
+        }
+
+    detected = circles[0]
+    med_r = float(np.median(detected[:, 2]))
+    keep = (detected[:, 2] >= med_r * 0.60) & (detected[:, 2] <= med_r * 1.40)
+    pts = detected[keep][:, :2].astype(np.float32)
+
+    if len(pts) < 10:
+        return {
+            "success": False,
+            "confidence": 0.0,
+            "message": "Low grid detection confidence: insufficient uniform wells detected. Please place corners manually.",
+            "corners": None,
+        }
+
+    # Bounding box of well center points
+    hull = cv2.convexHull(pts)
+    rect = cv2.minAreaRect(hull)
+    box = cv2.boxPoints(rect).astype(np.float32)
+
+    # Sort 4 box vertices: top-left, top-right, bottom-right, bottom-left
+    box_sorted = box[np.argsort(box[:, 1])]
+    top = box_sorted[:2][np.argsort(box_sorted[:2, 0])]
+    bottom = box_sorted[2:][np.argsort(box_sorted[2:, 0])]
+    c_tl, c_tr = top[0], top[1]
+    c_bl, c_br = bottom[0], bottom[1]
+    candidate_corners = np.array([c_tl, c_tr, c_br, c_bl], dtype=np.float32)
+
+    lattice = np.array([[float(c), float(r)] for r in range(rows) for c in range(cols)], dtype=np.float32)
+    src_grid = np.float32([[0, 0], [cols - 1, 0], [cols - 1, rows - 1], [0, rows - 1]])
+
+    best_inliers = 0
+    best_corners = candidate_corners.copy()
+    inlier_thresh = pitch_est * 0.35
+
+    rng = np.random.default_rng(42)
+    for it in range(40):
+        if it == 0:
+            c_test = candidate_corners
+        else:
+            jitter = rng.uniform(-0.15, 0.15, (4, 2)).astype(np.float32) * pitch_est
+            c_test = candidate_corners + jitter
+
+        try:
+            M = cv2.getPerspectiveTransform(src_grid, c_test)
+            pred = cv2.perspectiveTransform(lattice.reshape(-1, 1, 2), M).reshape(-1, 2)
+        except Exception:
+            continue
+
+        dists = np.linalg.norm(pred[:, None, :] - pts[None, :, :], axis=2)
+        min_d = np.min(dists, axis=1)
+        inliers = int(np.sum(min_d < inlier_thresh))
+
+        if inliers > best_inliers:
+            best_inliers = inliers
+            best_corners = c_test
+
+    confidence = float(best_inliers) / float(total_wells)
+    if confidence < 0.35 or best_corners is None:
+        return {
+            "success": False,
+            "confidence": round(confidence, 3),
+            "message": f"Low grid detection confidence ({round(confidence * 100)}%). Please position corners manually.",
+            "corners": None,
+        }
+
+    return {
+        "success": True,
+        "confidence": round(confidence, 3),
+        "inliers": best_inliers,
+        "total": total_wells,
+        "corners": [[_f(pt[0], 1), _f(pt[1], 1)] for pt in best_corners],
+        "message": f"Grid auto-detected with {round(confidence * 100)}% confidence ({best_inliers}/{total_wells} wells matched). You can drag corner handles to adjust.",
+    }
+
+
 # ------------------------------------------------------------- extraction
-def extract(rgb, ctr, rad, channel, linearize):
-    """Robust per-well intensity (0..1 linear light if linearize). Returns (I, flags)."""
+def extract(rgb, ctr, rad, channel, linearize, return_raw: bool = False):
+    """Robust per-well intensity (0..1 linear light if linearize). Returns (I, flags) or (I, flags, raw_I)."""
     rows, cols = ctr.shape[:2]
     H, W = rgb.shape[:2]
-    idx = CHANNELS[channel]
+    idx = CHANNELS[channel] if channel in CHANNELS else CHANNELS["B"]
     I = np.full((rows, cols), np.nan)
+    raw_I = np.full((rows, cols), np.nan)
     flags = {}
     for r in range(rows):
         for c in range(cols):
@@ -260,7 +461,109 @@ def extract(rgb, ctr, rad, channel, linearize):
             v_lo, v_hi = np.percentile(vals, [12, 88])
             v_sel = vals[(vals >= v_lo) & (vals <= v_hi)]
             I[r, c] = float(np.median(v_sel) if len(v_sel) >= 5 else np.median(vals))
+            raw_vals = sel @ LUMA if idx is None else sel[:, idx]
+            raw_I[r, c] = float(np.median(raw_vals))
+    if return_raw:
+        return I, flags, raw_I
     return I, flags
+
+
+def fit_illumination_surface(rgb: np.ndarray, ctr: np.ndarray, rad: np.ndarray, channel: str = "B") -> np.ndarray:
+    """Sample clear plastic between wells and fit a smooth 2D quadratic surface.
+    Returns relative illumination factor F(rows, cols) normalized so mean(F) = 1.0.
+    """
+    rows, cols = ctr.shape[:2]
+    H, W = rgb.shape[:2]
+    idx = CHANNELS.get(channel, 2)
+
+    sample_pts = []
+    # 1. Centers between 4 adjacent wells: (r + 0.5, c + 0.5)
+    for r in range(rows - 1):
+        for c in range(cols - 1):
+            sample_pts.append(0.25 * (ctr[r, c] + ctr[r + 1, c] + ctr[r, c + 1] + ctr[r + 1, c + 1]))
+
+    # 2. Midpoints between horizontal wells
+    for r in range(rows):
+        for c in range(cols - 1):
+            sample_pts.append(0.5 * (ctr[r, c] + ctr[r, c + 1]))
+
+    # 3. Midpoints between vertical wells
+    for r in range(rows - 1):
+        for c in range(cols):
+            sample_pts.append(0.5 * (ctr[r, c] + ctr[r + 1, c]))
+
+    all_ctr = ctr.reshape(-1, 2)
+    all_rad = rad.reshape(-1)
+
+    xs, ys, intensities = [], [], []
+    for pt in sample_pts:
+        x, y = float(pt[0]), float(pt[1])
+        if not (6 <= x < W - 6 and 6 <= y < H - 6):
+            continue
+        dists = np.hypot(all_ctr[:, 0] - x, all_ctr[:, 1] - y)
+        min_idx = int(np.argmin(dists))
+        if dists[min_idx] < all_rad[min_idx] * 1.15:
+            continue  # inside or too close to a well
+
+        ix, iy = int(round(x)), int(round(y))
+        patch = rgb[max(0, iy - 1):min(H, iy + 2), max(0, ix - 1):min(W, ix + 2)]
+        if patch.size == 0:
+            continue
+        if idx is None:
+            val = float(np.median(patch.astype(np.float32) @ LUMA))
+        else:
+            val = float(np.median(patch[:, :, idx]))
+        xs.append(x)
+        ys.append(y)
+        intensities.append(val)
+
+    if len(xs) < 12:
+        return np.ones((rows, cols), dtype=np.float64)
+
+    xs = np.array(xs, dtype=np.float64)
+    ys = np.array(ys, dtype=np.float64)
+    vals = np.array(intensities, dtype=np.float64)
+
+    # Filter outlier plastic markings / dirt
+    q25, q75 = np.percentile(vals, [25, 75])
+    iqr = max(q75 - q25, 2.0)
+    keep = (vals >= q25 - 1.5 * iqr) & (vals <= q75 + 1.5 * iqr)
+    if keep.sum() < 8:
+        keep = np.ones(len(vals), bool)
+
+    xs, ys, vals = xs[keep], ys[keep], vals[keep]
+
+    cx_mid, cy_mid = 0.5 * W, 0.5 * H
+    s_scale = max(W, H)
+    xn = (xs - cx_mid) / s_scale
+    yn = (ys - cy_mid) / s_scale
+
+    A_mat = np.column_stack([
+        np.ones_like(xn),
+        xn, yn,
+        xn ** 2, xn * yn, yn ** 2
+    ])
+
+    try:
+        coeff, _, _, _ = np.linalg.lstsq(A_mat, vals, rcond=None)
+    except Exception:
+        return np.ones((rows, cols), dtype=np.float64)
+
+    wx = (ctr[:, :, 0] - cx_mid) / s_scale
+    wy = (ctr[:, :, 1] - cy_mid) / s_scale
+
+    surface = (
+        coeff[0] +
+        coeff[1] * wx + coeff[2] * wy +
+        coeff[3] * (wx ** 2) + coeff[4] * (wx * wy) + coeff[5] * (wy ** 2)
+    )
+
+    mean_s = float(np.mean(surface))
+    if mean_s <= 1e-4:
+        return np.ones((rows, cols), dtype=np.float64)
+
+    F = surface / mean_s
+    return np.clip(F, 0.4, 2.5)
 
 
 def annotate(rgb, ctr, rad, names, colors):
@@ -286,16 +589,28 @@ CLASS_COLORS = {  # BGR
 }
 
 
-def analyze(image_data_url, cfg) -> dict:
+def analyze(image_or_id, cfg) -> dict:
     if not isinstance(cfg, dict):
         raise AnalysisError("Missing configuration.")
-    rgb = decode_image(data_url_to_bytes(image_data_url))
+    if image_or_id is None:
+        image_or_id = cfg.get("image_id") or cfg.get("image")
+    if not image_or_id and not isinstance(image_or_id, np.ndarray):
+        raise AnalysisError("No image supplied.")
+    if isinstance(image_or_id, np.ndarray):
+        rgb = image_or_id
+    elif isinstance(image_or_id, str):
+        if image_or_id.startswith("data:") or len(image_or_id) > 256:
+            rgb = decode_image(data_url_to_bytes(image_or_id))
+        else:
+            rgb = IMAGE_CACHE.get(image_or_id)
+    else:
+        raise AnalysisError("Invalid image parameter.")
     rows = _int(cfg, "rows", 8, 2, 16)
     cols = _int(cfg, "cols", 12, 2, 24)
     radius = _num(cfg, "radius", 0.28, 0.05, 0.5)
-    channel = str(cfg.get("channel") or "B").upper()
-    if channel not in CHANNELS:
-        raise AnalysisError("Channel must be R, G, B or GRAY.")
+    raw_channel = str(cfg.get("channel") or "B").strip().upper()
+    if raw_channel not in CHANNELS and raw_channel != "AUTO":
+        raise AnalysisError("Channel must be R, G, B, GRAY or AUTO.")
     linearize = bool(cfg.get("linearize", True))
     dark_level = _num(cfg, "dark_level", 0, 0, 100)
 
@@ -352,7 +667,71 @@ def analyze(image_data_url, cfg) -> dict:
         raise AnalysisError("A well cannot have two roles: " + ", ".join(well_name(*w) for w in sorted(both)))
 
     ctr, rad = grid_geometry(parse_corners(cfg.get("corners")), rows, cols, radius)
-    I, flags = extract(rgb, ctr, rad, channel, linearize)
+
+    auto_channel_info = None
+    if raw_channel == "AUTO":
+        if mode == "PI" or assay_key == "SPCE":
+            max_sig_wells = neg
+        else:
+            max_sig_wells = pos if pos else neg
+
+        best_ch = "B"
+        best_score = -1e9
+        channel_stats = {}
+        for cand in ["B", "G", "GRAY"]:
+            _, _, cand_raw = extract(rgb, ctr, rad, cand, linearize=False, return_raw=True)
+            bl_vals = [cand_raw[r, c] for r, c in blank if np.isfinite(cand_raw[r, c])]
+            bl_raw = float(np.mean(bl_vals)) if bl_vals else 200.0
+            sig_vals = [cand_raw[r, c] for r, c in max_sig_wells if np.isfinite(cand_raw[r, c])]
+            sig_raw = float(np.mean(sig_vals)) if sig_vals else float(np.nanmin(cand_raw))
+            delta_raw = bl_raw - sig_raw
+            under_20 = int(np.sum(cand_raw < 20))
+            under_pct = 100.0 * under_20 / (rows * cols)
+            sat_blank = bl_raw > 250.0
+
+            score = delta_raw
+            if under_pct > 25.0:
+                score -= (60.0 + under_pct)
+            if sat_blank:
+                score -= 80.0
+
+            channel_stats[cand] = {
+                "blank_raw": round(bl_raw, 1),
+                "max_sig_raw": round(sig_raw, 1),
+                "delta": round(delta_raw, 1),
+                "under_pct": round(under_pct, 1),
+                "sat_blank": sat_blank,
+                "score": round(score, 1),
+            }
+            if score > best_score:
+                best_score = score
+                best_ch = cand
+
+        b_stat = channel_stats["B"]
+        if best_ch == "B":
+            best_reason = f"Channel B provides the best usable dynamic range (delta raw={b_stat['delta']}) without excessive underexposure."
+        elif b_stat["under_pct"] > 25.0:
+            best_reason = f"Channel B had {b_stat['under_pct']}% wells clipped (<20 raw); Channel {best_ch} provides superior dynamic range (delta raw={channel_stats[best_ch]['delta']}) without underexposure."
+        elif b_stat["sat_blank"]:
+            best_reason = f"Channel B had saturated blanks (>250); Channel {best_ch} provides clean range (delta raw={channel_stats[best_ch]['delta']})."
+        else:
+            best_reason = f"Channel {best_ch} offers optimal range (delta raw={channel_stats[best_ch]['delta']}) and linearity."
+
+        channel = best_ch
+        auto_channel_info = {
+            "chosen": best_ch,
+            "reason": best_reason,
+            "stats": channel_stats,
+        }
+    else:
+        channel = raw_channel
+
+    I, flags, raw_I = extract(rgb, ctr, rad, channel, linearize, return_raw=True)
+
+    flat_field = bool(cfg.get("flat_field", True))
+    if flat_field:
+        F = fit_illumination_surface(rgb, ctr, rad, channel)
+        I = I / F
 
     pos_role = preset.get("pos_role", "Positive ctrl") if preset else "Positive ctrl"
     neg_role = preset.get("neg_role", "Negative ctrl") if preset else "Negative ctrl"
@@ -399,7 +778,29 @@ def analyze(image_data_url, cfg) -> dict:
     if floor_hits:
         warnings.append(f"{floor_hits} well(s) are darker than the camera can resolve; their OD is capped. "
                         "Use the G channel or reduce exposure.")
-    od_cal = slope * od + icpt
+
+    under_count = int(np.sum(raw_I < 20))
+    under_pct = 100.0 * under_count / (rows * cols)
+    if under_pct > 25.0:
+        warnings.append(
+            f"Dynamic-range alert: {under_count}/{rows*cols} wells ({under_pct:.1f}%) have raw 8-bit intensity < 20 in channel {channel}; high ODs may be compressed or clipped."
+        )
+    blank_raw = float(np.nanmean([raw_I[r, c] for r, c in blank]))
+    if blank_raw > 250.0:
+        warnings.append(
+            f"Dynamic-range alert: Blank raw 8-bit intensity is {blank_raw:.1f}/255 (>250, saturated); highlights are blown and OD linearity is compromised."
+        )
+    if auto_channel_info:
+        warnings.append(f"Auto-channel: {auto_channel_info['reason']}")
+
+    cal_mode = str(cfg.get("cal_mode") or "linear").lower()
+    if cal_mode == "quadratic" and cfg.get("cal_a") is not None:
+        qa = _num(cfg, "cal_a", 0.0, -1e6, 1e6)
+        qb = _num(cfg, "cal_b", 1.0, -1e6, 1e6)
+        qc = _num(cfg, "cal_c", 0.0, -1e6, 1e6)
+        od_cal = qa * (od ** 2) + qb * od + qc
+    else:
+        od_cal = slope * od + icpt
 
     if reader_data and isinstance(reader_data, dict):
         for r in range(rows):
@@ -536,6 +937,10 @@ def analyze(image_data_url, cfg) -> dict:
     return clean({
         "valid": valid, "errors": errors, "warnings": warnings, "mode": mode, "cutoff": cutoff,
         "assay": assay_key,
+        "channel": channel,
+        "auto_channel": auto_channel_info,
+        "flat_field": flat_field,
+        "cal_mode": cal_mode,
         "reference": reference,
         "image": {"width": rgb.shape[1], "height": rgb.shape[0]},
         "summary": {
@@ -581,26 +986,68 @@ def parse_reader(text, rows, cols) -> dict:
 
 
 def fit_calibration(body: dict) -> dict:
+    if body.get("image_id"):
+        IMAGE_CACHE.get(body.get("image_id"))
     rows = _int(body, "rows", 8, 2, 16)
     cols = _int(body, "cols", 12, 2, 24)
     reader = parse_reader(body.get("reader"), rows, cols)
     img = body.get("image_od")
     if not isinstance(img, dict):
         raise AnalysisError("Run the analysis first so image ODs exist.")
-    xs, ys = [], []
+    xs, ys, well_names = [], [], []
     for w, y in reader.items():
         x = img.get(w)
         if isinstance(x, (int, float)) and math.isfinite(x) and math.isfinite(y):
             xs.append(float(x))
             ys.append(float(y))
+            well_names.append(w)
     if len(xs) < 3:
         raise AnalysisError("Need at least 3 wells with both an image OD and a reader OD.")
-    xs, ys = np.array(xs), np.array(ys)
+    xs, ys = np.array(xs, dtype=np.float64), np.array(ys, dtype=np.float64)
     if np.ptp(xs) < 1e-6:
         raise AnalysisError("All image ODs are identical - fix the analysis (blank/controls) before calibrating.")
+
+    # 1. Linear fit: y = slope * x + icpt
     slope, icpt = np.polyfit(xs, ys, 1)
-    pred = slope * xs + icpt
-    ss_res, ss_tot = float(np.sum((ys - pred) ** 2)), float(np.sum((ys - ys.mean()) ** 2))
-    r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else None
-    return clean({"slope": slope, "intercept": icpt, "r2": r2, "n": len(xs),
-                  "rmse": math.sqrt(ss_res / len(xs))})
+    pred_lin = slope * xs + icpt
+    ss_res_lin = float(np.sum((ys - pred_lin) ** 2))
+    ss_tot = float(np.sum((ys - ys.mean()) ** 2))
+    r2_lin = 1.0 - ss_res_lin / ss_tot if ss_tot > 0 else None
+    rmse_lin = math.sqrt(ss_res_lin / len(xs))
+
+    # 2. Quadratic fit: y = a * x^2 + b * x + c
+    quad_data = None
+    r2_quad = None
+    rmse_quad = None
+    if len(xs) >= 4:
+        p_quad = np.polyfit(xs, ys, 2)
+        pred_quad = np.polyval(p_quad, xs)
+        ss_res_quad = float(np.sum((ys - pred_quad) ** 2))
+        r2_quad = 1.0 - ss_res_quad / ss_tot if ss_tot > 0 else None
+        rmse_quad = math.sqrt(ss_res_quad / len(xs))
+        quad_data = {
+            "a": _f(p_quad[0], 5),
+            "b": _f(p_quad[1], 5),
+            "c": _f(p_quad[2], 5),
+            "r2": _f(r2_quad, 4),
+            "rmse": _f(rmse_quad, 4),
+        }
+
+    best_r2 = max(r2_lin if r2_lin is not None else 0.0, r2_quad if r2_quad is not None else 0.0)
+    warning = None
+    if best_r2 < 0.95:
+        warning = f"Calibration R² ({best_r2:.3f}) is below 0.95 - correlation between image and reader is weak."
+
+    points = [
+        {"well": well_names[i], "image_od": _f(xs[i]), "reader_od": _f(ys[i])}
+        for i in range(len(xs))
+    ]
+    points.sort(key=lambda p: p["image_od"] if p["image_od"] is not None else 0.0)
+
+    return clean({
+        "slope": slope, "intercept": icpt, "r2": r2_lin, "n": len(xs),
+        "rmse": rmse_lin,
+        "quadratic": quad_data,
+        "points": points,
+        "warning": warning,
+    })

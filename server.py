@@ -5,6 +5,7 @@ import argparse
 import json
 import mimetypes
 import sys
+import time
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -15,9 +16,11 @@ STATIC = (Path(__file__).parent / "static").resolve()
 MAX_BODY = 80 * 1024 * 1024
 
 ROUTES = {
+    "/api/upload": lambda b: A.upload(b.get("image")),
     "/api/prepare": lambda b: A.prepare(b.get("image")),
     "/api/grid": A.grid_api,
-    "/api/analyze": lambda b: A.analyze(b.get("image"), b.get("config")),
+    "/api/detect_grid": lambda b: A.detect_grid(b.get("image_id") or b.get("image"), b.get("config") or b),
+    "/api/analyze": lambda b: A.analyze(b.get("image_id") or b.get("image"), b.get("config") or b),
     "/api/calibrate": A.fit_calibration,
     "/api/presets": lambda b: A.ASSAYS,
 }
@@ -26,15 +29,25 @@ ROUTES = {
 class Handler(BaseHTTPRequestHandler):
     server_version = "PlateOD/1.0"
 
+    def handle_one_request(self):
+        self._t0 = time.perf_counter()
+        super().handle_one_request()
+
     def log_message(self, fmt, *args):
         sys.stderr.write("%s  %s\n" % (self.address_string(), fmt % args))
 
+    def log_request(self, code="-", size="-"):
+        dur_ms = (time.perf_counter() - getattr(self, "_t0", time.perf_counter())) * 1000.0
+        self.log_message('"%s" %s %s - %.2fms', self.requestline, str(code), str(size), dur_ms)
+
     def _send(self, code, body: bytes, ctype: str):
         try:
+            dur_ms = (time.perf_counter() - getattr(self, "_t0", time.perf_counter())) * 1000.0
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            self.send_header("Server-Timing", f"total;dur={dur_ms:.2f}")
             self.end_headers()
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionResetError):
@@ -76,6 +89,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, fn(body))
         except json.JSONDecodeError:
             self._json(400, {"error": "Request was not valid JSON."})
+        except A.ImageExpiredError as e:
+            self._json(410, {"error": str(e)})
         except A.AnalysisError as e:
             self._json(400, {"error": str(e)})
         except Exception as e:  # never crash the server on one bad request

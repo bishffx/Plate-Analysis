@@ -254,6 +254,143 @@ class Core(unittest.TestCase):
         self.assertFalse(any("SPCE preset has no positive control" in w for w in r2["warnings"]))
 
 
+    def test_crossed_corners_rejected(self):
+        # Bowtie / crossed corners
+        crossed = [self.corners[0], self.corners[2], self.corners[1], self.corners[3]]
+        with self.assertRaises(A.AnalysisError):
+            A.grid_geometry(A.parse_corners(crossed), 8, 12, 0.28)
+
+    def test_image_cache_eviction_and_expiry(self):
+        cache = A.ImageCache(max_size=8)
+        img = np.zeros((10, 10, 3), dtype=np.uint8)
+        ids = [cache.put(img.copy()) for _ in range(8)]
+        self.assertEqual(len(cache), 8)
+        for img_id in ids:
+            self.assertTrue(cache.contains(img_id))
+            self.assertIsNotNone(cache.get(img_id))
+
+        # 9th image should evict the 1st
+        id9 = cache.put(img.copy())
+        self.assertEqual(len(cache), 8)
+        self.assertFalse(cache.contains(ids[0]))
+        with self.assertRaises(A.ImageExpiredError):
+            cache.get(ids[0])
+        self.assertTrue(cache.contains(id9))
+
+
+
+    def test_dynamic_range_qc_warnings(self):
+        # 1. Normal plate has no dynamic range alerts
+        r = self.run_cfg()
+        self.assertFalse(any("Dynamic-range alert" in w for w in r["warnings"]))
+
+        # 2. Plate with saturated blanks (> 250)
+        # Create plate where background/blanks are saturated white (raw 255)
+        ROWS, COLS, PITCH, LIGHT = 8, 12, 90, 1.2
+        W, H = COLS * PITCH + 60, ROWS * PITCH + 60
+        sat_img = np.full((H, W, 3), 255, dtype=np.uint8)
+        import cv2, base64
+        ok, buf = cv2.imencode(".jpg", sat_img)
+        sat_url = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
+        r_sat = A.analyze(sat_url, {**CFG, "corners": self.corners})
+        self.assertTrue(any("Blank raw 8-bit intensity" in w and ">250" in w for w in r_sat["warnings"]))
+
+        # 3. Plate with > 25% wells clipped near zero (< 20)
+        dark_od = np.full((ROWS, COLS), 2.5) # very dark
+        dark_od[4:8, 0] = 0.0 # blanks
+        dark_od[2:4, 0] = 0.2 # negs
+        dark_url, dark_corners = make_plate(dark_od, seed=33)
+        r_dark = A.analyze(dark_url, {**CFG, "corners": dark_corners})
+        self.assertTrue(any("Dynamic-range alert" in w and "< 20" in w for w in r_dark["warnings"]))
+
+    def test_auto_channel_selection(self):
+        r = A.analyze(self.url, {**CFG, "corners": self.corners, "channel": "AUTO"})
+        self.assertIn("channel", r)
+        self.assertEqual(r["channel"], "B")
+        self.assertIn("auto_channel", r)
+        self.assertEqual(r["auto_channel"]["chosen"], "B")
+        self.assertIn("reason", r["auto_channel"])
+
+    def test_flat_field_correction_gradient(self):
+        # Add 15% brightness gradient to synthetic plate and check recovered ODs improve
+        W, H = COLS * PITCH + 60, ROWS * PITCH + 60
+        yy, xx = np.mgrid[:H, :W]
+        img = np.zeros((H, W, 3), np.float32)
+        img[:] = LIGHT * 0.9
+        grad_field = 1.0 + 0.15 * (xx / W - 0.5)
+        img *= grad_field[..., None]
+        for r in range(ROWS):
+            for c in range(COLS):
+                cx, cy = 30 + PITCH / 2 + c * PITCH, 30 + PITCH / 2 + r * PITCH
+                m = (xx - cx) ** 2 + (yy - cy) ** 2 <= (PITCH * 0.36) ** 2
+                t = 10.0 ** -self.od[r, c]
+                col = np.array([0.97, 10 ** (-0.15 * self.od[r, c]), t], np.float32) * LIGHT * grad_field[int(cy), int(cx)]
+                img[m] = col
+                hl = (xx - cx - 10) ** 2 + (yy - cy + 12) ** 2 <= 5 ** 2
+                img[hl & m] = 1.0
+        out = (srgb(img) * 255).astype(np.float32) + np.random.default_rng(7).normal(0, 1.0, img.shape)
+        out = np.clip(out, 0, 255).astype(np.uint8)
+        ctr = np.float32([[30 + PITCH / 2, 30 + PITCH / 2], [30 + PITCH / 2 + (COLS - 1) * PITCH, 30 + PITCH / 2],
+                          [30 + PITCH / 2 + (COLS - 1) * PITCH, 30 + PITCH / 2 + (ROWS - 1) * PITCH],
+                          [30 + PITCH / 2, 30 + PITCH / 2 + (ROWS - 1) * PITCH]]).reshape(4, 2)
+        import cv2, base64
+        ok, buf = cv2.imencode(".jpg", cv2.cvtColor(out, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
+        grad_url = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
+
+        r_no_ff = A.analyze(grad_url, {**CFG, "corners": ctr.tolist(), "flat_field": False})
+        r_ff = A.analyze(grad_url, {**CFG, "corners": ctr.tolist(), "flat_field": True})
+        err_no_ff = float(np.mean([abs(w["od"] - self.od[w["row"], w["col"]]) for w in r_no_ff["wells"]]))
+        err_ff = float(np.mean([abs(w["od"] - self.od[w["row"], w["col"]]) for w in r_ff["wells"]]))
+        self.assertLess(err_ff, err_no_ff, f"Flat-field error {err_ff} should be lower than uncorrected {err_no_ff}")
+        improvement = (err_no_ff - err_ff) / err_no_ff
+        self.assertGreater(improvement, 0.20, f"Expected at least 20% improvement, got {improvement*100:.1f}%")
+
+    def test_calibration_quadratic_fit_and_warning(self):
+        # 1. Non-linear calibration data
+        img_ods = {f"A{i+1}": 0.1 * (i + 1) for i in range(10)}
+        reader_text = "\n".join(f"A{i+1}, {0.2 * (0.1 * (i + 1))**2 + 0.8 * (0.1 * (i + 1)) + 0.05:.4f}" for i in range(10))
+        cal = A.fit_calibration({"rows": 8, "cols": 12, "image_od": img_ods, "reader": reader_text})
+        self.assertIsNotNone(cal["quadratic"])
+        self.assertGreaterEqual(cal["quadratic"]["r2"], 0.99)
+        self.assertLess(cal["quadratic"]["rmse"], cal["rmse"])
+        self.assertIn("points", cal)
+        self.assertEqual(len(cal["points"]), 10)
+
+        # 2. Warning when R2 < 0.95
+        noisy_reader = "\n".join(f"A{i+1}, {float(np.random.default_rng(i).uniform(0.1, 1.5)):.3f}" for i in range(8))
+        noisy_cal = A.fit_calibration({"rows": 8, "cols": 12, "image_od": img_ods, "reader": noisy_reader})
+        self.assertIsNotNone(noisy_cal["warning"])
+        self.assertIn("below 0.95", noisy_cal["warning"])
+
+        # 3. Analyze with quadratic calibration
+        r_quad = A.analyze(self.url, {
+            **CFG, "corners": self.corners, "cal_mode": "quadratic",
+            "cal_a": 0.1, "cal_b": 1.0, "cal_c": 0.02
+        })
+        self.assertEqual(r_quad["cal_mode"], "quadratic")
+        for w in r_quad["wells"]:
+            if w["od"] is not None:
+                expected = round(0.1 * (w["od"] ** 2) + 1.0 * w["od"] + 0.02, 4)
+                self.assertAlmostEqual(w["od_cal"], expected, places=3)
+
+    def test_auto_detect_grid(self):
+        # Synthetic plate should be auto-detected with high confidence
+        res = A.detect_grid(self.url, {"rows": 8, "cols": 12})
+        self.assertTrue(res["success"], res.get("message"))
+        self.assertGreaterEqual(res["confidence"], 0.5)
+        self.assertIsNotNone(res["corners"])
+        self.assertEqual(len(res["corners"]), 4)
+
+        # Blank/noise image should report low confidence without crashing
+        blank_img = np.full((600, 800, 3), 200, dtype=np.uint8)
+        import cv2, base64
+        ok, buf = cv2.imencode(".jpg", blank_img)
+        blank_url = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
+        res_blank = A.detect_grid(blank_url, {"rows": 8, "cols": 12})
+        self.assertFalse(res_blank["success"])
+        self.assertIn("Low grid detection confidence", res_blank["message"])
+
+
 class Http(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -299,6 +436,58 @@ class Http(unittest.TestCase):
             self.fail("traversal allowed")
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 404)
+
+
+
+    def test_upload_and_image_id_flow(self):
+        # 1. Upload returns {id, width, height, preview}
+        s, j = self.post("/api/upload", {"image": self.url})
+        self.assertEqual(s, 200)
+        self.assertIn("id", j)
+        self.assertIn("width", j)
+        self.assertIn("height", j)
+        self.assertIn("preview", j)
+        image_id = j["id"]
+
+        # 2. Analyze with image_id
+        s, j = self.post("/api/analyze", {"image_id": image_id, "config": {**CFG, "corners": self.corners}})
+        self.assertEqual(s, 200)
+        self.assertTrue(j["valid"])
+
+        # 3. Nonexistent / expired image_id returns 410 "image expired, please re-upload"
+        s, j = self.post("/api/analyze", {"image_id": "nonexistent_expired_id", "config": {**CFG, "corners": self.corners}})
+        self.assertEqual(s, 410)
+        self.assertEqual(j.get("error"), "image expired, please re-upload")
+
+        # 4. Grid and Calibrate accept image_id and return 410 on expired
+        s, j = self.post("/api/grid", {"image_id": image_id, "corners": self.corners, "rows": 8, "cols": 12, "radius": 0.28})
+        self.assertEqual(s, 200)
+        s, j = self.post("/api/grid", {"image_id": "bad_id", "corners": self.corners, "rows": 8, "cols": 12, "radius": 0.28})
+        self.assertEqual(s, 410)
+
+    def test_detect_grid_endpoint(self):
+        s, j = self.post("/api/detect_grid", {"image": self.url, "config": {"rows": 8, "cols": 12}})
+        self.assertEqual(s, 200)
+        self.assertTrue(j["success"])
+        self.assertIn("corners", j)
+
+    def test_concurrent_analyze_requests(self):
+        from concurrent.futures import ThreadPoolExecutor
+        s, j = self.post("/api/upload", {"image": self.url})
+        self.assertEqual(s, 200)
+        image_id = j["id"]
+
+        def do_analyze(_):
+            return self.post("/api/analyze", {"image_id": image_id, "config": {**CFG, "corners": self.corners}})
+
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            results = list(pool.map(do_analyze, range(5)))
+
+        self.assertEqual(len(results), 5)
+        for s, res in results:
+            self.assertEqual(s, 200)
+            self.assertTrue(res["valid"])
+            self.assertEqual(len(res["wells"]), 96)
 
 
 if __name__ == "__main__":
