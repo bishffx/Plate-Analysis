@@ -280,36 +280,43 @@ class Core(unittest.TestCase):
 
 
     def test_dynamic_range_qc_warnings(self):
-        # 1. Normal plate has no dynamic range alerts
-        r = self.run_cfg()
-        self.assertFalse(any("Dynamic-range alert" in w for w in r["warnings"]))
+        # 1. Well-exposed plate triggers no warning
+        r = self.run_cfg(channel="B")
+        self.assertFalse(any("below 20" in w or "> 250" in w for w in r["warnings"]))
 
         # 2. Plate with saturated blanks (> 250)
-        # Create plate where background/blanks are saturated white (raw 255)
-        ROWS, COLS, PITCH, LIGHT = 8, 12, 90, 1.2
         W, H = COLS * PITCH + 60, ROWS * PITCH + 60
         sat_img = np.full((H, W, 3), 255, dtype=np.uint8)
         import cv2, base64
         ok, buf = cv2.imencode(".jpg", sat_img)
         sat_url = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
-        r_sat = A.analyze(sat_url, {**CFG, "corners": self.corners})
-        self.assertTrue(any("Blank raw 8-bit intensity" in w and ">250" in w for w in r_sat["warnings"]))
+        r_sat = A.analyze(sat_url, {**CFG, "corners": self.corners, "channel": "B"})
+        self.assertTrue(any("Blank well raw 8-bit value is" in w and "> 250" in w for w in r_sat["warnings"]))
 
-        # 3. Plate with > 25% wells clipped near zero (< 20)
-        dark_od = np.full((ROWS, COLS), 2.5) # very dark
-        dark_od[4:8, 0] = 0.0 # blanks
-        dark_od[2:4, 0] = 0.2 # negs
-        dark_url, dark_corners = make_plate(dark_od, seed=33)
-        r_dark = A.analyze(dark_url, {**CFG, "corners": dark_corners})
-        self.assertTrue(any("Dynamic-range alert" in w and "< 20" in w for w in r_dark["warnings"]))
+        # 3. Synthetic plate with very dark wells must trigger warning in channel B
+        dark_od = np.full((ROWS, COLS), 2.2)
+        dark_od[4:8, 0] = 0.0  # blanks
+        dark_od[2:4, 0] = 0.15 # negs
+        dark_url, dark_corners = make_plate(dark_od, seed=77)
+        r_dark_b = A.analyze(dark_url, {**CFG, "corners": dark_corners, "channel": "B"})
+        self.assertTrue(any("below 20" in w and "Use the G channel, or reshoot with a brighter light" in w for w in r_dark_b["warnings"]))
 
     def test_auto_channel_selection(self):
-        r = A.analyze(self.url, {**CFG, "corners": self.corners, "channel": "AUTO"})
-        self.assertIn("channel", r)
-        self.assertEqual(r["channel"], "B")
-        self.assertIn("auto_channel", r)
-        self.assertEqual(r["auto_channel"]["chosen"], "B")
-        self.assertIn("reason", r["auto_channel"])
+        # 1. Dark plate: AUTO must pick G
+        dark_od = np.full((ROWS, COLS), 2.2)
+        dark_od[4:8, 0] = 0.0
+        dark_od[2:4, 0] = 0.15
+        dark_url, dark_corners = make_plate(dark_od, seed=77)
+        r_dark_auto = A.analyze(dark_url, {**CFG, "corners": dark_corners, "channel": "AUTO"})
+        self.assertEqual(r_dark_auto["channel_used"], "G")
+        self.assertIn("reason", r_dark_auto)
+        self.assertIn("G", r_dark_auto["reason"])
+
+        # 2. Well-exposed plate: AUTO must trigger no warning and give valid result
+        r_norm_auto = A.analyze(self.url, {**CFG, "corners": self.corners, "channel": "AUTO"})
+        self.assertTrue(r_norm_auto["valid"])
+        self.assertEqual(r_norm_auto["channel_used"], "B")
+        self.assertFalse(any("below 20" in w for w in r_norm_auto["warnings"]))
 
     def test_flat_field_correction_gradient(self):
         # Add 15% brightness gradient to synthetic plate and check recovered ODs improve
@@ -339,11 +346,28 @@ class Core(unittest.TestCase):
 
         r_no_ff = A.analyze(grad_url, {**CFG, "corners": ctr.tolist(), "flat_field": False})
         r_ff = A.analyze(grad_url, {**CFG, "corners": ctr.tolist(), "flat_field": True})
+        self.assertFalse(r_no_ff["flat_field_applied"])
+        self.assertTrue(r_ff["flat_field_applied"])
+        self.assertGreater(r_ff["illumination_range_percent"], 5.0)
         err_no_ff = float(np.mean([abs(w["od"] - self.od[w["row"], w["col"]]) for w in r_no_ff["wells"]]))
         err_ff = float(np.mean([abs(w["od"] - self.od[w["row"], w["col"]]) for w in r_ff["wells"]]))
         self.assertLess(err_ff, err_no_ff, f"Flat-field error {err_ff} should be lower than uncorrected {err_no_ff}")
         improvement = (err_no_ff - err_ff) / err_no_ff
         self.assertGreater(improvement, 0.20, f"Expected at least 20% improvement, got {improvement*100:.1f}%")
+
+        # Fallback path test: plastic samples are unusable (blacked out)
+        fallback_img = out.copy()
+        for r in range(ROWS - 1):
+            for c in range(COLS - 1):
+                cx = int(30 + PITCH / 2 + (c + 0.5) * PITCH)
+                cy = int(30 + PITCH / 2 + (r + 0.5) * PITCH)
+                fallback_img[cy - 6 : cy + 7, cx - 6 : cx + 7] = 0
+        ok, buf_fb = cv2.imencode(".jpg", cv2.cvtColor(fallback_img, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
+        fb_url = "data:image/jpeg;base64," + base64.b64encode(buf_fb.tobytes()).decode()
+        r_fb = A.analyze(fb_url, {**CFG, "corners": ctr.tolist(), "flat_field": True})
+        self.assertFalse(r_fb["flat_field_applied"])
+        self.assertEqual(r_fb["illumination_range_percent"], 0.0)
+        self.assertTrue(any("Flat-field correction skipped" in w for w in r_fb["warnings"]))
 
     def test_calibration_quadratic_fit_and_warning(self):
         # 1. Non-linear calibration data

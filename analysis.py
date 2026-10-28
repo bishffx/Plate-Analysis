@@ -468,68 +468,79 @@ def extract(rgb, ctr, rad, channel, linearize, return_raw: bool = False):
     return I, flags
 
 
-def fit_illumination_surface(rgb: np.ndarray, ctr: np.ndarray, rad: np.ndarray, channel: str = "B") -> np.ndarray:
-    """Sample clear plastic between wells and fit a smooth 2D quadratic surface.
-    Returns relative illumination factor F(rows, cols) normalized so mean(F) = 1.0.
+def fit_illumination_surface(
+    rgb: np.ndarray,
+    ctr: np.ndarray,
+    rad: np.ndarray,
+    channel: str = "B",
+    linearize: bool = True,
+) -> tuple[np.ndarray | None, bool, float, str | None]:
+    """Sample small patches of clear plastic at the midpoint of every four neighbouring wells,
+    fit a smooth 2D degree-2 polynomial surface in linear light, and evaluate at well centres.
+    Returns (F_normalized_at_wells, applied, illumination_range_percent, warning_msg).
     """
     rows, cols = ctr.shape[:2]
     H, W = rgb.shape[:2]
     idx = CHANNELS.get(channel, 2)
 
-    sample_pts = []
-    # 1. Centers between 4 adjacent wells: (r + 0.5, c + 0.5)
+    # 1. Sample midpoints of every four neighbouring wells
+    midpoints = []
     for r in range(rows - 1):
         for c in range(cols - 1):
-            sample_pts.append(0.25 * (ctr[r, c] + ctr[r + 1, c] + ctr[r, c + 1] + ctr[r + 1, c + 1]))
-
-    # 2. Midpoints between horizontal wells
-    for r in range(rows):
-        for c in range(cols - 1):
-            sample_pts.append(0.5 * (ctr[r, c] + ctr[r, c + 1]))
-
-    # 3. Midpoints between vertical wells
-    for r in range(rows - 1):
-        for c in range(cols):
-            sample_pts.append(0.5 * (ctr[r, c] + ctr[r + 1, c]))
+            p = 0.25 * (ctr[r, c] + ctr[r + 1, c] + ctr[r, c + 1] + ctr[r + 1, c + 1])
+            midpoints.append(p)
 
     all_ctr = ctr.reshape(-1, 2)
     all_rad = rad.reshape(-1)
 
     xs, ys, intensities = [], [], []
-    for pt in sample_pts:
+    for pt in midpoints:
         x, y = float(pt[0]), float(pt[1])
         if not (6 <= x < W - 6 and 6 <= y < H - 6):
             continue
         dists = np.hypot(all_ctr[:, 0] - x, all_ctr[:, 1] - y)
         min_idx = int(np.argmin(dists))
         if dists[min_idx] < all_rad[min_idx] * 1.15:
-            continue  # inside or too close to a well
+            continue  # inside or too close to a well edge
 
         ix, iy = int(round(x)), int(round(y))
-        patch = rgb[max(0, iy - 1):min(H, iy + 2), max(0, ix - 1):min(W, ix + 2)]
+        # Small patch of clear plastic (5x5 px)
+        patch = rgb[max(0, iy - 2):min(H, iy + 3), max(0, ix - 2):min(W, ix + 3)]
         if patch.size == 0:
             continue
-        if idx is None:
-            val = float(np.median(patch.astype(np.float32) @ LUMA))
-        else:
-            val = float(np.median(patch[:, :, idx]))
-        xs.append(x)
-        ys.append(y)
-        intensities.append(val)
+        # Convert to linear light
+        lin = LUT[patch] if linearize else patch.astype(np.float32) / 255.0
+        vals = lin @ LUMA if idx is None else lin[:, :, idx]
+        v = float(np.median(vals))
+        # Valid sample check: must not be pitch black or blown specular highlight
+        if 0.04 <= v <= 0.99:
+            xs.append(x)
+            ys.append(y)
+            intensities.append(v)
 
-    if len(xs) < 12:
-        return np.ones((rows, cols), dtype=np.float64)
+    if len(xs) < 20:
+        return (
+            None,
+            False,
+            0.0,
+            f"Flat-field correction skipped: only {len(xs)} valid plastic samples found (< 20 required).",
+        )
 
     xs = np.array(xs, dtype=np.float64)
     ys = np.array(ys, dtype=np.float64)
     vals = np.array(intensities, dtype=np.float64)
 
-    # Filter outlier plastic markings / dirt
+    # Filter outlier plastic scratches / markings
     q25, q75 = np.percentile(vals, [25, 75])
-    iqr = max(q75 - q25, 2.0)
-    keep = (vals >= q25 - 1.5 * iqr) & (vals <= q75 + 1.5 * iqr)
-    if keep.sum() < 8:
-        keep = np.ones(len(vals), bool)
+    iqr = max(q75 - q25, 0.01)
+    keep = (vals >= q25 - 2.0 * iqr) & (vals <= q75 + 2.0 * iqr)
+    if keep.sum() < 20:
+        return (
+            None,
+            False,
+            0.0,
+            f"Flat-field correction skipped: fewer than 20 non-outlier plastic samples found ({keep.sum()}).",
+        )
 
     xs, ys, vals = xs[keep], ys[keep], vals[keep]
 
@@ -541,14 +552,20 @@ def fit_illumination_surface(rgb: np.ndarray, ctr: np.ndarray, rad: np.ndarray, 
     A_mat = np.column_stack([
         np.ones_like(xn),
         xn, yn,
-        xn ** 2, xn * yn, yn ** 2
+        xn ** 2, xn * yn, yn ** 2,
     ])
 
     try:
         coeff, _, _, _ = np.linalg.lstsq(A_mat, vals, rcond=None)
     except Exception:
-        return np.ones((rows, cols), dtype=np.float64)
+        return (
+            None,
+            False,
+            0.0,
+            "Flat-field correction skipped: illumination surface fit is unstable (lstsq failure).",
+        )
 
+    # Evaluate fitted surface at well centres
     wx = (ctr[:, :, 0] - cx_mid) / s_scale
     wy = (ctr[:, :, 1] - cy_mid) / s_scale
 
@@ -558,12 +575,21 @@ def fit_illumination_surface(rgb: np.ndarray, ctr: np.ndarray, rad: np.ndarray, 
         coeff[3] * (wx ** 2) + coeff[4] * (wx * wy) + coeff[5] * (wy ** 2)
     )
 
-    mean_s = float(np.mean(surface))
-    if mean_s <= 1e-4:
-        return np.ones((rows, cols), dtype=np.float64)
+    # Stability checks on the fitted surface
+    if not np.isfinite(surface).all() or np.min(surface) <= 0.02 or np.max(surface) / np.min(surface) > 3.0:
+        return (
+            None,
+            False,
+            0.0,
+            "Flat-field correction skipped: illumination surface fit is unstable (divergent values).",
+        )
 
+    # Illumination range percent across well centres
+    range_pct = round(float((np.max(surface) - np.min(surface)) / np.min(surface) * 100.0), 1)
+
+    mean_s = float(np.mean(surface))
     F = surface / mean_s
-    return np.clip(F, 0.4, 2.5)
+    return F, True, range_pct, None
 
 
 def annotate(rgb, ctr, rad, names, colors):
@@ -670,11 +696,6 @@ def analyze(image_or_id, cfg) -> dict:
 
     auto_channel_info = None
     if raw_channel == "AUTO":
-        if mode == "PI" or assay_key == "SPCE":
-            max_sig_wells = neg
-        else:
-            max_sig_wells = pos if pos else neg
-
         best_ch = "B"
         best_score = -1e9
         channel_stats = {}
@@ -682,23 +703,31 @@ def analyze(image_or_id, cfg) -> dict:
             _, _, cand_raw = extract(rgb, ctr, rad, cand, linearize=False, return_raw=True)
             bl_vals = [cand_raw[r, c] for r, c in blank if np.isfinite(cand_raw[r, c])]
             bl_raw = float(np.mean(bl_vals)) if bl_vals else 200.0
-            sig_vals = [cand_raw[r, c] for r, c in max_sig_wells if np.isfinite(cand_raw[r, c])]
-            sig_raw = float(np.mean(sig_vals)) if sig_vals else float(np.nanmin(cand_raw))
-            delta_raw = bl_raw - sig_raw
+
+            finite_raw = cand_raw[np.isfinite(cand_raw)]
+            if len(finite_raw) > 0:
+                k = max(1, int(math.ceil(len(finite_raw) * 0.10)))
+                darkest_10 = float(np.mean(np.sort(finite_raw)[:k]))
+            else:
+                darkest_10 = 0.0
+
+            usable_range = bl_raw - darkest_10
             under_20 = int(np.sum(cand_raw < 20))
-            under_pct = 100.0 * under_20 / (rows * cols)
+            under_share = under_20 / (rows * cols)
+            under_pct = 100.0 * under_share
             sat_blank = bl_raw > 250.0
 
-            score = delta_raw
-            if under_pct > 25.0:
-                score -= (60.0 + under_pct)
+            # Score each by usable range between blank and darkest 10% of wells; penalise > 25% below 20
+            score = usable_range
+            if under_share > 0.25:
+                score -= 1000.0 * (under_share + 1.0)
             if sat_blank:
-                score -= 80.0
+                score -= 500.0
 
             channel_stats[cand] = {
                 "blank_raw": round(bl_raw, 1),
-                "max_sig_raw": round(sig_raw, 1),
-                "delta": round(delta_raw, 1),
+                "darkest_10": round(darkest_10, 1),
+                "usable_range": round(usable_range, 1),
                 "under_pct": round(under_pct, 1),
                 "sat_blank": sat_blank,
                 "score": round(score, 1),
@@ -709,16 +738,17 @@ def analyze(image_or_id, cfg) -> dict:
 
         b_stat = channel_stats["B"]
         if best_ch == "B":
-            best_reason = f"Channel B provides the best usable dynamic range (delta raw={b_stat['delta']}) without excessive underexposure."
+            best_reason = f"Channel B selected: widest usable range ({b_stat['usable_range']}) without excessive underexposure."
         elif b_stat["under_pct"] > 25.0:
-            best_reason = f"Channel B had {b_stat['under_pct']}% wells clipped (<20 raw); Channel {best_ch} provides superior dynamic range (delta raw={channel_stats[best_ch]['delta']}) without underexposure."
+            best_reason = f"Channel B had {b_stat['under_pct']:.1f}% wells below 20. Channel {best_ch} selected with usable range {channel_stats[best_ch]['usable_range']}."
         elif b_stat["sat_blank"]:
-            best_reason = f"Channel B had saturated blanks (>250); Channel {best_ch} provides clean range (delta raw={channel_stats[best_ch]['delta']})."
+            best_reason = f"Channel B blank was saturated (> 250). Channel {best_ch} selected with usable range {channel_stats[best_ch]['usable_range']}."
         else:
-            best_reason = f"Channel {best_ch} offers optimal range (delta raw={channel_stats[best_ch]['delta']}) and linearity."
+            best_reason = f"Channel {best_ch} selected with usable range {channel_stats[best_ch]['usable_range']}."
 
         channel = best_ch
         auto_channel_info = {
+            "channel_used": best_ch,
             "chosen": best_ch,
             "reason": best_reason,
             "stats": channel_stats,
@@ -728,10 +758,21 @@ def analyze(image_or_id, cfg) -> dict:
 
     I, flags, raw_I = extract(rgb, ctr, rad, channel, linearize, return_raw=True)
 
-    flat_field = bool(cfg.get("flat_field", True))
-    if flat_field:
-        F = fit_illumination_surface(rgb, ctr, rad, channel)
-        I = I / F
+    errors, warnings = [], []
+
+    flat_field_opt = bool(cfg.get("flat_field", True))
+    flat_field_applied = False
+    illum_range_pct = 0.0
+    if flat_field_opt:
+        F, applied, range_pct, ff_warn = fit_illumination_surface(
+            rgb, ctr, rad, channel, linearize
+        )
+        if applied and F is not None:
+            I = I / F
+            flat_field_applied = True
+            illum_range_pct = range_pct
+        elif ff_warn:
+            warnings.append(ff_warn)
 
     pos_role = preset.get("pos_role", "Positive ctrl") if preset else "Positive ctrl"
     neg_role = preset.get("neg_role", "Negative ctrl") if preset else "Negative ctrl"
@@ -741,8 +782,6 @@ def analyze(image_or_id, cfg) -> dict:
     for lst, name in ((pos, pos_role), (neg, neg_role), (blank, blank_role)):
         for r, c in lst:
             role[r, c] = name
-
-    errors, warnings = [], []
     if assay_key == "SPCE" and not pos:
         warnings.append("SPCE preset has no positive control, so plate validity cannot be checked against inhibition.")
 
@@ -780,18 +819,21 @@ def analyze(image_or_id, cfg) -> dict:
                         "Use the G channel or reduce exposure.")
 
     under_count = int(np.sum(raw_I < 20))
-    under_pct = 100.0 * under_count / (rows * cols)
-    if under_pct > 25.0:
+    under_share = under_count / (rows * cols)
+    under_pct = 100.0 * under_share
+    if under_share > 0.25:
         warnings.append(
-            f"Dynamic-range alert: {under_count}/{rows*cols} wells ({under_pct:.1f}%) have raw 8-bit intensity < 20 in channel {channel}; high ODs may be compressed or clipped."
+            f"{under_count} of {rows * cols} wells ({under_pct:.1f}%) have a raw 8-bit value below 20. "
+            "Use the G channel, or reshoot with a brighter light."
         )
     blank_raw = float(np.nanmean([raw_I[r, c] for r, c in blank]))
     if blank_raw > 250.0:
         warnings.append(
-            f"Dynamic-range alert: Blank raw 8-bit intensity is {blank_raw:.1f}/255 (>250, saturated); highlights are blown and OD linearity is compromised."
+            f"Blank well raw 8-bit value is {blank_raw:.1f}/255 (> 250, saturated). "
+            "Reduce exposure or illumination to avoid clipping."
         )
     if auto_channel_info:
-        warnings.append(f"Auto-channel: {auto_channel_info['reason']}")
+        warnings.append(f"Auto channel: {auto_channel_info['reason']}")
 
     cal_mode = str(cfg.get("cal_mode") or "linear").lower()
     if cal_mode == "quadratic" and cfg.get("cal_a") is not None:
@@ -938,8 +980,19 @@ def analyze(image_or_id, cfg) -> dict:
         "valid": valid, "errors": errors, "warnings": warnings, "mode": mode, "cutoff": cutoff,
         "assay": assay_key,
         "channel": channel,
+        "channel_used": channel,
+        "reason": (auto_channel_info["reason"] if auto_channel_info else f"Manual channel selection: {channel}"),
+        "channel_info": {
+            "channel_used": channel,
+            "reason": (auto_channel_info["reason"] if auto_channel_info else f"Manual channel selection: {channel}")
+        },
         "auto_channel": auto_channel_info,
-        "flat_field": flat_field,
+        "flat_field": {
+            "applied": flat_field_applied,
+            "range_percent": illum_range_pct,
+        },
+        "flat_field_applied": flat_field_applied,
+        "illumination_range_percent": illum_range_pct,
         "cal_mode": cal_mode,
         "reference": reference,
         "image": {"width": rgb.shape[1], "height": rgb.shape[0]},

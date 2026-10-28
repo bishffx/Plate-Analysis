@@ -969,6 +969,11 @@ function render(r) {
   if (metaAssay) metaAssay.textContent = r.assay || (r.mode === "PI" ? "Competitive (PI)" : "Indirect (PP)");
   const metaTime = $("results-meta-time");
   if (metaTime) metaTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const metaChan = $("results-meta-channel");
+  if (metaChan) {
+    const ch = r.channel_used || r.channel || "B";
+    metaChan.textContent = r.auto_channel ? `${ch} (Auto)` : ch;
+  }
 
   const btnPrint = $("btn-print-report");
   if (btnPrint) btnPrint.onclick = () => window.print();
@@ -2155,23 +2160,43 @@ async function runBatch(files) {
 
       const tr = document.createElement("tr");
       const deltaStr = (r.summary.pos_od !== null && r.summary.neg_od !== null) ? (r.summary.pos_od - r.summary.neg_od).toFixed(3) : "–";
-      tr.innerHTML = `
-        <td><strong>${file.name}</strong></td>
-        <td><span class="badge">${r.assay || r.mode}</span></td>
-        <td><span class="qc-status-pill ${r.valid ? "qc-pass" : "qc-fail"}">${r.valid ? "PASS" : "FAIL"}</span></td>
-        <td>${r.summary.positive}</td>
-        <td>${r.summary.negative}</td>
-        <td>${r.summary.doubtful}</td>
-        <td>${r.summary.blank_od !== null ? r.summary.blank_od.toFixed(3) : "–"}</td>
-        <td>${deltaStr}</td>
-      `;
+
+      const tdName = document.createElement("td");
+      const strongName = document.createElement("strong");
+      strongName.textContent = file.name;
+      tdName.appendChild(strongName);
+      tr.appendChild(tdName);
+
+      const tdAssay = document.createElement("td");
+      const badgeAssay = el("span", r.assay || r.mode, "badge");
+      tdAssay.appendChild(badgeAssay);
+      tr.appendChild(tdAssay);
+
+      const tdQC = document.createElement("td");
+      const pillQC = el("span", r.valid ? "PASS" : "FAIL", `qc-status-pill ${r.valid ? "qc-pass" : "qc-fail"}`);
+      tdQC.appendChild(pillQC);
+      tr.appendChild(tdQC);
+
+      tr.appendChild(el("td", String(r.summary.positive)));
+      tr.appendChild(el("td", String(r.summary.negative)));
+      tr.appendChild(el("td", String(r.summary.doubtful)));
+      tr.appendChild(el("td", r.summary.blank_od !== null ? r.summary.blank_od.toFixed(3) : "–"));
+      tr.appendChild(el("td", deltaStr));
       tbody.appendChild(tr);
     } catch (err) {
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>${file.name}</strong></td>
-        <td colspan="7" style="color:var(--danger); font-size:12px;">Failed: ${err.message}</td>
-      `;
+      const tdName = document.createElement("td");
+      const strongName = document.createElement("strong");
+      strongName.textContent = file.name;
+      tdName.appendChild(strongName);
+      tr.appendChild(tdName);
+
+      const tdErr = document.createElement("td");
+      tdErr.colSpan = 7;
+      tdErr.style.color = "var(--danger)";
+      tdErr.style.fontSize = "12px";
+      tdErr.textContent = `Failed: ${err.message}`;
+      tr.appendChild(tdErr);
       tbody.appendChild(tr);
     }
   }
