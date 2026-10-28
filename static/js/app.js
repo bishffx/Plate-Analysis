@@ -334,9 +334,9 @@ function selectAssay(name) {
 
   $("badge-customised").hidden = true;
   $("customise-wells").checked = false;
-  $("pos").readOnly = true;
-  $("neg").readOnly = true;
-  $("blank").readOnly = true;
+  $("pos").readOnly = false;
+  $("neg").readOnly = false;
+  $("blank").readOnly = false;
 
   // Fill fields from preset
   $("pos").value = p.pos || "";
@@ -372,18 +372,36 @@ $("btn-assay-diva").onclick = () => selectAssay("DIVA");
 
 $("customise-wells").onchange = e => {
   const on = e.target.checked;
-  $("pos").readOnly = !on;
-  $("neg").readOnly = !on;
-  $("blank").readOnly = !on;
+  S.isCustomised = on;
+  $("badge-customised").hidden = !on;
+  if (on) {
+    $("pos-wrap").hidden = false;
+  } else if (S.selectedAssay && S.presets && S.presets[S.selectedAssay]) {
+    const p = S.presets[S.selectedAssay];
+    $("pos").value = p.pos || "";
+    $("neg").value = p.neg || "";
+    $("blank").value = p.blank || "";
+    if (S.selectedAssay === "SPCE") $("pos-wrap").hidden = true;
+    updateStepperValidation();
+  }
 };
 
 function onWellEdit() {
-  if (S.selectedAssay) {
-    S.isCustomised = true;
-    $("badge-customised").hidden = false;
+  S.isCustomised = true;
+  $("badge-customised").hidden = false;
+  $("customise-wells").checked = true;
+  if ($("pos").value.trim() && S.selectedAssay === "SPCE") {
+    $("pos-wrap").hidden = false;
   }
+  updateStepperValidation();
 }
-["pos", "neg", "blank"].forEach(id => $(id).addEventListener("input", onWellEdit));
+["pos", "neg", "blank"].forEach(id => {
+  const elInput = $(id);
+  if (elInput) {
+    elInput.readOnly = false;
+    elInput.addEventListener("input", onWellEdit);
+  }
+});
 
 function initCorners() {
   const r = +$("rows").value, c = +$("cols").value, mx = S.w / (2 * c), my = S.h / (2 * r);
@@ -769,6 +787,7 @@ const val = (id, def) => {
 };
 
 function cfg() {
+  const useReader = Boolean($("chk-use-reader") && $("chk-use-reader").checked);
   return {
     rows: val("rows", 8),
     cols: val("cols", 12),
@@ -785,7 +804,10 @@ function cfg() {
     cutoff_low: val("cutlow", null),
     slope: val("slope", 1),
     intercept: val("icpt", 0),
-    assay: S.selectedAssay
+    assay: S.selectedAssay,
+    blank_correction: $("blank-correction") ? $("blank-correction").checked : true,
+    use_reader: useReader,
+    reader: $("reader") ? $("reader").value : ""
   };
 }
 
@@ -836,6 +858,35 @@ $("fit").onclick = async () => {
     note.textContent = err.message;
   }
 };
+
+// Direct Reader / Paper mode handlers
+if ($("btn-use-reader")) {
+  $("btn-use-reader").onclick = async () => {
+    const txt = $("reader").value.trim();
+    if (!txt) {
+      showToast("Paste plate-reader OD values into the box first.", "warning");
+      $("reader").focus();
+      return;
+    }
+    $("chk-use-reader").checked = true;
+    showToast("Evaluating plate with direct Reader ODs...", "info");
+    await run();
+  };
+}
+if ($("chk-use-reader")) {
+  $("chk-use-reader").onchange = async () => {
+    if (S.last) {
+      await run();
+    }
+  };
+}
+if ($("blank-correction")) {
+  $("blank-correction").onchange = async () => {
+    if (S.last) {
+      await run();
+    }
+  };
+}
 
 /* ---------- Color Math & Ramps ---------- */
 function lerp(a, b, t) { return a + (b - a) * t; }
@@ -1089,7 +1140,10 @@ function renderReferencePanel(r) {
   const w = el("div", null, "ref-panel");
   const head = el("div", null, "ref-panel-header");
   const title = el("div", null, "ref-panel-title");
-  title.appendChild(el("span", `Reference values (${r.assay || (r.mode === "PI" ? "SPCE" : "DIVA")})`));
+  title.appendChild(el("span", `Calculation & Paper Verification (${r.assay || (r.mode === "PI" ? "SPCE" : "DIVA")})`));
+  if (r.reference.used_reader_ods) {
+    title.appendChild(el("span", "Direct Reader OD Mode", "ref-mode-badge"));
+  }
   head.appendChild(title);
   w.appendChild(head);
 
@@ -1104,18 +1158,28 @@ function renderReferencePanel(r) {
 
   const ref = r.reference;
   if (r.assay === "SPCE" || (!ref.pos_od && ref.max_od !== undefined)) {
-    addRef("Max OD (Antigen)", fmt(ref.max_od, 3), "Negative/Antigen control OD");
-    addRef("Blank Intensity", fmt(ref.blank_intensity, 4), "Mean intensity of blank wells");
+    addRef("Antigen (Max) OD", fmt(ref.max_od, 3) + " OD", "Negative/Antigen control OD");
+    addRef("Blank Baseline", fmt(ref.blank_od !== undefined ? ref.blank_od : 0.0, 3) + " OD", "Substrate reference baseline");
     addRef("Cutoff Percent", `${fmt(ref.cutoff_percent, 1)}%`, "Threshold: PI ≥ Cutoff is Positive");
-    addRef("Calculated Cutoff OD", fmt(ref.cutoff_od, 3), "cutoff_od = max_od × (1 - cutoff/100)");
+    addRef("Cutoff OD Threshold", fmt(ref.cutoff_od, 3) + " OD", "cutoff_od = max_od × (1 - cutoff/100)");
   } else {
-    addRef("Positive Control OD", fmt(ref.pos_od, 3), "Mean OD of positive control wells");
-    addRef("Negative Control OD", fmt(ref.neg_od, 3), "Mean OD of negative control wells");
-    addRef("Blank Intensity", fmt(ref.blank_intensity, 4), "Mean intensity of blank wells");
-    addRef("Cutoff Percent", `${fmt(ref.cutoff_percent, 1)}%`, "Threshold: PP ≥ Cutoff is Positive");
-    addRef("Calculated Cutoff OD", fmt(ref.cutoff_od, 3), "cutoff_od = neg_od + cutoff/100 × (pos_od - neg_od)");
+    addRef("Positive Control OD", fmt(ref.pos_od, 3) + " OD", "Mean OD of positive control wells");
+    addRef("Negative Control OD", fmt(ref.neg_od, 3) + " OD", "Mean OD of negative control wells");
+    addRef("Blank Baseline", fmt(ref.blank_od !== undefined ? ref.blank_od : 0.0, 3) + " OD", "Substrate reference baseline");
+    addRef("Cutoff OD Threshold", fmt(ref.cutoff_od, 3) + " OD", "cutoff_od = neg_od + cutoff/100 × (pos_od - neg_od)");
   }
   w.appendChild(grid);
+
+  if (ref.formula) {
+    const fbox = el("div", null, "ref-formula-box");
+    const flabel = el("div", "Exact Calculation Formula:", "ref-formula-title");
+    flabel.style.cssText = "font-size:11.5px; font-weight:700; color:var(--text-muted); margin-top:8px;";
+    fbox.appendChild(flabel);
+    const fcode = el("div", ref.formula, "ref-formula-highlight");
+    fbox.appendChild(fcode);
+    w.appendChild(fbox);
+  }
+
   panel.appendChild(w);
 }
 
@@ -1630,7 +1694,7 @@ function updateStepperValidation() {
   setBadgeValid($("step-badge-1"), s1Valid, 1);
 
   // Step 2: Well roles
-  const isSpce = (S.selectedAssay === "SPCE");
+  const isSpce = (S.selectedAssay === "SPCE" && !$("pos").value.trim());
   const posOk = validateWellField($("pos"), $("pos-err"), isSpce);
   const negOk = validateWellField($("neg"), $("neg-err"), false);
   const blkOk = validateWellField($("blank"), $("blank-err"), false);
@@ -1647,6 +1711,15 @@ function updateStepperValidation() {
   const icptVal = parseFloat($("icpt").value);
   const s4Valid = !isNaN(slopeVal) && !isNaN(icptVal);
   setBadgeValid($("step-badge-4"), s4Valid, 4);
+
+  // Enable Run button when all steps are valid
+  const allValid = s1Valid && s2Valid && s3Valid && s4Valid;
+  const runBtn = $("run");
+  if (runBtn && !runBtn.disabled && !allValid) {
+    runBtn.disabled = true;
+  } else if (runBtn && runBtn.disabled && allValid && S.img) {
+    runBtn.disabled = false;
+  }
 }
 
 // Bind live stepper validation

@@ -257,7 +257,9 @@ def extract(rgb, ctr, rad, channel, linearize):
             sel = px[keep]
             lin = LUT[sel] if linearize else sel.astype(np.float32) / 255.0
             vals = lin @ LUMA if idx is None else lin[:, idx]
-            I[r, c] = float(np.median(vals))
+            v_lo, v_hi = np.percentile(vals, [12, 88])
+            v_sel = vals[(vals >= v_lo) & (vals <= v_hi)]
+            I[r, c] = float(np.median(v_sel) if len(v_sel) >= 5 else np.median(vals))
     return I, flags
 
 
@@ -365,6 +367,13 @@ def analyze(image_data_url, cfg) -> dict:
     if assay_key == "SPCE" and not pos:
         warnings.append("SPCE preset has no positive control, so plate validity cannot be checked against inhibition.")
 
+    reader_data = cfg.get("reader_ods")
+    if not reader_data and cfg.get("use_reader") and cfg.get("reader"):
+        try:
+            reader_data = parse_reader(cfg.get("reader"), rows, cols)
+        except Exception:
+            reader_data = None
+
     dark = float(LUT[int(round(dark_level))]) if linearize else dark_level / 255.0
 
     bl = np.array([I[r, c] for r, c in blank])
@@ -377,7 +386,7 @@ def analyze(image_data_url, cfg) -> dict:
         raise AnalysisError("Blank intensity is not above the dark level.")
     others = np.array([I[r, c] for r in range(rows) for c in range(cols) if role[r, c] != "Blank"])
     others = others[np.isfinite(others)]
-    if others.size and np.median(others) >= Ib * 0.97:
+    if not reader_data and others.size and np.median(others) >= Ib * 0.97:
         errors.append("Blank wells are not brighter than the sample wells, so every OD would be about 0. "
                       "Pick wells that contain only substrate/stop solution (or are empty) as the blank.")
     if bl.size > 1 and bl.std(ddof=1) / bl.mean() > 0.15:
@@ -385,21 +394,36 @@ def analyze(image_data_url, cfg) -> dict:
 
     den = I - dark
     with np.errstate(all="ignore"):
-        od = np.log10(num / np.maximum(den, 1e-4))
+        od = np.maximum(0.0, np.log10(num / np.maximum(den, 1e-4)))
     floor_hits = int(np.sum(np.isfinite(I) & (den <= 1e-4)))
     if floor_hits:
         warnings.append(f"{floor_hits} well(s) are darker than the camera can resolve; their OD is capped. "
                         "Use the G channel or reduce exposure.")
     od_cal = slope * od + icpt
 
+    if reader_data and isinstance(reader_data, dict):
+        for r in range(rows):
+            for c in range(cols):
+                wn = well_name(r, c)
+                if wn in reader_data and reader_data[wn] is not None:
+                    try:
+                        val_num = float(reader_data[wn])
+                        if math.isfinite(val_num):
+                            od_cal[r, c] = val_num
+                    except (ValueError, TypeError):
+                        pass
+
     def vals(lst):
         v = np.array([od_cal[r, c] for r, c in lst])
         return v[np.isfinite(v)]
 
-    pv, nv = vals(pos), vals(neg)
+    pv, nv, bv = vals(pos), vals(neg), vals(blank)
     value = np.full((rows, cols), np.nan)
     pos_od = float(pv.mean()) if pv.size > 0 else None
     neg_od = float(nv.mean()) if nv.size > 0 else None
+    blank_od = float(bv.mean()) if bv.size > 0 else 0.0
+    blank_correction = bool(cfg.get("blank_correction", True))
+
     if nv.size == 0 or (pos and pv.size == 0):
         errors.append("Positive or negative control wells have no usable pixels.")
     else:
@@ -412,10 +436,15 @@ def analyze(image_data_url, cfg) -> dict:
             else:
                 value = 100.0 * (od_cal - neg_od) / d
         else:
-            if neg_od < MIN_SEP:
+            use_blank_sub = blank_correction and abs(blank_od) > 1e-4
+            net_neg = (neg_od - blank_od) if use_blank_sub else neg_od
+            if net_neg < MIN_SEP:
                 errors.append(f"Negative (maximum-signal) control OD {neg_od:.3f} is too low for PI.")
             else:
-                value = 100.0 * (1.0 - od_cal / neg_od)
+                if use_blank_sub:
+                    value = 100.0 * (1.0 - (od_cal - blank_od) / net_neg)
+                else:
+                    value = 100.0 * (1.0 - od_cal / neg_od)
                 if pos and pv.size > 0:
                     pv_val = float(np.nanmean([value[r, c] for r, c in pos]))
                     if pv_val < cutoff:
@@ -450,23 +479,50 @@ def analyze(image_data_url, cfg) -> dict:
             else:
                 cls[r, c] = "Negative"
 
-    reference = None
+    formula_str = (
+        "PI = 100 × (1 - (OD - OD_blank) / (OD_neg - OD_blank))"
+        if (mode == "PI" and abs(blank_od) > 1e-4 and blank_correction)
+        else ("PI = 100 × (1 - OD / OD_neg)" if mode == "PI" else "PP = 100 × (OD - OD_neg) / (OD_pos - OD_neg)")
+    )
     if assay_key == "SPCE":
         cutoff_od = (neg_od * (1.0 - cutoff / 100.0)) if neg_od is not None else None
         reference = {
+            "name": "SPCE",
+            "formula": formula_str,
             "max_od": neg_od,
+            "pos_od": pos_od,
+            "neg_od": neg_od,
+            "blank_od": blank_od,
             "blank_intensity": Ib,
             "cutoff_percent": cutoff,
             "cutoff_od": cutoff_od,
+            "used_reader_ods": bool(reader_data),
         }
     elif assay_key == "DIVA":
         cutoff_od = (neg_od + (cutoff / 100.0) * (pos_od - neg_od)) if (pos_od is not None and neg_od is not None) else None
         reference = {
+            "name": "DIVA",
+            "formula": formula_str,
             "pos_od": pos_od,
             "neg_od": neg_od,
+            "blank_od": blank_od,
             "blank_intensity": Ib,
             "cutoff_percent": cutoff,
             "cutoff_od": cutoff_od,
+            "used_reader_ods": bool(reader_data),
+        }
+    else:
+        cutoff_od = (neg_od + (cutoff / 100.0) * (pos_od - neg_od)) if (mode == "PP" and pos_od is not None and neg_od is not None) else ((neg_od * (1.0 - cutoff / 100.0)) if neg_od is not None else None)
+        reference = {
+            "name": mode,
+            "formula": formula_str,
+            "pos_od": pos_od,
+            "neg_od": neg_od,
+            "blank_od": blank_od,
+            "blank_intensity": Ib,
+            "cutoff_percent": cutoff,
+            "cutoff_od": cutoff_od,
+            "used_reader_ods": bool(reader_data),
         }
 
     names = [[well_name(r, c) for c in range(cols)] for r in range(rows)]
@@ -483,7 +539,7 @@ def analyze(image_data_url, cfg) -> dict:
         "reference": reference,
         "image": {"width": rgb.shape[1], "height": rgb.shape[0]},
         "summary": {
-            "blank_intensity": Ib, "pos_od": pos_od, "neg_od": neg_od,
+            "blank_intensity": Ib, "pos_od": pos_od, "neg_od": neg_od, "blank_od": blank_od,
             "delta_od": None if (pos_od is None or neg_od is None) else pos_od - neg_od,
             "positive": count("Positive"), "negative": count("Negative"),
             "doubtful": count("Doubtful"), "invalid": count("Invalid") + count("No data"),

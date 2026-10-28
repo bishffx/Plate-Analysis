@@ -497,23 +497,23 @@
 
               <div class="form-group" id="pos-wrap">
                 <label for="pos">Positive control wells</label>
-                <input id="pos" value="A1-B1" readonly>
+                <input id="pos" value="A1-B1" placeholder="e.g. A1-B1">
                 <div class="field-error" id="pos-err" hidden>Invalid well format (e.g. A1, A1-B2)</div>
-                <span class="field-hint">High OD reference wells (PP mode)</span>
+                <span class="field-hint">High OD reference wells (PP mode) · Click to edit manually</span>
               </div>
 
               <div class="form-group" id="neg-wrap">
                 <label for="neg">Negative control wells</label>
-                <input id="neg" value="C1-D1" readonly>
+                <input id="neg" value="C1-D1" placeholder="e.g. C1-D1">
                 <div class="field-error" id="neg-err" hidden>Invalid well format (e.g. C1-D1)</div>
-                <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA</span>
+                <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA · Click to edit</span>
               </div>
 
               <div class="form-group" id="blank-wrap">
                 <label for="blank">Blank wells (substrate only / empty)</label>
-                <input id="blank" value="E1-H1" readonly>
+                <input id="blank" value="E1-H1" placeholder="e.g. E1-H1">
                 <div class="field-error" id="blank-err" hidden>Invalid well format (e.g. E1-H1)</div>
-                <span class="field-hint">Substrate reference wells for optical baseline</span>
+                <span class="field-hint">Substrate reference wells for optical baseline · Click to edit</span>
               </div>
             </div>
           </details>
@@ -574,6 +574,14 @@
                 <input id="cutlow" type="number" step="any" placeholder="none">
                 <span class="field-hint">Borderline gray-zone limit</span>
               </div>
+
+              <div class="form-group" style="margin-top: 10px;">
+                <label class="check-label" for="blank-correction" style="font-weight: 600;">
+                  <input id="blank-correction" type="checkbox" checked>
+                  Subtract blank OD in formula (paper math match)
+                </label>
+                <span class="field-hint">Subtracts blank absorbance from sample and controls (OD − OD_blank)</span>
+              </div>
             </div>
           </details>
 
@@ -607,6 +615,15 @@
               </div>
 
               <button type="button" class="sec" id="fit" style="width:100%; margin-top:4px">Fit slope from reader</button>
+              <button type="button" class="btn-calc-reader" id="btn-use-reader" title="Calculate results directly using plate reader values">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 8h10M7 12h10M7 16h10"></path></svg>
+                <span>Evaluate with Reader / Paper ODs</span>
+              </button>
+              <label class="check-label" for="chk-use-reader" style="margin-top: 8px; font-size: 12.5px; font-weight: 600;">
+                <input id="chk-use-reader" type="checkbox">
+                Direct Reader/Paper Mode
+              </label>
+              <span class="field-hint">Quantify directly from reader ODs with 100% paper fidelity</span>
               <p class="hint" id="fitnote"></p>
             </div>
           </details>
