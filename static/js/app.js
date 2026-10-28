@@ -775,7 +775,7 @@ $("radius").oninput = () => {
 });
 
 $("mode").onchange = () => {
-  $("cutoff").value = $("mode").value === "PP" ? 40 : 50;
+  $("cutoff").value = $("mode").value === "PP" ? 40 : 65;
 };
 
 /* ---------- Analysis Run & Calibrate ---------- */
@@ -1001,7 +1001,7 @@ function render(r) {
   }
 
   // Cutoff
-  const cutPct = r.cutoff || (r.mode === "PP" ? 40 : 50);
+  const cutPct = r.cutoff || (r.mode === "PP" ? 40 : 65);
   const cutOdStr = r.reference && r.reference.cutoff_od ? ` (${fmt(r.reference.cutoff_od, 3)} OD)` : "";
   addKpi("Cutoff", `${cutPct}%${cutOdStr}`, '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>');
 
@@ -1418,7 +1418,7 @@ function heat(r, key, nd) {
   const rows = Math.max(...r.wells.map(w => w.row)) + 1;
   const cols = Math.max(...r.wells.map(w => w.col)) + 1;
   const isVal = (key === "value");
-  const cutoff = r.cutoff || (r.mode === "PP" ? 40 : 50);
+  const cutoff = r.cutoff || (r.mode === "PP" ? 40 : 65);
 
   const vs = r.wells.map(w => w[key]).filter(v => v !== null && isFinite(v));
   const lo = vs.length ? Math.min(...vs) : 0;

@@ -154,12 +154,12 @@ class Core(unittest.TestCase):
         self.assertTrue(r["valid"], r["errors"])
         self.assertEqual(r["mode"], "PI")
         self.assertEqual(r["assay"], "SPCE")
-        self.assertEqual(r["cutoff"], 50.0)
+        self.assertEqual(r["cutoff"], 65.0)
         ref = r["reference"]
         self.assertIsNotNone(ref)
         self.assertAlmostEqual(ref["max_od"], 1.6, delta=0.08)
-        self.assertEqual(ref["cutoff_percent"], 50.0)
-        self.assertAlmostEqual(ref["cutoff_od"], 1.6 * 0.5, delta=0.05)
+        self.assertEqual(ref["cutoff_percent"], 65.0)
+        self.assertAlmostEqual(ref["cutoff_od"], 1.6 * (1.0 - 0.65), delta=0.05)
         self.assertGreater(ref["blank_intensity"], 0.5)
         # Check custom role label and classes
         for w in r["wells"]:

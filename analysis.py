@@ -20,7 +20,7 @@ ASSAYS = {
         "name": "SPCE",
         "description": "Solid Phase Competition ELISA (PI mode)",
         "mode": "PI",
-        "cutoff": 50.0,
+        "cutoff": 65.0,
         "pos": "",
         "neg": "A1-A4",
         "blank": "A5-A6",
@@ -318,7 +318,7 @@ def analyze(image_data_url, cfg) -> dict:
         if mode not in ("PP", "PI"):
             raise AnalysisError("Mode must be PP or PI.")
 
-    default_cutoff = preset["cutoff"] if preset is not None else (40.0 if mode == "PP" else 50.0)
+    default_cutoff = preset["cutoff"] if preset is not None else (40.0 if mode == "PP" else 65.0)
     cutoff = _num(cfg, "cutoff", default_cutoff, -1000, 1000)
     cut_low = _num(cfg, "cutoff_low", None, -1000, 1000)
     if cut_low is not None and cut_low >= cutoff:
