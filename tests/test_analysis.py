@@ -145,10 +145,10 @@ class Core(unittest.TestCase):
 
     def test_spce_preset(self):
         od = np.random.default_rng(10).uniform(0.3, 1.4, (ROWS, COLS))
-        od[0, 0:4] = 1.6    # A1-A4 neg (max-signal) control
-        od[0, 4:6] = 0.0    # A5-A6 blank
-        od[1, 0:6] = 0.4    # B1-B6 positive (low OD in competitive assay)
-        od[2, 0:6] = 1.2    # C1-C6 negative (high OD in competitive assay)
+        od[0:4, 0] = 1.6    # A1-D1 neg (max-signal) control
+        od[4:6, 0] = 0.0    # E1-F1 blank
+        od[0:6, 1] = 0.4    # A2-F2 positive (low OD in competitive assay)
+        od[0:6, 2] = 1.2    # A3-F3 negative (high OD in competitive assay)
         url, corners = make_plate(od, seed=10)
         r = A.analyze(url, {"corners": corners, "assay": "SPCE"})
         self.assertTrue(r["valid"], r["errors"])
@@ -163,15 +163,15 @@ class Core(unittest.TestCase):
         self.assertGreater(ref["blank_intensity"], 0.5)
         # Check custom role label and classes
         for w in r["wells"]:
-            if w["well"] in ("A1", "A2", "A3", "A4"):
+            if w["well"] in ("A1", "B1", "C1", "D1"):
                 self.assertEqual(w["role"], "Antigen (max-signal) control")
                 self.assertEqual(w["class"], "Control")
-            elif w["well"] in ("A5", "A6"):
+            elif w["well"] in ("E1", "F1"):
                 self.assertEqual(w["role"], "Blank")
                 self.assertEqual(w["class"], "Blank")
-            elif w["well"].startswith("B") and int(w["well"][1:]) <= 6:
+            elif w["col"] == 1 and w["row"] <= 5:
                 self.assertEqual(w["class"], "Positive", w["well"])
-            elif w["well"].startswith("C") and int(w["well"][1:]) <= 6:
+            elif w["col"] == 2 and w["row"] <= 5:
                 self.assertEqual(w["class"], "Negative", w["well"])
         self.assertTrue(any("SPCE preset has no positive control" in w for w in r["warnings"]))
 
@@ -237,7 +237,7 @@ class Core(unittest.TestCase):
 
     def test_spce_no_positive_wells_logic(self):
         od = np.random.default_rng(10).uniform(0.3, 1.4, (ROWS, COLS))
-        od[0, 0:4] = 1.6; od[0, 4:6] = 0.0
+        od[0:4, 0] = 1.6; od[4:6, 0] = 0.0
         url, corners = make_plate(od, seed=10)
         # Without positive wells: valid, has warning
         r = A.analyze(url, {"corners": corners, "assay": "spce", "pos": ""})
@@ -246,9 +246,9 @@ class Core(unittest.TestCase):
         self.assertTrue(any("SPCE preset has no positive control" in w for w in r["warnings"]))
 
         # With user-provided positive wells: no warning
-        od[1, 0:2] = 0.2  # positive controls (low OD in competitive assay)
+        od[6:8, 0] = 0.2  # positive controls (low OD in competitive assay)
         url2, corners2 = make_plate(od, seed=11)
-        r2 = A.analyze(url2, {"corners": corners2, "assay": "spce", "pos": "B1-B2"})
+        r2 = A.analyze(url2, {"corners": corners2, "assay": "spce", "pos": "G1-H1"})
         self.assertTrue(r2["valid"])
         self.assertIsNotNone(r2["summary"]["pos_od"])
         self.assertFalse(any("SPCE preset has no positive control" in w for w in r2["warnings"]))
