@@ -824,6 +824,26 @@
           </div>
         </div>
 
+        <!-- Batch Configuration & Grid Options -->
+        <div class="batch-config-strip" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; padding:10px 14px; background:var(--input-bg); border:1px solid var(--border-color); border-radius:6px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <label for="batch-config-select" style="font-size:12.5px; font-weight:600;">Configuration:</label>
+            <select id="batch-config-select" style="padding:4px 8px; font-size:12px;">
+              <option value="current">Current settings and corners</option>
+              <option value="file">Saved JSON configuration…</option>
+            </select>
+            <input type="file" id="batch-cfg-input" accept=".json,application/json" style="display:none;">
+            <button type="button" class="sec btn-xs" id="btn-batch-cfg-upload" style="display:none;">Upload JSON</button>
+            <span id="batch-cfg-name" style="font-size:12px; color:var(--text-muted); font-weight:500;">Using active settings</span>
+          </div>
+          <div>
+            <label class="check-label" for="chk-batch-auto-detect" style="font-size:12.5px; font-weight:600;">
+              <input type="checkbox" id="chk-batch-auto-detect" checked>
+              Use auto-detect for each plate
+            </label>
+          </div>
+        </div>
+
         <!-- Batch Upload Box -->
         <div id="batch-dropzone" class="dropzone-box" style="padding: 28px 16px; border-style:dashed;">
           <input type="file" id="batch-file-input" multiple accept="image/*" style="display:none;">
@@ -848,19 +868,20 @@
 
         <!-- Batch Summary Table -->
         <div id="batch-results-wrap" style="margin-top:24px;" hidden>
-          <h3 style="font-size:15px; font-weight:700; margin-bottom:12px;">Batch Plates Summary</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <h3 style="font-size:15px; font-weight:700; margin:0;">Batch Plates Summary</h3>
+            <span style="font-size:12px; color:var(--text-muted);">Click "Open Results" on any plate to inspect full heatmaps & data</span>
+          </div>
           <div class="table-scroll-container">
             <table class="data-table" id="batch-summary-table">
               <thead>
                 <tr>
-                  <th>Plate</th>
-                  <th>Assay</th>
+                  <th>File</th>
                   <th>QC Status</th>
                   <th>Positive</th>
                   <th>Negative</th>
-                  <th>Doubtful</th>
-                  <th>Blank OD</th>
-                  <th>Delta OD</th>
+                  <th>Invalid</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="batch-tbody"></tbody>

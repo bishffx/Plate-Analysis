@@ -23,6 +23,8 @@ ROUTES = {
     "/api/analyze": lambda b: A.analyze(b.get("image_id") or b.get("image"), b.get("config") or b),
     "/api/calibrate": A.fit_calibration,
     "/api/presets": lambda b: A.ASSAYS,
+    "/api/batch": lambda b: A.run_batch(b.get("plates", []), b.get("config", {}), b.get("auto_detect", True)),
+    "/api/config/validate": A.validate_config,
 }
 
 

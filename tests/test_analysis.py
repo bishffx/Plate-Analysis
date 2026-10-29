@@ -494,6 +494,89 @@ class Core(unittest.TestCase):
         self.assertIsNone(res_noise["suggested"])
         self.assertIsNotNone(res_noise["reason"])
 
+    def test_batch_processing_and_failure_resilience(self):
+        # 1. A batch of three synthetic plates returns three results
+        url1, c1 = make_plate(truth(1), seed=1)
+        url2, c2 = make_plate(truth(2), seed=2)
+        url3, c3 = make_plate(truth(3), seed=3)
+        plates = [
+            {"name": "Plate_Alpha.jpg", "image": url1},
+            {"name": "Plate_Beta.jpg", "image": url2},
+            {"name": "Plate_Gamma.jpg", "image": url3},
+        ]
+        batch_out = A.run_batch(plates, {**CFG, "corners": c1}, auto_detect=True)
+        self.assertEqual(len(batch_out["results"]), 3)
+        self.assertEqual(batch_out["total"], 3)
+        self.assertEqual(batch_out["passed"], 3)
+        for r in batch_out["results"]:
+            self.assertTrue(r["success"])
+            self.assertTrue(r["valid"])
+            self.assertIn("positives", r)
+            self.assertIn("negatives", r)
+            self.assertIn("invalid", r)
+            self.assertIn(r["qc_status"], ("PASS", "PASS (Needs Review)"))
+
+        # Test combined CSV generation
+        csv_text = A.export_batch_csv(batch_out["results"])
+        self.assertTrue(csv_text.startswith("plate,well,row,col,role,intensity,image_od,calibrated_od,value,class,flag"))
+        self.assertIn('"Plate_Alpha.jpg"', csv_text)
+        self.assertIn('"Plate_Beta.jpg"', csv_text)
+        self.assertIn('"Plate_Gamma.jpg"', csv_text)
+
+        # 2. A failing plate doesn't stop the others
+        bad_batch = [
+            {"name": "Good_1.jpg", "image": url1},
+            {"name": "Corrupt_2.jpg", "image": "data:image/jpeg;base64,invalid_corrupt_data"},
+            {"name": "Good_3.jpg", "image": url3},
+        ]
+        bad_out = A.run_batch(bad_batch, {**CFG, "corners": c1}, auto_detect=True)
+        self.assertEqual(len(bad_out["results"]), 3)
+        self.assertTrue(bad_out["results"][0]["valid"])
+        self.assertFalse(bad_out["results"][1]["success"])
+        self.assertEqual(bad_out["results"][1]["qc_status"], "ERROR")
+        self.assertIn("error", bad_out["results"][1])
+        self.assertTrue(bad_out["results"][2]["valid"])
+        self.assertEqual(bad_out["passed"], 2)
+
+    def test_config_validation_and_rejection(self):
+        # 1. Valid config returns cleaned data
+        valid_cfg = {
+            "version": "2.0",
+            "name": "Standard_SPCE",
+            "config": {
+                "rows": 8, "cols": 12, "channel": "AUTO", "mode": "PI",
+                "cutoff": 65.0, "model": "linear", "slope": 1.2, "intercept": 0.05
+            }
+        }
+        res = A.validate_config(valid_cfg)
+        self.assertEqual(res["rows"], 8)
+        self.assertEqual(res["channel"], "AUTO")
+
+        # 2. Missing version field rejected cleanly
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.validate_config({"config": {"rows": 8, "cols": 12}})
+        self.assertIn("missing required 'version' field", str(ctx.exception).lower())
+
+        # 3. Invalid channel rejected cleanly
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.validate_config({"version": "2.0", "config": {"channel": "INFRARED"}})
+        self.assertIn("must be R, G, B, GRAY or AUTO", str(ctx.exception))
+
+        # 4. Invalid mode rejected cleanly
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.validate_config({"version": "2.0", "config": {"mode": "UNKNOWN_MODE"}})
+        self.assertIn("must be PP or PI", str(ctx.exception))
+
+        # 5. Invalid cutoffs (lower >= main) rejected cleanly
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.validate_config({"version": "2.0", "config": {"cutoff": 40.0, "cutoff_low": 50.0}})
+        self.assertIn("must be below the main cutoff", str(ctx.exception))
+
+        # 6. Invalid calibration model rejected cleanly
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.validate_config({"version": "2.0", "config": {"model": "spline"}})
+        self.assertIn("must be 'linear' or 'quadratic'", str(ctx.exception))
+
 
 class Http(unittest.TestCase):
     @classmethod
@@ -594,6 +677,27 @@ class Http(unittest.TestCase):
             self.assertEqual(s, 200)
             self.assertTrue(res["valid"])
             self.assertEqual(len(res["wells"]), 96)
+
+    def test_batch_and_config_endpoints(self):
+        # 1. /api/batch endpoint returns 200 with results
+        s, j = self.post("/api/batch", {
+            "plates": [{"name": "Single_Plate.jpg", "image": self.url}],
+            "config": {**CFG, "corners": self.corners},
+            "auto_detect": False
+        })
+        self.assertEqual(s, 200)
+        self.assertEqual(len(j["results"]), 1)
+        self.assertTrue(j["results"][0]["valid"])
+
+        # 2. /api/config/validate endpoint
+        s, j = self.post("/api/config/validate", {"version": "2.0", "config": {"rows": 8, "cols": 12, "channel": "AUTO"}})
+        self.assertEqual(s, 200)
+        self.assertEqual(j["rows"], 8)
+
+        # 3. Invalid config to /api/config/validate returns 400 error
+        s_bad, j_bad = self.post("/api/config/validate", {"config": {"rows": 8, "cols": 12}})
+        self.assertEqual(s_bad, 400)
+        self.assertIn("version", j_bad["error"].lower())
 
 
 if __name__ == "__main__":

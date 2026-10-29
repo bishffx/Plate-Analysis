@@ -1178,3 +1178,218 @@ def fit_calibration(body: dict) -> dict:
         "points": points,
         "warning": warning,
     })
+
+# ------------------------------------------------------------- configuration validation & batch
+def validate_config(data: dict) -> dict:
+    """Validates an uploaded or imported configuration object against protocol schemas.
+    Rejects missing version or invalid settings with a clear AnalysisError.
+    """
+    if not isinstance(data, dict):
+        raise AnalysisError("Invalid configuration file: root must be a JSON object.")
+
+    version = data.get("version")
+    cfg_data = data.get("config") if isinstance(data.get("config"), dict) else data
+    if version is None and "version" in cfg_data:
+        version = cfg_data.get("version")
+
+    if version is None:
+        raise AnalysisError("Invalid configuration file: missing required 'version' field.")
+
+    # Validate version format
+    ver_str = str(version).strip()
+    if not ver_str:
+        raise AnalysisError("Invalid configuration file: 'version' field cannot be empty.")
+
+    # Validate rows & cols if present
+    rows = cfg_data.get("rows")
+    if rows is not None:
+        try:
+            r = int(rows)
+            if not (2 <= r <= 16):
+                raise ValueError()
+        except (ValueError, TypeError):
+            raise AnalysisError(f"Invalid configuration file: rows ({rows}) must be an integer between 2 and 16.")
+
+    cols = cfg_data.get("cols")
+    if cols is not None:
+        try:
+            c = int(cols)
+            if not (2 <= c <= 24):
+                raise ValueError()
+        except (ValueError, TypeError):
+            raise AnalysisError(f"Invalid configuration file: cols ({cols}) must be an integer between 2 and 24.")
+
+    # Validate channel
+    channel = cfg_data.get("channel")
+    if channel is not None:
+        ch = str(channel).strip().upper()
+        if ch not in ("R", "G", "B", "GRAY", "AUTO"):
+            raise AnalysisError(f"Invalid configuration file: channel '{channel}' must be R, G, B, GRAY or AUTO.")
+
+    # Validate mode
+    mode = cfg_data.get("mode")
+    if mode is not None:
+        m = str(mode).strip().upper()
+        if m not in ("PP", "PI"):
+            raise AnalysisError(f"Invalid configuration file: mode '{mode}' must be PP or PI.")
+
+    # Validate assay preset if specified
+    assay = cfg_data.get("assay")
+    if assay is not None and str(assay).strip() != "":
+        a_key = str(assay).strip().upper()
+        if a_key not in ASSAYS:
+            raise AnalysisError(f"Invalid configuration file: unknown assay preset '{assay}'.")
+
+    # Validate cutoffs
+    cutoff = cfg_data.get("cutoff")
+    cutoff_low = cfg_data.get("cutoff_low")
+    if cutoff is not None:
+        try:
+            c_val = float(cutoff)
+        except (ValueError, TypeError):
+            raise AnalysisError("Invalid configuration file: cutoff must be a number.")
+        if cutoff_low is not None and str(cutoff_low).strip() != "":
+            try:
+                cl_val = float(cutoff_low)
+            except (ValueError, TypeError):
+                raise AnalysisError("Invalid configuration file: cutoff_low must be a number.")
+            if cl_val >= c_val:
+                raise AnalysisError("Invalid configuration file: the doubtful lower cutoff must be below the main cutoff.")
+
+    # Validate calibration model and parameters
+    model = cfg_data.get("model") or cfg_data.get("cal_mode")
+    if model is not None:
+        mod = str(model).strip().lower()
+        if mod not in ("linear", "quadratic"):
+            raise AnalysisError(f"Invalid configuration file: calibration model must be 'linear' or 'quadratic', got '{model}'.")
+        if mod == "linear" and cfg_data.get("slope") is not None:
+            try:
+                sl = float(cfg_data["slope"])
+            except (ValueError, TypeError):
+                raise AnalysisError("Invalid configuration file: calibration slope must be a number.")
+            if sl == 0:
+                raise AnalysisError("Invalid configuration file: calibration slope cannot be 0.")
+        elif mod == "quadratic":
+            val_a = cfg_data.get("a", cfg_data.get("cal_a", 0.0))
+            val_b = cfg_data.get("b", cfg_data.get("cal_b", 1.0))
+            try:
+                qa, qb = float(val_a), float(val_b)
+            except (ValueError, TypeError):
+                raise AnalysisError("Invalid configuration file: quadratic calibration coefficients must be numbers.")
+            if abs(qa) < 1e-12 and abs(qb) < 1e-12:
+                raise AnalysisError("Invalid configuration file: quadratic calibration coefficients 'a' and 'b' cannot both be 0.")
+
+    # Validate corners geometry if present
+    corners = cfg_data.get("corners")
+    if corners is not None:
+        if not isinstance(corners, (list, tuple)) or len(corners) != 4:
+            raise AnalysisError("Invalid configuration file: corners must contain exactly 4 points.")
+        for pt in corners:
+            if not isinstance(pt, (list, tuple)) or len(pt) != 2:
+                raise AnalysisError("Invalid configuration file: each corner must be an [x, y] pair.")
+
+    return clean(cfg_data)
+
+
+def run_batch(plates: list, base_config: dict | None = None, auto_detect: bool = True) -> dict:
+    """Runs batch analysis on a list of plate items sequentially.
+    A failing plate records an error and does not stop the others.
+    If auto_detect is True, attempts HoughCircles+RANSAC grid detection per plate;
+    if detection fails, marks for manual review and falls back to base config corners.
+    """
+    if base_config is None:
+        base_config = {}
+    results = []
+
+    for idx, item in enumerate(plates):
+        if isinstance(item, dict):
+            name = item.get("name", f"Plate_{idx+1}")
+            img = item.get("image") or item.get("image_id")
+            plate_cfg = dict(item.get("config") or base_config)
+        else:
+            name = f"Plate_{idx+1}"
+            img = item
+            plate_cfg = dict(base_config)
+
+        needs_review = False
+        detection_reason = None
+
+        if auto_detect and img:
+            try:
+                det = detect_grid(img, {"rows": plate_cfg.get("rows", 8), "cols": plate_cfg.get("cols", 12)})
+                if det.get("success") and det.get("suggested"):
+                    plate_cfg["corners"] = det["suggested"]
+                else:
+                    needs_review = True
+                    detection_reason = det.get("reason") or "Auto-detect confidence below 0.6; fallback corners used."
+            except Exception as e:
+                needs_review = True
+                detection_reason = f"Grid auto-detection failed: {str(e)}; fallback corners used."
+
+        try:
+            res = analyze(img, plate_cfg)
+            valid = bool(res.get("valid", False))
+            qc_status = "PASS" if valid else "FAIL"
+            if needs_review:
+                qc_status = f"{qc_status} (Needs Review)"
+            summary = res.get("summary", {})
+            entry = {
+                "name": name,
+                "success": True,
+                "valid": valid,
+                "qc_status": qc_status,
+                "needs_review": needs_review,
+                "detection_reason": detection_reason,
+                "positives": summary.get("positive", 0),
+                "negatives": summary.get("negative", 0),
+                "invalid": summary.get("invalid", 0),
+                "doubtful": summary.get("doubtful", 0),
+                "blank_od": summary.get("blank_od"),
+                "delta_od": summary.get("delta_od"),
+                "result": res,
+            }
+        except Exception as err:
+            entry = {
+                "name": name,
+                "success": False,
+                "valid": False,
+                "qc_status": "ERROR",
+                "needs_review": True,
+                "error": str(err),
+                "positives": 0,
+                "negatives": 0,
+                "invalid": 0,
+                "doubtful": 0,
+                "blank_od": None,
+                "delta_od": None,
+                "result": None,
+            }
+        results.append(entry)
+
+    return clean({
+        "results": results,
+        "total": len(plates),
+        "passed": sum(1 for r in results if r.get("valid")),
+        "failed": sum(1 for r in results if not r.get("valid")),
+    })
+
+
+def export_batch_csv(batch_results: list) -> str:
+    """Exports a single combined CSV for a batch of plates, with a 'plate' column."""
+    lines = ["plate,well,row,col,role,intensity,image_od,calibrated_od,value,class,flag"]
+    for p in batch_results:
+        plate_name = str(p.get("name", "Plate")).replace('"', '""')
+        res = p.get("result")
+        if not res or not res.get("wells"):
+            continue
+        for w in res["wells"]:
+            intensity = "" if w.get("intensity") is None else str(w["intensity"])
+            od = "" if w.get("od") is None else str(w["od"])
+            od_cal = "" if w.get("od_cal") is None else str(w["od_cal"])
+            val = "" if w.get("value") is None else str(w["value"])
+            role = str(w.get("role", "")).replace('"', '""')
+            cls_name = str(w.get("class", ""))
+            flag = str(w.get("flag", "")).replace('"', '""')
+            lines.append(f'"{plate_name}",{w["well"]},{w["row"]},{w["col"]},"{role}",{intensity},{od},{od_cal},{val},"{cls_name}","{flag}"')
+    return "\n".join(lines)
+
