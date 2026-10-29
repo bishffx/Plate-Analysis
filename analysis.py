@@ -291,15 +291,21 @@ def grid_api(body: dict) -> dict:
 
 
 def detect_grid(image_or_id, cfg: dict | None = None) -> dict:
-    """Detect wells with HoughCircles, fit a perspective regular grid using RANSAC,
-    and return suggested corner positions or a low-confidence notice.
+    """Finds circular wells with cv2.HoughCircles on a blurred grayscale image,
+    fits a regular perspective grid with RANSAC, and returns suggested corner points
+    for A1, A12, H12, H1 with confidence (0..1) and inlier count.
+    If confidence is below 0.6, returns {"suggested": None, "reason": "..."}.
     """
+    if isinstance(image_or_id, dict) and cfg is None:
+        cfg = image_or_id
+        image_or_id = cfg.get("image_id") or cfg.get("image")
     if cfg is None:
         cfg = {}
     if image_or_id is None:
         image_or_id = cfg.get("image_id") or cfg.get("image")
-    if not image_or_id and not isinstance(image_or_id, np.ndarray):
+    if image_or_id is None:
         raise AnalysisError("No image supplied.")
+
     if isinstance(image_or_id, np.ndarray):
         rgb = image_or_id
     elif isinstance(image_or_id, str):
@@ -316,49 +322,66 @@ def detect_grid(image_or_id, cfg: dict | None = None) -> dict:
 
     H, W = rgb.shape[:2]
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
+
     pitch_est = min(W / (cols + 0.8), H / (rows + 0.8))
-    min_r = int(max(6, pitch_est * 0.16))
-    max_r = int(min(H, W, pitch_est * 0.48))
+    min_r = int(max(6, pitch_est * 0.18))
+    max_r = int(min(H, W, pitch_est * 0.46))
     min_dist = int(max(10, pitch_est * 0.65))
 
-    blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
     circles = cv2.HoughCircles(
         blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=min_dist,
-        param1=50, param2=26, minRadius=min_r, maxRadius=max_r
+        param1=50, param2=24, minRadius=min_r, maxRadius=max_r
     )
-    if circles is None or len(circles[0]) < 10:
+    if circles is None or len(circles[0]) < 12:
         circles = cv2.HoughCircles(
             blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=min_dist,
-            param1=38, param2=20, minRadius=min_r, maxRadius=max_r
+            param1=36, param2=18, minRadius=min_r, maxRadius=max_r
         )
 
     if circles is None or len(circles[0]) < 10:
+        reason = "Too few circular wells found in image (< 10 detected)."
         return {
-            "success": False,
-            "confidence": 0.0,
-            "message": "Low grid detection confidence: too few circular wells identified. Please place corners manually.",
-            "corners": None,
+            "suggested": None, "corners": None, "confidence": 0.0, "inliers": 0,
+            "total": total_wells, "reason": reason, "message": reason, "success": False
         }
 
-    detected = circles[0]
-    med_r = float(np.median(detected[:, 2]))
-    keep = (detected[:, 2] >= med_r * 0.60) & (detected[:, 2] <= med_r * 1.40)
-    pts = detected[keep][:, :2].astype(np.float32)
+    # Verify well contrast against background plastic (rejects pure noise / blank artifacts)
+    valid_pts = []
+    for cx, cy, r in circles[0]:
+        r_int = int(r)
+        icx, icy = int(cx), int(cy)
+        if icx - r_int < 0 or icx + r_int >= W or icy - r_int < 0 or icy + r_int >= H:
+            continue
+        inner = gray[max(0, icy - r_int):min(H, icy + r_int), max(0, icx - r_int):min(W, icx + r_int)]
+        outer = gray[max(0, int(icy - r_int * 1.35)):min(H, int(icy + r_int * 1.35)),
+                     max(0, int(icx - r_int * 1.35)):min(W, int(icx + r_int * 1.35))]
+        contrast = abs(float(np.mean(inner)) - float(np.mean(outer)))
+        if contrast >= 2.5:
+            valid_pts.append([cx, cy, r])
+
+    if len(valid_pts) < 10:
+        reason = "Detected circles lack well contrast (likely noise or blank surface)."
+        return {
+            "suggested": None, "corners": None, "confidence": 0.0, "inliers": 0,
+            "total": total_wells, "reason": reason, "message": reason, "success": False
+        }
+
+    valid_arr = np.array(valid_pts, dtype=np.float32)
+    med_r = float(np.median(valid_arr[:, 2]))
+    keep = (valid_arr[:, 2] >= med_r * 0.65) & (valid_arr[:, 2] <= med_r * 1.35)
+    pts = valid_arr[keep][:, :2].astype(np.float32)
 
     if len(pts) < 10:
+        reason = "Insufficient uniform wells detected (< 10 matching median size)."
         return {
-            "success": False,
-            "confidence": 0.0,
-            "message": "Low grid detection confidence: insufficient uniform wells detected. Please place corners manually.",
-            "corners": None,
+            "suggested": None, "corners": None, "confidence": 0.0, "inliers": 0,
+            "total": total_wells, "reason": reason, "message": reason, "success": False
         }
 
-    # Bounding box of well center points
     hull = cv2.convexHull(pts)
     rect = cv2.minAreaRect(hull)
     box = cv2.boxPoints(rect).astype(np.float32)
-
-    # Sort 4 box vertices: top-left, top-right, bottom-right, bottom-left
     box_sorted = box[np.argsort(box[:, 1])]
     top = box_sorted[:2][np.argsort(box_sorted[:2, 0])]
     bottom = box_sorted[2:][np.argsort(box_sorted[2:, 0])]
@@ -366,15 +389,15 @@ def detect_grid(image_or_id, cfg: dict | None = None) -> dict:
     c_bl, c_br = bottom[0], bottom[1]
     candidate_corners = np.array([c_tl, c_tr, c_br, c_bl], dtype=np.float32)
 
-    lattice = np.array([[float(c), float(r)] for r in range(rows) for c in range(cols)], dtype=np.float32)
     src_grid = np.float32([[0, 0], [cols - 1, 0], [cols - 1, rows - 1], [0, rows - 1]])
+    lattice = np.array([[float(c), float(r)] for r in range(rows) for c in range(cols)], dtype=np.float32)
 
     best_inliers = 0
-    best_corners = candidate_corners.copy()
+    best_pairs = None
     inlier_thresh = pitch_est * 0.35
 
     rng = np.random.default_rng(42)
-    for it in range(40):
+    for it in range(80):
         if it == 0:
             c_test = candidate_corners
         else:
@@ -388,29 +411,42 @@ def detect_grid(image_or_id, cfg: dict | None = None) -> dict:
             continue
 
         dists = np.linalg.norm(pred[:, None, :] - pts[None, :, :], axis=2)
-        min_d = np.min(dists, axis=1)
-        inliers = int(np.sum(min_d < inlier_thresh))
+        min_idx = np.argmin(dists, axis=1)
+        min_d = dists[np.arange(len(pred)), min_idx]
+        inlier_mask = min_d < inlier_thresh
+        inliers = int(np.sum(inlier_mask))
 
         if inliers > best_inliers:
             best_inliers = inliers
-            best_corners = c_test
+            best_pairs = (lattice[inlier_mask], pts[min_idx[inlier_mask]])
 
     confidence = float(best_inliers) / float(total_wells)
-    if confidence < 0.35 or best_corners is None:
+    if confidence < 0.6 or best_pairs is None:
+        reason = f"Grid detection confidence ({confidence:.1%}) is below 0.6 threshold ({best_inliers}/{total_wells} inliers)."
         return {
-            "success": False,
-            "confidence": round(confidence, 3),
-            "message": f"Low grid detection confidence ({round(confidence * 100)}%). Please position corners manually.",
-            "corners": None,
+            "suggested": None, "corners": None, "confidence": round(confidence, 3), "inliers": best_inliers,
+            "total": total_wells, "reason": reason, "message": reason, "success": False
         }
 
+    src_matched, dst_matched = best_pairs
+    H_refined, status = cv2.findHomography(src_matched, dst_matched, cv2.RANSAC, 4.0)
+    if status is not None and np.sum(status.ravel() == 1) >= 8:
+        strict = status.ravel() == 1
+        H_refined, _ = cv2.findHomography(src_matched[strict], dst_matched[strict], 0)
+
+    suggested = cv2.perspectiveTransform(src_grid.reshape(-1, 1, 2), H_refined).reshape(4, 2)
+    corners_list = [[round(float(p[0]), 2), round(float(p[1]), 2)] for p in suggested]
+
+    msg = f"Grid auto-detected with {confidence:.1%} confidence ({best_inliers}/{total_wells} wells matched). Check and adjust."
     return {
-        "success": True,
+        "suggested": corners_list,
+        "corners": corners_list,
         "confidence": round(confidence, 3),
         "inliers": best_inliers,
         "total": total_wells,
-        "corners": [[_f(pt[0], 1), _f(pt[1], 1)] for pt in best_corners],
-        "message": f"Grid auto-detected with {round(confidence * 100)}% confidence ({best_inliers}/{total_wells} wells matched). You can drag corner handles to adjust.",
+        "reason": None,
+        "message": msg,
+        "success": True
     }
 
 
@@ -664,10 +700,31 @@ def analyze(image_or_id, cfg) -> dict:
     cut_low = _num(cfg, "cutoff_low", None, -1000, 1000)
     if cut_low is not None and cut_low >= cutoff:
         raise AnalysisError("The doubtful lower cutoff must be below the main cutoff.")
+    raw_model = cfg.get("model")
+    if raw_model is None:
+        raw_model = cfg.get("cal_mode", "linear")
+    cal_model = str(raw_model or "linear").strip().lower()
+    if cal_model not in ("linear", "quadratic"):
+        raise AnalysisError(f"Calibration model must be 'linear' or 'quadratic', got '{raw_model}'.")
+
     slope = _num(cfg, "slope", 1.0, -1e6, 1e6)
     icpt = _num(cfg, "intercept", 0.0, -1e6, 1e6)
-    if slope == 0:
+    if cal_model == "linear" and slope == 0:
         raise AnalysisError("Calibration slope cannot be 0.")
+
+    raw_qa = cfg.get("a") if cfg.get("a") is not None else cfg.get("cal_a", 0.0)
+    raw_qb = cfg.get("b") if cfg.get("b") is not None else cfg.get("cal_b", 1.0)
+    raw_qc = cfg.get("c") if cfg.get("c") is not None else cfg.get("cal_c", 0.0)
+    try:
+        qa = float(raw_qa)
+        qb = float(raw_qb)
+        qc = float(raw_qc)
+    except (ValueError, TypeError):
+        raise AnalysisError("Quadratic calibration coefficients (a, b, c) must be numbers.")
+    if not (math.isfinite(qa) and math.isfinite(qb) and math.isfinite(qc)):
+        raise AnalysisError("Quadratic calibration coefficients (a, b, c) must be finite numbers.")
+    if cal_model == "quadratic" and abs(qa) < 1e-12 and abs(qb) < 1e-12:
+        raise AnalysisError("Quadratic calibration coefficients 'a' and 'b' cannot both be 0.")
 
     def _get_wells_spec(key):
         val = cfg.get(key)
@@ -835,11 +892,8 @@ def analyze(image_or_id, cfg) -> dict:
     if auto_channel_info:
         warnings.append(f"Auto channel: {auto_channel_info['reason']}")
 
-    cal_mode = str(cfg.get("cal_mode") or "linear").lower()
-    if cal_mode == "quadratic" and cfg.get("cal_a") is not None:
-        qa = _num(cfg, "cal_a", 0.0, -1e6, 1e6)
-        qb = _num(cfg, "cal_b", 1.0, -1e6, 1e6)
-        qc = _num(cfg, "cal_c", 0.0, -1e6, 1e6)
+    cal_mode = cal_model
+    if cal_model == "quadratic":
         od_cal = qa * (od ** 2) + qb * od + qc
     else:
         od_cal = slope * od + icpt
@@ -993,7 +1047,13 @@ def analyze(image_or_id, cfg) -> dict:
         },
         "flat_field_applied": flat_field_applied,
         "illumination_range_percent": illum_range_pct,
-        "cal_mode": cal_mode,
+        "model": cal_model,
+        "cal_mode": cal_model,
+        "cal_a": qa,
+        "cal_b": qb,
+        "cal_c": qc,
+        "slope": slope,
+        "intercept": icpt,
         "reference": reference,
         "image": {"width": rgb.shape[1], "height": rgb.shape[0]},
         "summary": {
@@ -1072,11 +1132,11 @@ def fit_calibration(body: dict) -> dict:
     quad_data = None
     r2_quad = None
     rmse_quad = None
-    if len(xs) >= 4:
+    if len(xs) >= 3:
         p_quad = np.polyfit(xs, ys, 2)
         pred_quad = np.polyval(p_quad, xs)
         ss_res_quad = float(np.sum((ys - pred_quad) ** 2))
-        r2_quad = 1.0 - ss_res_quad / ss_tot if ss_tot > 0 else None
+        r2_quad = 1.0 - ss_res_quad / ss_tot if ss_tot > 0 else 0.0
         rmse_quad = math.sqrt(ss_res_quad / len(xs))
         quad_data = {
             "a": _f(p_quad[0], 5),
@@ -1086,10 +1146,13 @@ def fit_calibration(body: dict) -> dict:
             "rmse": _f(rmse_quad, 4),
         }
 
+    warnings_list = []
+    if len(xs) < 10:
+        warnings_list.append(f"Only {len(xs)} wells used for calibration (< 10 recommended).")
     best_r2 = max(r2_lin if r2_lin is not None else 0.0, r2_quad if r2_quad is not None else 0.0)
-    warning = None
     if best_r2 < 0.95:
-        warning = f"Calibration R² ({best_r2:.3f}) is below 0.95 - correlation between image and reader is weak."
+        warnings_list.append(f"Calibration R² ({best_r2:.3f}) is below 0.95 - correlation between image and reader is weak.")
+    warning = " ".join(warnings_list) if warnings_list else None
 
     points = [
         {"well": well_names[i], "image_od": _f(xs[i]), "reader_od": _f(ys[i])}
@@ -1100,7 +1163,18 @@ def fit_calibration(body: dict) -> dict:
     return clean({
         "slope": slope, "intercept": icpt, "r2": r2_lin, "n": len(xs),
         "rmse": rmse_lin,
+        "linear": {
+            "slope": slope,
+            "intercept": icpt,
+            "r2": r2_lin,
+            "rmse": rmse_lin,
+        },
         "quadratic": quad_data,
+        "a": quad_data["a"] if quad_data else None,
+        "b": quad_data["b"] if quad_data else None,
+        "c": quad_data["c"] if quad_data else None,
+        "r2_quad": quad_data["r2"] if quad_data else None,
+        "rmse_quad": quad_data["rmse"] if quad_data else None,
         "points": points,
         "warning": warning,
     })

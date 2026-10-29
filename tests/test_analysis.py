@@ -120,12 +120,25 @@ class Core(unittest.TestCase):
                     self.assertEqual(w["class"], "Positive" if pi >= 50 else "Negative", w["well"])
 
     def test_calibration(self):
+        # 1. Linear data recovers slope and intercept
         r = self.run_cfg()
         od = {w["well"]: w["od"] for w in r["wells"]}
         lines = "\n".join(f"{k},{2.0 * v + 0.05:.4f}" for k, v in od.items())
         f = A.fit_calibration({"rows": ROWS, "cols": COLS, "image_od": od, "reader": lines})
         self.assertAlmostEqual(f["slope"], 2.0, places=2)
         self.assertAlmostEqual(f["intercept"], 0.05, places=2)
+        self.assertIn("r2", f)
+        self.assertIn("rmse", f)
+        self.assertGreaterEqual(f["r2"], 0.999)
+        self.assertLess(f["rmse"], 0.005)
+        self.assertEqual(f["n"], len(od))
+
+        # Check linear model applied in analyze
+        r_lin = A.analyze(self.url, {**CFG, "corners": self.corners, "model": "linear", "slope": 2.0, "intercept": 0.05})
+        self.assertEqual(r_lin["model"], "linear")
+        for w in r_lin["wells"]:
+            if w["od"] is not None:
+                self.assertAlmostEqual(w["od_cal"], 2.0 * w["od"] + 0.05, places=3)
 
     def test_reader_matrix(self):
         txt = "\n".join("\t".join("0.5" for _ in range(COLS)) for _ in range(ROWS))
@@ -370,49 +383,116 @@ class Core(unittest.TestCase):
         self.assertTrue(any("Flat-field correction skipped" in w for w in r_fb["warnings"]))
 
     def test_calibration_quadratic_fit_and_warning(self):
-        # 1. Non-linear calibration data
-        img_ods = {f"A{i+1}": 0.1 * (i + 1) for i in range(10)}
-        reader_text = "\n".join(f"A{i+1}, {0.2 * (0.1 * (i + 1))**2 + 0.8 * (0.1 * (i + 1)) + 0.05:.4f}" for i in range(10))
+        # 1. Quadratic data recovers the coefficients (od_reader = a*x^2 + b*x + c)
+        a_true, b_true, c_true = 0.25, 0.85, 0.04
+        img_ods = {f"A{i+1}": 0.1 * (i + 1) for i in range(12)}
+        reader_text = "\n".join(f"A{i+1}, {a_true * (0.1 * (i + 1))**2 + b_true * (0.1 * (i + 1)) + c_true:.5f}" for i in range(12))
         cal = A.fit_calibration({"rows": 8, "cols": 12, "image_od": img_ods, "reader": reader_text})
         self.assertIsNotNone(cal["quadratic"])
-        self.assertGreaterEqual(cal["quadratic"]["r2"], 0.99)
-        self.assertLess(cal["quadratic"]["rmse"], cal["rmse"])
+        self.assertAlmostEqual(cal["quadratic"]["a"], a_true, places=3)
+        self.assertAlmostEqual(cal["quadratic"]["b"], b_true, places=3)
+        self.assertAlmostEqual(cal["quadratic"]["c"], c_true, places=3)
+        self.assertGreaterEqual(cal["quadratic"]["r2"], 0.999)
+        self.assertLess(cal["quadratic"]["rmse"], 0.002)
         self.assertIn("points", cal)
-        self.assertEqual(len(cal["points"]), 10)
+        self.assertEqual(len(cal["points"]), 12)
 
-        # 2. Warning when R2 < 0.95
+        # 2. Warning when R2 < 0.95 or fewer than 10 wells
         noisy_reader = "\n".join(f"A{i+1}, {float(np.random.default_rng(i).uniform(0.1, 1.5)):.3f}" for i in range(8))
         noisy_cal = A.fit_calibration({"rows": 8, "cols": 12, "image_od": img_ods, "reader": noisy_reader})
         self.assertIsNotNone(noisy_cal["warning"])
         self.assertIn("below 0.95", noisy_cal["warning"])
+        self.assertIn("< 10", noisy_cal["warning"])
 
-        # 3. Analyze with quadratic calibration
+        # 3. Analyze with quadratic calibration (both 'model' and 'cal_mode', and 'a','b','c')
         r_quad = A.analyze(self.url, {
-            **CFG, "corners": self.corners, "cal_mode": "quadratic",
-            "cal_a": 0.1, "cal_b": 1.0, "cal_c": 0.02
+            **CFG, "corners": self.corners, "model": "quadratic",
+            "a": 0.1, "b": 1.0, "c": 0.02
         })
+        self.assertEqual(r_quad["model"], "quadratic")
         self.assertEqual(r_quad["cal_mode"], "quadratic")
         for w in r_quad["wells"]:
             if w["od"] is not None:
                 expected = round(0.1 * (w["od"] ** 2) + 1.0 * w["od"] + 0.02, 4)
                 self.assertAlmostEqual(w["od_cal"], expected, places=3)
 
-    def test_auto_detect_grid(self):
-        # Synthetic plate should be auto-detected with high confidence
-        res = A.detect_grid(self.url, {"rows": 8, "cols": 12})
-        self.assertTrue(res["success"], res.get("message"))
-        self.assertGreaterEqual(res["confidence"], 0.5)
-        self.assertIsNotNone(res["corners"])
-        self.assertEqual(len(res["corners"]), 4)
+    def test_calibration_bad_input(self):
+        # 1. Invalid calibration model
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.analyze(self.url, {**CFG, "corners": self.corners, "model": "cubic"})
+        self.assertIn("Calibration model must be 'linear' or 'quadratic'", str(ctx.exception))
 
-        # Blank/noise image should report low confidence without crashing
-        blank_img = np.full((600, 800, 3), 200, dtype=np.uint8)
+        # 2. Linear slope 0
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.analyze(self.url, {**CFG, "corners": self.corners, "model": "linear", "slope": 0})
+        self.assertIn("Calibration slope cannot be 0", str(ctx.exception))
+
+        # 3. Quadratic a and b both 0
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.analyze(self.url, {**CFG, "corners": self.corners, "model": "quadratic", "a": 0, "b": 0, "c": 0.5})
+        self.assertIn("cannot both be 0", str(ctx.exception))
+
+        # 4. Quadratic non-numeric coefficient
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.analyze(self.url, {**CFG, "corners": self.corners, "model": "quadratic", "a": "invalid"})
+        self.assertIn("must be numbers", str(ctx.exception))
+
+        # 5. fit_calibration with fewer than 3 wells
+        two_wells = {"A1": 0.1, "A2": 0.2}
+        two_reader = "A1, 0.15\nA2, 0.25"
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.fit_calibration({"rows": 8, "cols": 12, "image_od": two_wells, "reader": two_reader})
+        self.assertIn("Need at least 3 wells", str(ctx.exception))
+
+        # 6. fit_calibration with invalid reader text
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.fit_calibration({"rows": 8, "cols": 12, "image_od": {"A1": 0.1, "A2": 0.2, "A3": 0.3}, "reader": "invalid_line_no_number"})
+        self.assertIn("Cannot read line", str(ctx.exception))
+
+        # 7. fit_calibration with identical image ODs
+        same_wells = {"A1": 0.5, "A2": 0.5, "A3": 0.5}
+        same_reader = "A1, 0.1\nA2, 0.2\nA3, 0.3"
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.fit_calibration({"rows": 8, "cols": 12, "image_od": same_wells, "reader": same_reader})
+        self.assertIn("All image ODs are identical", str(ctx.exception))
+
+        # 8. fit_calibration without image_od
+        with self.assertRaises(A.AnalysisError) as ctx:
+            A.fit_calibration({"rows": 8, "cols": 12, "reader": same_reader})
+        self.assertIn("Run the analysis first", str(ctx.exception))
+
+    def test_auto_detect_grid(self):
         import cv2, base64
-        ok, buf = cv2.imencode(".jpg", blank_img)
-        blank_url = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
+        # 1. Synthetic perspective plate must be detected within 3 px of true corners
+        res = A.detect_grid(self.url, {"rows": 8, "cols": 12})
+        self.assertTrue(res["success"], res.get("reason") or res.get("message"))
+        self.assertGreaterEqual(res["confidence"], 0.6)
+        self.assertIsNotNone(res["suggested"])
+        self.assertIn("inliers", res)
+        self.assertGreaterEqual(res["inliers"], 50)
+        det_corners = np.array(res["suggested"])
+        true_corners = np.array(self.corners)
+        corner_errors = np.linalg.norm(det_corners - true_corners, axis=1)
+        for i, err in enumerate(corner_errors):
+            self.assertLess(err, 3.0, f"Corner {i} error {err:.2f}px exceeds 3px threshold")
+
+        # 2. Blank image must return suggested=None (null)
+        blank_img = np.full((600, 800, 3), 200, dtype=np.uint8)
+        ok, buf_blank = cv2.imencode(".jpg", blank_img)
+        blank_url = "data:image/jpeg;base64," + base64.b64encode(buf_blank.tobytes()).decode()
         res_blank = A.detect_grid(blank_url, {"rows": 8, "cols": 12})
         self.assertFalse(res_blank["success"])
-        self.assertIn("Low grid detection confidence", res_blank["message"])
+        self.assertIsNone(res_blank["suggested"])
+        self.assertIsNotNone(res_blank["reason"])
+
+        # 3. Pure noise image must return suggested=None (null)
+        noise_img = np.random.default_rng(42).integers(0, 256, (600, 800, 3), dtype=np.uint8)
+        ok, buf_noise = cv2.imencode(".jpg", noise_img)
+        noise_url = "data:image/jpeg;base64," + base64.b64encode(buf_noise.tobytes()).decode()
+        res_noise = A.detect_grid(noise_url, {"rows": 8, "cols": 12})
+        self.assertFalse(res_noise["success"])
+        self.assertIsNone(res_noise["suggested"])
+        self.assertIsNotNone(res_noise["reason"])
 
 
 class Http(unittest.TestCase):
@@ -490,10 +570,12 @@ class Http(unittest.TestCase):
         self.assertEqual(s, 410)
 
     def test_detect_grid_endpoint(self):
-        s, j = self.post("/api/detect_grid", {"image": self.url, "config": {"rows": 8, "cols": 12}})
+        s, j = self.post("/api/detect_grid", {"image": self.url, "rows": 8, "cols": 12})
         self.assertEqual(s, 200)
         self.assertTrue(j["success"])
-        self.assertIn("corners", j)
+        self.assertIn("suggested", j)
+        self.assertIsNotNone(j["suggested"])
+        self.assertGreaterEqual(j["confidence"], 0.6)
 
     def test_concurrent_analyze_requests(self):
         from concurrent.futures import ThreadPoolExecutor

@@ -805,9 +805,13 @@ function cfg() {
     mode: $("mode").value,
     cutoff: val("cutoff", null),
     cutoff_low: val("cutlow", null),
+    model: calMode,
     slope: val("slope", 1),
     intercept: val("icpt", 0),
     cal_mode: calMode,
+    a: val("cal-a", 0),
+    b: val("cal-b", 1),
+    c: val("cal-c", 0),
     cal_a: val("cal-a", 0),
     cal_b: val("cal-b", 1),
     cal_c: val("cal-c", 0),
@@ -1822,28 +1826,31 @@ function showSkeletonLoading() {
 S.calMode = "linear";
 S.lastCal = null;
 
-if ($("btn-cal-linear") && $("btn-cal-quad")) {
-  $("btn-cal-linear").onclick = () => {
-    S.calMode = "linear";
-    $("btn-cal-linear").classList.add("active");
-    $("btn-cal-linear").setAttribute("aria-checked", "true");
-    $("btn-cal-quad").classList.remove("active");
-    $("btn-cal-quad").setAttribute("aria-checked", "false");
-    if ($("linear-params")) $("linear-params").hidden = false;
-    if ($("quad-params")) $("quad-params").hidden = true;
-    if (S.lastCal) drawCalibrationPlot(S.lastCal);
-  };
+function setCalibrationModel(mode) {
+  S.calMode = mode === "quadratic" ? "quadratic" : "linear";
+  if ($("cal-model")) $("cal-model").value = S.calMode;
+  if ($("btn-cal-linear") && $("btn-cal-quad")) {
+    const isQuad = S.calMode === "quadratic";
+    $("btn-cal-linear").classList.toggle("active", !isQuad);
+    $("btn-cal-linear").setAttribute("aria-checked", String(!isQuad));
+    $("btn-cal-quad").classList.toggle("active", isQuad);
+    $("btn-cal-quad").setAttribute("aria-checked", String(isQuad));
+  }
+  if ($("linear-params")) $("linear-params").hidden = (S.calMode === "quadratic");
+  if ($("quad-params")) $("quad-params").hidden = (S.calMode !== "quadratic");
+  if (S.lastCal) {
+    drawCalibrationPlot(S.lastCal);
+  }
+}
 
-  $("btn-cal-quad").onclick = () => {
-    S.calMode = "quadratic";
-    $("btn-cal-quad").classList.add("active");
-    $("btn-cal-quad").setAttribute("aria-checked", "true");
-    $("btn-cal-linear").classList.remove("active");
-    $("btn-cal-linear").setAttribute("aria-checked", "false");
-    if ($("linear-params")) $("linear-params").hidden = true;
-    if ($("quad-params")) $("quad-params").hidden = false;
-    if (S.lastCal) drawCalibrationPlot(S.lastCal);
-  };
+if ($("cal-model")) {
+  $("cal-model").onchange = e => setCalibrationModel(e.target.value);
+}
+if ($("btn-cal-linear")) {
+  $("btn-cal-linear").onclick = () => setCalibrationModel("linear");
+}
+if ($("btn-cal-quad")) {
+  $("btn-cal-quad").onclick = () => setCalibrationModel("quadratic");
 }
 
 function drawCalibrationPlot(cal) {
@@ -1858,10 +1865,11 @@ function drawCalibrationPlot(cal) {
   ctx.fillStyle = "rgba(13, 19, 27, 0.95)";
   ctx.fillRect(0, 0, w, h);
 
-  const padL = 40, padR = 20, padT = 24, padB = 30;
+  const padL = 40, padR = 20, padT = 26, padB = 30;
   const pw = w - padL - padR, ph = h - padT - padB;
 
   const pts = cal.points;
+  const nVal = cal.n || pts.length;
   const maxX = Math.max(0.5, ...pts.map(p => p.image_od || 0)) * 1.15;
   const maxY = Math.max(0.5, ...pts.map(p => p.reader_od || 0)) * 1.15;
 
@@ -1899,9 +1907,9 @@ function drawCalibrationPlot(cal) {
   ctx.fillText("Reader OD", 0, 0);
   ctx.restore();
 
-  // Fitted curve
+  // Fitted curve or line
   const isQuad = S.calMode === "quadratic" && cal.quadratic;
-  ctx.strokeStyle = "#F5A524";
+  ctx.strokeStyle = isQuad ? "#2DD4BF" : "#F5A524";
   ctx.lineWidth = 2;
   ctx.beginPath();
   const steps = 60;
@@ -1932,11 +1940,46 @@ function drawCalibrationPlot(cal) {
   });
 
   // Fit stats header in canvas
+  const r2Val = isQuad ? (cal.quadratic ? cal.quadratic.r2 : null) : cal.r2;
+  const rmseVal = isQuad ? (cal.quadratic ? cal.quadratic.rmse : null) : cal.rmse;
+  const r2Str = (r2Val !== null && r2Val !== undefined) ? r2Val.toFixed(3) : "n/a";
+  const rmseStr = (rmseVal !== null && rmseVal !== undefined) ? rmseStr_val(rmseVal) : "n/a";
+  function rmseStr_val(v) { return Number(v).toFixed(3); }
+
   ctx.fillStyle = isQuad ? "#2DD4BF" : "#F5A524";
   ctx.font = "bold 10px system-ui, sans-serif";
   ctx.textAlign = "right";
-  const r2Text = isQuad ? `Quad R² = ${cal.quadratic.r2.toFixed(3)}, RMSE = ${cal.quadratic.rmse.toFixed(3)}` : `Lin R² = ${cal.r2.toFixed(3)}, RMSE = ${cal.rmse.toFixed(3)}`;
-  ctx.fillText(r2Text, padL + pw, padT - 6);
+  const statsLine = `${isQuad ? "Quad" : "Lin"} R²=${r2Str}, RMSE=${rmseStr}, n=${nVal}`;
+  ctx.fillText(statsLine, padL + pw, padT - 6);
+
+  // Warnings check: R2 < 0.95 or n < 10
+  const warnMessages = [];
+  if (nVal < 10) {
+    warnMessages.push(`Fewer than 10 wells used for calibration (n = ${nVal}). At least 10 recommended for robust calibration.`);
+  }
+  if (r2Val !== null && r2Val !== undefined && r2Val < 0.95) {
+    warnMessages.push(`Calibration R² (${r2Str}) is below 0.95 - correlation between image and reader is weak.`);
+  }
+  if (cal.warning && !warnMessages.length) {
+    warnMessages.push(cal.warning);
+  }
+
+  const alertBox = $("cal-alert");
+  if (alertBox) {
+    if (warnMessages.length > 0) {
+      alertBox.style.display = "block";
+      alertBox.textContent = warnMessages.join(" ");
+    } else {
+      alertBox.style.display = "none";
+      alertBox.textContent = "";
+    }
+  }
+
+  const statsEl = $("cal-stats");
+  if (statsEl) {
+    statsEl.style.display = "block";
+    statsEl.textContent = `Fit: ${isQuad ? "Quadratic" : "Linear"} | R²: ${r2Str} | RMSE: ${rmseStr} | n: ${nVal}`;
+  }
 }
 
 // Intercept fit button click
@@ -1970,17 +2013,10 @@ $("fit").onclick = async () => {
     const isQuad = S.calMode === "quadratic" && f.quadratic;
     const r2Val = isQuad ? f.quadratic.r2 : f.r2;
     const rmseVal = isQuad ? f.quadratic.rmse : f.rmse;
-    note.textContent = `Fitted ${isQuad ? "quadratic" : "linear"} on ${f.n} wells: R² = ${r2Val === null ? "n/a" : r2Val.toFixed(3)}, RMSE = ${rmseVal.toFixed(3)} OD. Re-running…`;
+    const r2Str = (r2Val !== null && r2Val !== undefined) ? r2Val.toFixed(3) : "n/a";
+    const rmseStr = (rmseVal !== null && rmseVal !== undefined) ? rmseVal.toFixed(3) : "n/a";
+    note.textContent = `Fitted ${isQuad ? "quadratic" : "linear"} on ${f.n} wells: R² = ${r2Str}, RMSE = ${rmseStr} OD. Re-running…`;
 
-    const alertBox = $("cal-alert");
-    if (alertBox) {
-      if (f.warning) {
-        alertBox.style.display = "block";
-        alertBox.textContent = f.warning;
-      } else {
-        alertBox.style.display = "none";
-      }
-    }
     drawCalibrationPlot(f);
     await run();
   } catch (err) {
@@ -2003,22 +2039,32 @@ if ($("btn-auto-grid")) {
       const res = await api("/api/detect_grid", {
         image_id: S.imageId,
         image: S.dataUrl,
+        rows: val("rows", 8),
+        cols: val("cols", 12),
         config: { rows: val("rows", 8), cols: val("cols", 12) }
       });
-      if (res.success && res.corners) {
-        S.corners = res.corners;
+      const suggested = res.suggested || res.corners;
+      if (res.success && suggested && Array.isArray(suggested) && suggested.length === 4) {
+        S.corners = suggested;
         draw();
         refreshGrid();
         updateLiveReadout();
-        showToast(res.message, "success");
+        showToast("Check and adjust", "success");
+        if ($("readout-handle")) {
+          $("readout-handle").textContent = "Check and adjust";
+        }
       } else {
-        showToast(res.message || "Low detection confidence. Corners unchanged.", "warning");
+        const reasonMsg = res.reason || res.message || "Detection confidence below 0.6. Corners untouched.";
+        showToast(reasonMsg, "warning");
+        if ($("readout-handle")) {
+          $("readout-handle").textContent = reasonMsg;
+        }
       }
     } catch (err) {
       showToast("Could not auto-detect grid: " + err.message, "error");
     } finally {
       btn.disabled = false;
-      btn.textContent = "✨ Auto grid";
+      btn.textContent = "Auto-detect grid";
     }
   };
 }

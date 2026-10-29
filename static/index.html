@@ -614,7 +614,11 @@
             </summary>
             <div class="step-body">
               <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Fit model</label>
+                <label for="cal-model" style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Model selector</label>
+                <select id="cal-model" style="margin-bottom:8px;">
+                  <option value="linear">Linear (y = m·x + c)</option>
+                  <option value="quadratic">Quadratic (y = a·x² + b·x + c)</option>
+                </select>
                 <div class="segmented-control" role="radiogroup" aria-label="Calibration model">
                   <button type="button" class="seg-btn active" id="btn-cal-linear" role="radio" aria-checked="true">Linear</button>
                   <button type="button" class="seg-btn" id="btn-cal-quad" role="radio" aria-checked="false">Quadratic</button>
@@ -668,6 +672,7 @@
               <p class="hint" id="fitnote"></p>
               <div id="cal-alert" class="msg warn" style="margin-top:6px; display:none;" role="alert"></div>
               <canvas id="cal-scatter-cv" width="340" height="200" style="display:none; width:100%; border-radius:6px; margin-top:8px; background:var(--input-bg); border:1px solid var(--border-color);"></canvas>
+              <div id="cal-stats" style="display:none; font-size:11.5px; color:var(--text-muted); margin-top:6px; line-height:1.4;"></div>
             </div>
           </details>
 
@@ -694,7 +699,7 @@
                   <button type="button" class="sec btn-xs zoom-btn" data-zoom="2" id="zoom-200" title="200% Zoom">200%</button>
                 </div>
                 <div class="toolbar-sep"></div>
-                <button type="button" class="sec btn-xs" id="btn-auto-grid" title="Auto-detect grid corners with computer vision">✨ Auto grid</button>
+                <button type="button" class="sec btn-xs" id="btn-auto-grid" title="Auto-detect grid corners with computer vision">Auto-detect grid</button>
                 <button type="button" class="sec btn-xs" id="btn-reset-grid" title="Reset corners to default position">Reset grid</button>
                 <button type="button" class="sec btn-xs" id="btn-fit-grid" title="Fit corners to image edges">Fit to image</button>
                 <button type="button" class="sec btn-xs" id="btn-toggle-circles" title="Toggle visibility of measurement circles">Hide circles</button>
