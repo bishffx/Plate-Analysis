@@ -1,0 +1,206 @@
+/* ==========================================================================
+   PlateOD · Design Tokens (tokens.css)
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* Ink Backgrounds (#070B12 to #0E1622) */
+  --bg-page-start: #070B12;
+  --bg-page-end: #0E1622;
+  --bg-page: #070B12;
+  --brand-navy: #070B12;
+  --page-gradient: radial-gradient(circle 900px at 0% 0%, rgba(245, 165, 36, 0.08), transparent 70%),
+                   radial-gradient(circle 600px at 100% 15%, rgba(139, 92, 246, 0.06), transparent 60%),
+                   linear-gradient(180deg, #070B12 0%, #0E1622 100%);
+
+  /* TMB Gradient (#FFD166 to #F5A524 to #E8590C) */
+  --tmb-start: #FFD166;
+  --tmb-mid: #F5A524;
+  --tmb-end: #E8590C;
+  --gradient-tmb: linear-gradient(135deg, #FFD166 0%, #F5A524 50%, #E8590C 100%);
+  --gradient-accent: linear-gradient(135deg, #FFD166 0%, #F5A524 50%, #E8590C 100%);
+  --amber-primary: #F5A524;
+  --amber-end: #E8590C;
+  --amber-glow: rgba(245, 165, 36, 0.2);
+  --accent-text: #111111;
+
+  /* Aurora Accent (Teal #2DD4BF & Violet #8B5CF6 used sparingly in glows) */
+  --aurora-teal: #2DD4BF;
+  --aurora-violet: #8B5CF6;
+  --teal-accent: #2DD4BF;
+  --violet-accent: #8B5CF6;
+  --aurora-glow: radial-gradient(circle at 50% 50%, rgba(45, 212, 191, 0.16), rgba(139, 92, 246, 0.12) 60%, transparent 80%);
+  --aurora-gradient: linear-gradient(135deg, #2DD4BF 0%, #8B5CF6 100%);
+
+  /* Glass Surfaces (rgba(255,255,255,0.04) with blur) */
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-backdrop: blur(16px);
+  --card-backdrop-filter: blur(16px);
+  --card-bg-solid: #0E1622;
+  --card-raised: rgba(255, 255, 255, 0.06);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(7, 11, 18, 0.75);
+  --header-bg: rgba(7, 11, 18, 0.85);
+  --footer-bg: #070B12;
+  --footer-border: rgba(255, 255, 255, 0.08);
+  --readout-bg: rgba(255, 255, 255, 0.04);
+  --table-stripe: rgba(255, 255, 255, 0.02);
+  --table-hover: rgba(255, 255, 255, 0.06);
+  --heat-container-bg: rgba(7, 11, 18, 0.85);
+  --heat-legend-bg: rgba(255, 255, 255, 0.04);
+  --stat-bg: rgba(255, 255, 255, 0.04);
+
+  /* Borders (rgba(255,255,255,0.08)) */
+  --card-border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --line: rgba(255, 255, 255, 0.08);
+
+  /* Class Colours (colour-blind safe, tuned for dark) */
+  --col-pos: #F0714F;
+  --col-neg: #3CB8A8;
+  --col-dbt: #EBCB6B;
+  --col-ctl: #6C97C4;
+  --col-blk: #9AA1AB;
+  --col-inv: #C47DB6;
+
+  /* Typography / High-Contrast Compliant (>= 4.5:1 against ink backgrounds) */
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-subtle: #64748B;
+  --input-color: #F1F5F9;
+  --placeholder-color: #64748B;
+
+  /* Semantic */
+  --color-success: #34D399;
+  --color-danger: #F87171;
+  --color-warning: #FBBF24;
+  --color-info: #60A5FA;
+  --bg-success: rgba(52, 211, 153, 0.12);
+  --bg-danger: rgba(248, 113, 113, 0.12);
+  --bg-warning: rgba(251, 191, 36, 0.12);
+  --bg-info: rgba(96, 165, 250, 0.12);
+  --border-success: rgba(52, 211, 153, 0.35);
+  --border-danger: rgba(248, 113, 113, 0.35);
+  --border-warning: rgba(251, 191, 36, 0.35);
+  --border-info: rgba(96, 165, 250, 0.35);
+
+  /* Motion Tokens (durations 120/200/400/800 ms, easings cubic-bezier(.2,.8,.2,1) and a spring-like overshoot) */
+  --duration-instant: 120ms;
+  --duration-fast: 200ms;
+  --duration-normal: 400ms;
+  --duration-slow: 800ms;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Type Scale (12 to 72 px, tabular numerals) */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-md: 18px;
+  --font-size-lg: 20px;
+  --font-size-xl: 28px;
+  --font-size-2xl: 40px;
+  --font-size-3xl: 56px;
+  --font-size-4xl: 72px;
+
+  /* Tabular Numerals */
+  font-variant-numeric: tabular-nums;
+  --font-numeric: tabular-nums;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Deeper, Softer Shadows on dark UIs + Inner highlight */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --max-width: 1280px;
+}
+
+/* Explicit Dark Theme */
+[data-theme="dark"] {
+  --bg-page: #070B12;
+  --bg-page-start: #070B12;
+  --bg-page-end: #0E1622;
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-bg-solid: #0E1622;
+  --card-raised: rgba(255, 255, 255, 0.06);
+  --input-bg: rgba(7, 11, 18, 0.75);
+  --header-bg: rgba(7, 11, 18, 0.85);
+  --footer-bg: #070B12;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --input-color: #F1F5F9;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+}
+
+/* Optional Light Theme */
+[data-theme="light"] {
+  --bg-page-start: #F8FAFC;
+  --bg-page-end: #EDF2F7;
+  --bg-page: #F8FAFC;
+  --page-gradient: radial-gradient(circle 900px at 0% 0%, rgba(245, 165, 36, 0.08), transparent 70%),
+                   linear-gradient(180deg, #F8FAFC 0%, #EDF2F7 100%);
+  --brand-navy: #0F172A;
+
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-backdrop: blur(16px);
+  --card-backdrop-filter: blur(16px);
+  --card-bg-solid: #FFFFFF;
+  --card-raised: #FFFFFF;
+  --surface-hover: #F1F5F9;
+  --input-bg: #FFFFFF;
+  --header-bg: rgba(248, 250, 252, 0.88);
+  --footer-bg: #EDF2F7;
+  --footer-border: rgba(0, 0, 0, 0.08);
+  --readout-bg: #F1F5F9;
+  --table-stripe: #F8FAFC;
+  --table-hover: #EEF2F6;
+  --heat-container-bg: #F8FAFC;
+  --heat-legend-bg: #FFFFFF;
+  --stat-bg: #F8FAFC;
+
+  --card-border: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --input-border: rgba(0, 0, 0, 0.16);
+  --line: rgba(0, 0, 0, 0.08);
+
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --text-subtle: #64748B;
+  --input-color: #0F172A;
+  --placeholder-color: #94A3B8;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
