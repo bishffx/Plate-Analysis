@@ -11,8 +11,9 @@
 import { S, TBL } from "./state.js";
 import { initTheme } from "./theme.js";
 import { initNavigation } from "./navigation.js";
-import { initCanvasEvents } from "./plate-canvas.js";
+import { initCanvasEvents, initHeroPlateCanvas, initStoryMiniPlate } from "./plate-canvas.js";
 import { initPresets } from "./presets.js";
+import { initWellPainter } from "./painter.js";
 import { initValidation } from "./validation.js";
 import { initGridControls } from "./grid.js";
 import { initUpload, initAnalysis } from "./analysis.js";
@@ -37,9 +38,12 @@ function bootstrap() {
 
   // 3. Initialize Canvas & Drag Handles
   initCanvasEvents();
+  initHeroPlateCanvas();
+  initStoryMiniPlate();
 
   // 4. Initialize Presets & Assays
   initPresets();
+  initWellPainter();
 
   // 5. Initialize Form Validation
   initValidation();

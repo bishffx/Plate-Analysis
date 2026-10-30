@@ -15,7 +15,8 @@
   <a href="#analyzer" class="skip-link">Skip to main content</a>
 
 <!-- Sticky Site Header -->
-  <header class="site-header">
+  <header class="site-header" id="site-header">
+    <div id="scroll-progress-bar" class="scroll-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
     <div class="header-container">
       <a href="#home" class="header-brand" aria-label="PlateOD Home">
         <svg class="logo-mark" viewBox="0 0 28 22" fill="none" aria-hidden="true">
@@ -49,7 +50,6 @@
         <a href="#how-it-works" class="nav-link">How it works</a>
         <a href="#assays" class="nav-link">Assays</a>
         <a href="#batch-mode" class="nav-link">Batch mode</a>
-      <a href="#batch-mode" class="nav-link">Batch mode</a>
       <a href="#faq" class="nav-link">FAQ</a>
       </nav>
 
@@ -108,7 +108,6 @@
       <a href="#how-it-works" class="nav-link">How it works</a>
       <a href="#assays" class="nav-link">Assays</a>
       <a href="#batch-mode" class="nav-link">Batch mode</a>
-      <a href="#batch-mode" class="nav-link">Batch mode</a>
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
   </header>
@@ -118,251 +117,74 @@
 
     <!-- 1. HERO (Home) -->
     <section class="hero-section reveal" id="home" aria-labelledby="hero-heading">
-      <div class="hero-content">
+      <!-- Full-viewport soft perspective canvas -->
+      <div class="hero-canvas-wrap" id="hero-canvas-wrap">
+        <canvas id="hero-plate-canvas" class="hero-plate-canvas" aria-label="Interactive 96-well ELISA microplate simulation"></canvas>
+        <div id="hero-well-tooltip" class="hero-well-tooltip" role="tooltip" hidden></div>
+      </div>
+
+      <div class="hero-overlay-content">
         <div class="hero-badge">
           <span class="badge-dot"></span>
           <span>Scientific Optical Density Quantification</span>
         </div>
-        <h1 id="hero-heading" class="hero-title">From plate photo to optical density in seconds</h1>
-        <p class="hero-subheading">Photograph a 96-well ELISA plate, place the grid, get blank-referenced OD, PP or PI and classification.</p>
+        <h1 id="hero-heading" class="hero-title">
+          <span class="gradient-text">Microplate Photometry</span><br>
+          <span class="hero-title-sub">Engineered for Precision</span>
+        </h1>
+        
+        <!-- Typewriter-style rotating subline -->
+        <div class="hero-typewriter-container" aria-live="polite">
+          <span id="hero-typewriter" class="hero-typewriter">From plate photo to OD in seconds</span>
+          <span class="typewriter-cursor" aria-hidden="true">|</span>
+        </div>
+
+        <!-- Magnetic action buttons -->
         <div class="hero-actions">
-          <a href="#analyzer" class="btn btn-primary hero-btn">
+          <a href="#analyzer" class="btn btn-primary hero-btn btn-magnetic" id="btn-hero-open">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
             Open analyzer
           </a>
-          <a href="#how-it-works" class="btn btn-secondary hero-btn">
+          <a href="#how-it-works" class="btn btn-secondary hero-btn btn-magnetic" id="btn-hero-how">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            How it works
+            See how it works
           </a>
         </div>
-      </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="plate-illust-container">
-<svg class="hero-plate-svg" viewBox="0 0 520 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Animated 96-well microplate illustration">
-  <!-- Plate Base with standard A1 notched corner -->
-  <rect x="12" y="12" width="496" height="336" rx="16" fill="var(--card-bg)" stroke="var(--card-border)" stroke-width="2"/>
-  <rect x="24" y="24" width="472" height="312" rx="12" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
-  <!-- Column Labels (1-12) -->
-  <text x="72" y="48" text-anchor="middle" class="plate-illust-label">1</text>
-  <text x="107" y="48" text-anchor="middle" class="plate-illust-label">2</text>
-  <text x="142" y="48" text-anchor="middle" class="plate-illust-label">3</text>
-  <text x="177" y="48" text-anchor="middle" class="plate-illust-label">4</text>
-  <text x="212" y="48" text-anchor="middle" class="plate-illust-label">5</text>
-  <text x="247" y="48" text-anchor="middle" class="plate-illust-label">6</text>
-  <text x="282" y="48" text-anchor="middle" class="plate-illust-label">7</text>
-  <text x="317" y="48" text-anchor="middle" class="plate-illust-label">8</text>
-  <text x="352" y="48" text-anchor="middle" class="plate-illust-label">9</text>
-  <text x="387" y="48" text-anchor="middle" class="plate-illust-label">10</text>
-  <text x="422" y="48" text-anchor="middle" class="plate-illust-label">11</text>
-  <text x="457" y="48" text-anchor="middle" class="plate-illust-label">12</text>
-  <!-- Row Labels (A-H) -->
-  <text x="42" y="78" text-anchor="middle" class="plate-illust-label">A</text>
-  <text x="42" y="111" text-anchor="middle" class="plate-illust-label">B</text>
-  <text x="42" y="144" text-anchor="middle" class="plate-illust-label">C</text>
-  <text x="42" y="177" text-anchor="middle" class="plate-illust-label">D</text>
-  <text x="42" y="210" text-anchor="middle" class="plate-illust-label">E</text>
-  <text x="42" y="243" text-anchor="middle" class="plate-illust-label">F</text>
-  <text x="42" y="276" text-anchor="middle" class="plate-illust-label">G</text>
-  <text x="42" y="309" text-anchor="middle" class="plate-illust-label">H</text>
-  <!-- 96 Well Cavities -->
-  <circle cx="72" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:0;" />
-  <circle cx="107" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:1;" />
-  <circle cx="142" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:2;" />
-  <circle cx="177" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:3;" />
-  <circle cx="212" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:4;" />
-  <circle cx="247" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:5;" />
-  <circle cx="282" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:6;" />
-  <circle cx="317" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:7;" />
-  <circle cx="352" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:8;" />
-  <circle cx="387" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:9;" />
-  <circle cx="422" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:10;" />
-  <circle cx="457" cy="74" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="74" r="11" class="plate-illust-well" style="--r:0; --c:11;" />
-  <circle cx="72" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:0;" />
-  <circle cx="107" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:1;" />
-  <circle cx="142" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:2;" />
-  <circle cx="177" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:3;" />
-  <circle cx="212" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:4;" />
-  <circle cx="247" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:5;" />
-  <circle cx="282" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:6;" />
-  <circle cx="317" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:7;" />
-  <circle cx="352" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:8;" />
-  <circle cx="387" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:9;" />
-  <circle cx="422" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:10;" />
-  <circle cx="457" cy="107" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="107" r="11" class="plate-illust-well" style="--r:1; --c:11;" />
-  <circle cx="72" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:0;" />
-  <circle cx="107" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:1;" />
-  <circle cx="142" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:2;" />
-  <circle cx="177" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:3;" />
-  <circle cx="212" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:4;" />
-  <circle cx="247" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:5;" />
-  <circle cx="282" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:6;" />
-  <circle cx="317" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:7;" />
-  <circle cx="352" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:8;" />
-  <circle cx="387" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:9;" />
-  <circle cx="422" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:10;" />
-  <circle cx="457" cy="140" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="140" r="11" class="plate-illust-well" style="--r:2; --c:11;" />
-  <circle cx="72" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:0;" />
-  <circle cx="107" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:1;" />
-  <circle cx="142" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:2;" />
-  <circle cx="177" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:3;" />
-  <circle cx="212" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:4;" />
-  <circle cx="247" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:5;" />
-  <circle cx="282" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:6;" />
-  <circle cx="317" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:7;" />
-  <circle cx="352" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:8;" />
-  <circle cx="387" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:9;" />
-  <circle cx="422" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:10;" />
-  <circle cx="457" cy="173" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="173" r="11" class="plate-illust-well" style="--r:3; --c:11;" />
-  <circle cx="72" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:0;" />
-  <circle cx="107" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:1;" />
-  <circle cx="142" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:2;" />
-  <circle cx="177" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:3;" />
-  <circle cx="212" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:4;" />
-  <circle cx="247" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:5;" />
-  <circle cx="282" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:6;" />
-  <circle cx="317" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:7;" />
-  <circle cx="352" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:8;" />
-  <circle cx="387" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:9;" />
-  <circle cx="422" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:10;" />
-  <circle cx="457" cy="206" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="206" r="11" class="plate-illust-well" style="--r:4; --c:11;" />
-  <circle cx="72" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:0;" />
-  <circle cx="107" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:1;" />
-  <circle cx="142" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:2;" />
-  <circle cx="177" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:3;" />
-  <circle cx="212" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:4;" />
-  <circle cx="247" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:5;" />
-  <circle cx="282" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:6;" />
-  <circle cx="317" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:7;" />
-  <circle cx="352" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:8;" />
-  <circle cx="387" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:9;" />
-  <circle cx="422" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:10;" />
-  <circle cx="457" cy="239" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="239" r="11" class="plate-illust-well" style="--r:5; --c:11;" />
-  <circle cx="72" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:0;" />
-  <circle cx="107" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:1;" />
-  <circle cx="142" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:2;" />
-  <circle cx="177" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:3;" />
-  <circle cx="212" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:4;" />
-  <circle cx="247" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:5;" />
-  <circle cx="282" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:6;" />
-  <circle cx="317" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:7;" />
-  <circle cx="352" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:8;" />
-  <circle cx="387" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:9;" />
-  <circle cx="422" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:10;" />
-  <circle cx="457" cy="272" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="272" r="11" class="plate-illust-well" style="--r:6; --c:11;" />
-  <circle cx="72" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="72" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:0;" />
-  <circle cx="107" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="107" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:1;" />
-  <circle cx="142" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="142" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:2;" />
-  <circle cx="177" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="177" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:3;" />
-  <circle cx="212" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="212" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:4;" />
-  <circle cx="247" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="247" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:5;" />
-  <circle cx="282" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="282" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:6;" />
-  <circle cx="317" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="317" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:7;" />
-  <circle cx="352" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="352" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:8;" />
-  <circle cx="387" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="387" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:9;" />
-  <circle cx="422" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="422" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:10;" />
-  <circle cx="457" cy="305" r="14" class="plate-illust-rim" />
-  <circle cx="457" cy="305" r="11" class="plate-illust-well" style="--r:7; --c:11;" />
-</svg>
+
+        <!-- Live Demo Meter beside/under the hero text -->
+        <div class="hero-demo-meter" id="hero-demo-meter" aria-label="Real-time performance indicators">
+          <div class="demo-meter-card glass-card">
+            <div class="demo-meter-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <div class="demo-meter-body">
+              <div class="demo-meter-val" id="meter-wells" data-target="96">96</div>
+              <div class="demo-meter-lbl">Wells analysed / photo</div>
+            </div>
+          </div>
+          <div class="demo-meter-card glass-card">
+            <div class="demo-meter-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div class="demo-meter-body">
+              <div class="demo-meter-val" id="meter-qc" data-target="6">6</div>
+              <div class="demo-meter-lbl">Rigorous QC rules</div>
+            </div>
+          </div>
+          <div class="demo-meter-card glass-card">
+            <div class="demo-meter-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="demo-meter-body">
+              <div class="demo-meter-val" id="meter-time" data-target="1.2">&lt; 1.2s</div>
+              <div class="demo-meter-lbl">Average result time</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -437,7 +259,16 @@
           <details open class="card step-card" id="step-card-1">
             <summary class="step-summary">
               <div class="step-header-left">
-                <span class="step-badge" id="step-badge-1">1</span>
+                <span class="step-badge step-progress-badge" id="step-badge-1" aria-label="Step 1">
+                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
+                    <circle class="ring-track" cx="16" cy="16" r="13" />
+                    <circle class="ring-fill" id="ring-fill-1" cx="16" cy="16" r="13" />
+                  </svg>
+                  <span class="step-num-text" id="step-num-1">1</span>
+                  <svg class="step-check-icon" id="step-check-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
                 <span class="step-title">Plate and image</span>
               </div>
               <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -494,7 +325,16 @@
           <details open class="card step-card" id="step-roles">
             <summary class="step-summary">
               <div class="step-header-left">
-                <span class="step-badge" id="step-badge-2">2</span>
+                <span class="step-badge step-progress-badge" id="step-badge-2" aria-label="Step 2">
+                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
+                    <circle class="ring-track" cx="16" cy="16" r="13" />
+                    <circle class="ring-fill" id="ring-fill-2" cx="16" cy="16" r="13" />
+                  </svg>
+                  <span class="step-num-text" id="step-num-2">2</span>
+                  <svg class="step-check-icon" id="step-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
                 <span class="step-title">Well roles</span>
               </div>
               <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -505,6 +345,35 @@
                 <label class="check-label" for="customise-wells" style="margin:0; font-size:12px; font-weight:600">
                   <input type="checkbox" id="customise-wells"> Customise wells
                 </label>
+              </div>
+
+              <!-- Interactive 8x12 Well-Role Painter -->
+              <div class="well-painter-widget" id="well-painter-widget">
+                <div class="painter-toolbar">
+                  <span class="painter-label">Palette:</span>
+                  <div class="painter-palette" role="radiogroup" aria-label="Well role painting palette">
+                    <button type="button" class="palette-btn active" data-role="pos" id="paint-btn-pos" role="radio" aria-checked="true" title="Paint Positive control wells">
+                      <span class="palette-swatch swatch-pos"></span> Pos
+                    </button>
+                    <button type="button" class="palette-btn" data-role="neg" id="paint-btn-neg" role="radio" aria-checked="false" title="Paint Negative control wells">
+                      <span class="palette-swatch swatch-neg"></span> Neg
+                    </button>
+                    <button type="button" class="palette-btn" data-role="blank" id="paint-btn-blank" role="radio" aria-checked="false" title="Paint Blank reference wells">
+                      <span class="palette-swatch swatch-blank"></span> Blank
+                    </button>
+                    <button type="button" class="palette-btn" data-role="sample" id="paint-btn-clear" role="radio" aria-checked="false" title="Clear role / sample well">
+                      <span class="palette-swatch swatch-clear"></span> Clear
+                    </button>
+                  </div>
+                  <button type="button" class="sec btn-xs" id="btn-clear-all-roles" style="margin-left:auto;" title="Clear all assigned roles">Reset</button>
+                </div>
+
+                <div class="painter-plate-container">
+                  <div class="painter-grid" id="painter-grid" role="grid" aria-label="8 by 12 well role grid">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                </div>
+                <div class="painter-hint">Click or drag across wells to paint. Automatically syncs with text fields below.</div>
               </div>
 
               <div class="form-group" id="pos-wrap">
@@ -534,7 +403,16 @@
           <details open class="card step-card" id="step-card-3">
             <summary class="step-summary">
               <div class="step-header-left">
-                <span class="step-badge" id="step-badge-3">3</span>
+                <span class="step-badge step-progress-badge" id="step-badge-3" aria-label="Step 3">
+                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
+                    <circle class="ring-track" cx="16" cy="16" r="13" />
+                    <circle class="ring-fill" id="ring-fill-3" cx="16" cy="16" r="13" />
+                  </svg>
+                  <span class="step-num-text" id="step-num-3">3</span>
+                  <svg class="step-check-icon" id="step-check-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
                 <span class="step-title">Measurement</span>
               </div>
               <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -610,7 +488,16 @@
           <details open class="card step-card" id="step-card-4">
             <summary class="step-summary">
               <div class="step-header-left">
-                <span class="step-badge" id="step-badge-4">4</span>
+                <span class="step-badge step-progress-badge" id="step-badge-4" aria-label="Step 4">
+                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
+                    <circle class="ring-track" cx="16" cy="16" r="13" />
+                    <circle class="ring-fill" id="ring-fill-4" cx="16" cy="16" r="13" />
+                  </svg>
+                  <span class="step-num-text" id="step-num-4">4</span>
+                  <svg class="step-check-icon" id="step-check-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
                 <span class="step-title">Calibration</span>
               </div>
               <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -696,10 +583,24 @@
               </div>
 
               <div class="grid-toolbar">
+                <!-- Undo / Redo with history badge -->
+                <div class="history-controls" role="group" aria-label="History actions">
+                  <button type="button" class="sec btn-xs toolbar-icon-btn" id="btn-undo" title="Undo corner move (Ctrl+Z)" disabled aria-label="Undo">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                  </button>
+                  <button type="button" class="sec btn-xs toolbar-icon-btn" id="btn-redo" title="Redo corner move (Ctrl+Shift+Z)" disabled aria-label="Redo">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path></svg>
+                  </button>
+                  <span id="history-chip" class="history-chip" title="Corner move history">History: 0</span>
+                </div>
+                <div class="toolbar-sep"></div>
+                <!-- Zoom Controls -->
                 <div class="zoom-controls" role="group" aria-label="Canvas zoom levels">
+                  <button type="button" class="sec btn-xs zoom-step-btn" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
                   <button type="button" class="sec btn-xs zoom-btn active" data-zoom="1" id="zoom-100" title="100% Zoom">100%</button>
                   <button type="button" class="sec btn-xs zoom-btn" data-zoom="1.5" id="zoom-150" title="150% Zoom">150%</button>
                   <button type="button" class="sec btn-xs zoom-btn" data-zoom="2" id="zoom-200" title="200% Zoom">200%</button>
+                  <button type="button" class="sec btn-xs zoom-step-btn" id="btn-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
                 </div>
                 <div class="toolbar-sep"></div>
                 <button type="button" class="sec btn-xs" id="btn-auto-grid" title="Auto-detect grid corners with computer vision">Auto-detect grid</button>
@@ -742,8 +643,144 @@
                 </div>
                 <span class="drop-primary-txt">Drop a plate photo or click to browse</span>
                 <span class="drop-sub-txt">Supports JPG, PNG, TIFF, WebP up to 80 MB</span>
+                <div class="ghost-plate-wrap" id="ghost-plate-wrap" aria-hidden="true">
+                  <svg class="ghost-plate-svg" viewBox="0 0 320 200">
+                    <rect x="4" y="4" width="312" height="192" rx="10" class="ghost-plate-rim" />
+                    <circle cx="24.0" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="20.0" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="42.5" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="65.0" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="87.5" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="110.0" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="132.5" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="155.0" r="7" class="ghost-well-circle" />
+                    <circle cx="24.0" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="48.5" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="73.0" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="97.5" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="122.0" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="146.5" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="171.0" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="195.5" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="220.0" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="244.5" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="269.0" cy="177.5" r="7" class="ghost-well-circle" />
+                    <circle cx="293.5" cy="177.5" r="7" class="ghost-well-circle" />
+                  </svg>
+                  <div class="ghost-plate-label">Release photo to mount plate</div>
+                </div>
               </div>
               <canvas id="cv" hidden tabindex="0" role="img" aria-label="Interactive plate grid canvas"></canvas>
+            </div>
+
+            <!-- LIVE PREVIEW STRIP (Real-time feedback during adjustment) -->
+            <div id="live-preview-strip" class="live-preview-strip" aria-label="Real-time optical density preview" hidden>
+              <div class="preview-header">
+                <div class="preview-header-left">
+                  <span class="preview-live-badge">
+                    <span class="preview-live-dot"></span>
+                    Live Instrument Preview
+                  </span>
+                  <span id="preview-pulse-status" class="preview-pulse-status">Synchronised</span>
+                </div>
+                <div id="preview-meta-strip" class="preview-meta-strip">
+                  <span class="preview-tag" id="preview-tag-blank">Blank: –</span>
+                  <span class="preview-tag" id="preview-tag-controls">Controls: –</span>
+                  <span class="preview-tag" id="preview-tag-qc">QC: –</span>
+                </div>
+              </div>
+              <div class="preview-body">
+                <div class="preview-canvas-col">
+                  <canvas id="preview-heatmap-cv" width="288" height="180" class="preview-heatmap-canvas" aria-label="Live mini optical density heatmap"></canvas>
+                  <div class="preview-legend">
+                    <span class="legend-chip chip-low">Low OD</span>
+                    <span class="legend-chip chip-mid">Mid OD</span>
+                    <span class="legend-chip chip-high">High OD</span>
+                  </div>
+                </div>
+                <div class="preview-feedback-col">
+                  <div id="preview-quick-summary" class="preview-quick-summary">
+                    Adjust corners, wells, or channel to inspect real-time absorbance and control separation.
+                  </div>
+                  <div id="preview-error-hint" class="preview-error-hint" hidden role="alert"></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -773,6 +810,21 @@
                 </div>
               </div>
               <div class="results-header-actions">
+                <button type="button" class="sec btn-action" id="btn-copy-table" title="Copy results table to clipboard (TSV for Excel)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy table</span>
+                </button>
+                <button type="button" class="sec btn-action" id="btn-download-heatmap-png" title="Download high-resolution PNG of the active heatmap">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <span>Heatmap PNG</span>
+                </button>
                 <button class="sec btn-action" id="csv" title="Download CSV">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -799,12 +851,79 @@
               </div>
             </div>
 
+            <!-- Compare Wells Bar -->
+            <div id="compare-bar" class="compare-bar" hidden>
+              <div class="compare-bar-left">
+                <span class="compare-title">Compare Mode:</span>
+                <span id="compare-well-1" class="compare-chip">Well 1: None</span>
+                <span class="compare-vs">vs</span>
+                <span id="compare-well-2" class="compare-chip">Well 2: None</span>
+                <span id="compare-diff" class="compare-diff">ΔOD: – | ΔValue: –</span>
+              </div>
+              <button type="button" class="sec btn-xs" id="btn-clear-compare">Clear</button>
+            </div>
+
             <div class="cards kpi-cards-grid" id="stats"></div>
             <div id="reference-panel" hidden></div>
-            <div id="summary-strip"></div>
+            
+            <!-- Distribution Row: Stacked Bar + Donut Chart -->
+            <div class="distribution-row">
+              <div id="summary-strip" class="distribution-bar-col"></div>
+              <div class="distribution-donut-col">
+                <div class="donut-chart-wrap">
+                  <canvas id="donut-chart-cv" width="140" height="140" aria-label="Class distribution donut chart"></canvas>
+                  <div class="donut-center-label" id="donut-center-label">96<br><span>wells</span></div>
+                </div>
+              </div>
+            </div>
             <div class="tabs accessible-tabs" id="tabs"></div>
             <div id="view"></div>
             <div id="print-bundle" class="print-view-bundle"></div>
+
+            <!-- Slide-in Well Inspector Drawer -->
+            <aside id="well-inspector-drawer" class="well-inspector-drawer" aria-label="Well Inspector" aria-hidden="true">
+              <div class="inspector-header">
+                <div class="inspector-title-row">
+                  <span class="inspector-well-title" id="inspector-well-id">Well A1</span>
+                  <span class="b Positive" id="inspector-well-class">Sample</span>
+                </div>
+                <button type="button" class="inspector-close-btn" id="inspector-close-btn" aria-label="Close Inspector">✕</button>
+              </div>
+              <div class="inspector-body">
+                <!-- Zoomed photographic crop of the well (4x) -->
+                <div class="inspector-crop-wrap">
+                  <canvas id="inspector-crop-cv" width="120" height="120" class="inspector-crop-canvas" aria-label="Photographic crop of well"></canvas>
+                  <span class="crop-label">Photographic Crop (4×)</span>
+                </div>
+                <!-- Well Metrics Grid -->
+                <div class="inspector-metrics-grid">
+                  <div class="inspector-metric"><span class="metric-label">Role</span><strong id="inspector-val-role" class="metric-val">–</strong></div>
+                  <div class="inspector-metric"><span class="metric-label">Raw Intensity</span><strong id="inspector-val-intensity" class="metric-val">–</strong></div>
+                  <div class="inspector-metric"><span class="metric-label">Image OD</span><strong id="inspector-val-od" class="metric-val">–</strong></div>
+                  <div class="inspector-metric"><span class="metric-label">Calibrated OD</span><strong id="inspector-val-od-cal" class="metric-val">–</strong></div>
+                  <div class="inspector-metric"><span class="metric-label" id="inspector-lbl-value">Value (%)</span><strong id="inspector-val-value" class="metric-val">–</strong></div>
+                </div>
+                <!-- Cutoff Gauge -->
+                <div class="inspector-gauge-wrap">
+                  <div class="gauge-labels">
+                    <span id="inspector-gauge-lo">0%</span>
+                    <span id="inspector-gauge-cutoff">Cutoff: 40%</span>
+                    <span id="inspector-gauge-hi">100%</span>
+                  </div>
+                  <div class="gauge-track">
+                    <div id="inspector-gauge-fill" class="gauge-fill"></div>
+                    <div id="inspector-gauge-cutoff-line" class="gauge-cutoff-line"></div>
+                    <div id="inspector-gauge-needle" class="gauge-needle"></div>
+                  </div>
+                </div>
+                <!-- Navigation & Compare Pin -->
+                <div class="inspector-nav-row">
+                  <button type="button" class="sec btn-xs" id="inspector-btn-prev">← Previous</button>
+                  <button type="button" class="sec btn-xs" id="inspector-btn-pin">Pin to Compare</button>
+                  <button type="button" class="sec btn-xs" id="inspector-btn-next">Next →</button>
+                </div>
+              </div>
+            </aside>
           </div>
         </section>
       </main>
@@ -896,87 +1015,72 @@
 
 
 
-    <!-- 3. HOW IT WORKS TIMELINE -->
-    <section id="how-it-works" class="info-section reveal" aria-labelledby="how-heading">
+    <!-- 3. HOW IT WORKS SCROLL STORY -->
+    <section id="how-it-works" class="info-section scroll-story-section reveal" aria-labelledby="how-heading">
       <div class="section-header-block">
         <span class="section-eyebrow">Methodology</span>
         <h2 id="how-heading" class="info-section-title">How it works</h2>
         <p class="info-section-desc">PlateOD executes an automated analytical pipeline that takes raw photographic captures to calibrated diagnostic results in four steps.</p>
       </div>
 
-      <div class="timeline-container">
-        <div class="timeline-step">
-          <div class="step-indicator">
-            <div class="step-num">1</div>
-            <div class="step-icon-box">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-              </svg>
+      <div class="scroll-story-container" id="scroll-story-container">
+        <!-- Left Column: Narrative steps that swap with crossfade on scroll -->
+        <div class="story-narrative-col" id="story-narrative-col">
+          <div class="story-step-card active" data-step="1" id="story-step-1">
+            <div class="story-step-badge">Step 01</div>
+            <h3 class="story-step-title">Photograph</h3>
+            <p class="story-step-desc">Capture a clean, overhead photo of your stopped microtitre plate under diffuse illumination. The browser client automatically downscales high-resolution files to 2400px before uploading.</p>
+            <div class="story-step-tags">
+              <span class="story-tag">Diffuse Light</span>
+              <span class="story-tag">No Meniscus Glare</span>
+              <span class="story-tag">Auto-Downscaled</span>
             </div>
           </div>
-          <div class="timeline-content">
-            <h3 class="timeline-title">Photograph</h3>
-            <p class="timeline-text">Capture a well-lit, overhead photo of your stopped microtitre plate under diffuse illumination.</p>
+
+          <div class="story-step-card" data-step="2" id="story-step-2">
+            <div class="story-step-badge">Step 02</div>
+            <h3 class="story-step-title">Place grid</h3>
+            <p class="story-step-desc">One click on Auto-detect finds circular well edges with HoughCircles and fits a regular perspective grid using RANSAC. Adjust corner handles A1, A12, H12, and H1 with live 4× loupe guidance.</p>
+            <div class="story-step-tags">
+              <span class="story-tag">Hough Circles</span>
+              <span class="story-tag">RANSAC Quad</span>
+              <span class="story-tag">4× Magnifier</span>
+            </div>
+          </div>
+
+          <div class="story-step-card" data-step="3" id="story-step-3">
+            <div class="story-step-badge">Step 03</div>
+            <h3 class="story-step-title">Set controls</h3>
+            <p class="story-step-desc">Select an assay preset (SPCE or DIVA) or customize well roles. Antigen/positive, negative, and substrate blank wells anchor optical density calculations and verify dynamic range integrity.</p>
+            <div class="story-step-tags">
+              <span class="story-tag">SPCE (PI)</span>
+              <span class="story-tag">DIVA (PP)</span>
+              <span class="story-tag">Blank Baseline</span>
+            </div>
+          </div>
+
+          <div class="story-step-card" data-step="4" id="story-step-4">
+            <div class="story-step-badge">Step 04</div>
+            <h3 class="story-step-title">Read results</h3>
+            <p class="story-step-desc">Instantly inspect calibrated optical density heatmaps, sample inhibition or positivity ratios, polynomial flat-field illumination correction, and export comprehensive CSV laboratory reports.</p>
+            <div class="story-step-tags">
+              <span class="story-tag">Beer-Lambert OD</span>
+              <span class="story-tag">Flat-Field Correction</span>
+              <span class="story-tag">CSV &amp; PDF Report</span>
+            </div>
           </div>
         </div>
 
-        <div class="timeline-step">
-          <div class="step-indicator">
-            <div class="step-num">2</div>
-            <div class="step-icon-box">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="22" y1="12" x2="18" y2="12"></line>
-                <line x1="6" y1="12" x2="2" y2="12"></line>
-                <line x1="12" y1="6" x2="12" y2="2"></line>
-                <line x1="12" y1="22" x2="12" y2="18"></line>
-              </svg>
+        <!-- Right Column: Pinned Mini Plate Visualizer -->
+        <div class="story-visual-col" id="story-visual-col">
+          <div class="story-pinned-card glass-card" id="story-pinned-card">
+            <div class="story-plate-canvas-wrap">
+              <canvas id="story-plate-canvas" class="story-plate-canvas" width="460" height="320" aria-label="Interactive mini plate showing processing stages"></canvas>
             </div>
-          </div>
-          <div class="timeline-content">
-            <h3 class="timeline-title">Place grid</h3>
-            <p class="timeline-text">Drag the four corner handles over wells A1, A12, H12, and H1 to set the perspective grid.</p>
-          </div>
-        </div>
-
-        <div class="timeline-step">
-          <div class="step-indicator">
-            <div class="step-num">3</div>
-            <div class="step-icon-box">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="4" y1="21" x2="4" y2="14"></line>
-                <line x1="4" y1="10" x2="4" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12" y2="3"></line>
-                <line x1="20" y1="21" x2="20" y2="16"></line>
-                <line x1="20" y1="12" x2="20" y2="3"></line>
-                <line x1="1" y1="14" x2="7" y2="14"></line>
-                <line x1="9" y1="8" x2="15" y2="8"></line>
-                <line x1="17" y1="16" x2="23" y2="16"></line>
-              </svg>
+            <div class="story-status-indicator" id="story-status-indicator">
+              <span class="story-status-dot"></span>
+              <span id="story-status-label">Stage 1: Photographing Plate</span>
             </div>
-          </div>
-          <div class="timeline-content">
-            <h3 class="timeline-title">Set controls</h3>
-            <p class="timeline-text">Select an assay preset (SPCE or DIVA) or configure custom blank and control well locations.</p>
-          </div>
-        </div>
-
-        <div class="timeline-step">
-          <div class="step-indicator">
-            <div class="step-num">4</div>
-            <div class="step-icon-box">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-            </div>
-          </div>
-          <div class="timeline-content">
-            <h3 class="timeline-title">Read results</h3>
-            <p class="timeline-text">Inspect calibrated OD heatmaps, positivity/inhibition ratios, and export CSV audit reports.</p>
           </div>
         </div>
       </div>
@@ -991,8 +1095,8 @@
       </div>
 
       <div class="assay-cards-grid">
-        <!-- SPCE Card -->
-        <div class="assay-protocol-card">
+        <!-- SPCE Card with 3D Tilt and Mini Diagram -->
+        <div class="assay-protocol-card tilt-card glass-card" id="card-proto-spce" data-tilt-max="6">
           <div class="protocol-card-header">
             <div class="protocol-badge-group">
               <span class="protocol-pill spce-pill">Competitive ELISA</span>
@@ -1000,6 +1104,111 @@
             </div>
             <h3 class="protocol-name">SPCE (Solid Phase Competition)</h3>
             <p class="protocol-subtitle">Percentage inhibition protocol for competitive antibody detection.</p>
+          </div>
+
+          <!-- Mini Plate Diagram that lights up on hover -->
+          <div class="assay-mini-diagram" aria-hidden="true">
+            <div class="mini-diagram-title">Control Layout (A1–D1 Antigen, E1–F1 Blank)</div>
+            <svg class="mini-diagram-svg" viewBox="0 0 280 120">
+              <rect x="2" y="2" width="276" height="116" rx="8" class="mini-diag-plate" />
+              <!-- Render 8x12 mini dots -->
+<circle cx="24" cy="16" r="4" class="mini-dot-antigen" />
+              <circle cx="45" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="29" r="4" class="mini-dot-antigen" />
+              <circle cx="45" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="42" r="4" class="mini-dot-antigen" />
+              <circle cx="45" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="55" r="4" class="mini-dot-antigen" />
+              <circle cx="45" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="68" r="4" class="mini-dot-blank" />
+              <circle cx="45" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="81" r="4" class="mini-dot-blank" />
+              <circle cx="45" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="107" r="4" class="mini-dot-sample" />
+            </svg>
           </div>
 
           <div class="formula-box" aria-label="SPCE Formula">
@@ -1010,15 +1219,11 @@
           <div class="protocol-specs">
             <div class="spec-row">
               <span class="spec-label">Antigen (max-signal) wells</span>
-              <span class="spec-value"><code>A1–D1</code> (A1, B1, C1, D1 uninhibited maximum signal)</span>
+              <span class="spec-value"><code>A1–D1</code> (uninhibited maximum signal)</span>
             </div>
             <div class="spec-row">
               <span class="spec-label">Substrate blank wells</span>
-              <span class="spec-value"><code>E1–F1</code> (E1, F1 empty / clear substrate)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Positive control</span>
-              <span class="spec-value">Optional (none required by protocol)</span>
+              <span class="spec-value"><code>E1–F1</code> (substrate optical baseline)</span>
             </div>
             <div class="spec-row">
               <span class="spec-label">Diagnostic Cutoff</span>
@@ -1026,7 +1231,7 @@
             </div>
           </div>
 
-          <button type="button" class="btn btn-secondary preset-act-btn" data-preset="SPCE">
+          <button type="button" class="btn btn-secondary preset-act-btn btn-magnetic" data-preset="SPCE">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="9 11 12 14 22 4"></polyline>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
@@ -1035,8 +1240,8 @@
           </button>
         </div>
 
-        <!-- DIVA Card -->
-        <div class="assay-protocol-card">
+        <!-- DIVA Card with 3D Tilt and Mini Diagram -->
+        <div class="assay-protocol-card tilt-card glass-card" id="card-proto-diva" data-tilt-max="6">
           <div class="protocol-card-header">
             <div class="protocol-badge-group">
               <span class="protocol-pill diva-pill">Differential ELISA</span>
@@ -1044,6 +1249,110 @@
             </div>
             <h3 class="protocol-name">DIVA (Differential / Indirect)</h3>
             <p class="protocol-subtitle">Percentage positivity protocol differentiating infected from vaccinated animals.</p>
+          </div>
+
+          <!-- Mini Plate Diagram that lights up on hover -->
+          <div class="assay-mini-diagram" aria-hidden="true">
+            <div class="mini-diagram-title">Control Layout (H7–H8 Pos, H9–H10 Neg, H11–H12 Blank)</div>
+            <svg class="mini-diagram-svg" viewBox="0 0 280 120">
+              <rect x="2" y="2" width="276" height="116" rx="8" class="mini-diag-plate" />
+<circle cx="24" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="16" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="29" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="42" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="55" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="68" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="81" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="171" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="192" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="213" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="234" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="255" cy="94" r="4" class="mini-dot-sample" />
+              <circle cx="24" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="45" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="66" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="87" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="108" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="129" cy="107" r="4" class="mini-dot-sample" />
+              <circle cx="150" cy="107" r="4" class="mini-dot-pos" />
+              <circle cx="171" cy="107" r="4" class="mini-dot-pos" />
+              <circle cx="192" cy="107" r="4" class="mini-dot-neg" />
+              <circle cx="213" cy="107" r="4" class="mini-dot-neg" />
+              <circle cx="234" cy="107" r="4" class="mini-dot-blank" />
+              <circle cx="255" cy="107" r="4" class="mini-dot-blank" />
+            </svg>
           </div>
 
           <div class="formula-box" aria-label="DIVA Formula">
@@ -1070,7 +1379,7 @@
             </div>
           </div>
 
-          <button type="button" class="btn btn-secondary preset-act-btn" data-preset="DIVA">
+          <button type="button" class="btn btn-secondary preset-act-btn btn-magnetic" data-preset="DIVA">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="9 11 12 14 22 4"></polyline>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
@@ -1081,9 +1390,9 @@
       </div>
     </section>
 
-    <!-- 5. PHOTO TIPS SECTION -->
+    <!-- 5. PHOTO TIPS SECTION (Interactive Carousel) -->
     <section id="photo-tips" class="info-section reveal" aria-labelledby="tips-heading">
-      <div class="photo-tips-card">
+      <div class="photo-tips-card glass-card">
         <div class="tips-header">
           <div class="tips-icon-wrap">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1093,82 +1402,95 @@
           </div>
           <div>
             <h2 id="tips-heading" class="tips-title">Plate Photography Best Practices</h2>
-            <p class="tips-subtitle">Follow these laboratory imaging guidelines for maximum quantitative photometric accuracy.</p>
+            <p class="tips-subtitle">Laboratory imaging guidelines for quantitative photometric accuracy. Swipe or use arrow keys to browse.</p>
+          </div>
+          <!-- Carousel Navigation Controls -->
+          <div class="carousel-nav-controls">
+            <button type="button" class="carousel-btn prev-btn" id="btn-tips-prev" aria-label="Previous photo tips slide">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button type="button" class="carousel-btn next-btn" id="btn-tips-next" aria-label="Next photo tips slide">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
           </div>
         </div>
 
-        <div class="tips-grid">
-          <div class="tip-item">
-            <div class="tip-check">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
+        <!-- Carousel Track Wrapper -->
+        <div class="tips-carousel-wrap" id="tips-carousel-wrap" tabindex="0" role="region" aria-label="Photo Tips Carousel" aria-roledescription="carousel">
+          <div class="tips-carousel-track" id="tips-carousel-track">
+            <!-- Slide 1 -->
+            <div class="tips-slide active" role="group" aria-roledescription="slide" aria-label="1 of 3">
+              <div class="tip-item">
+                <div class="tip-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tip-body">
+                  <strong>Straight-down shot (90°)</strong>
+                  <span>Hold the camera perpendicular directly above the plate center to eliminate perspective parallax and sidewall shadowing.</span>
+                </div>
+              </div>
+              <div class="tip-item">
+                <div class="tip-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tip-body">
+                  <strong>Light box or diffuse illumination</strong>
+                  <span>Place the plate on a uniform white light box or use diffuse ambient daylight. Avoid harsh single-point ceiling spot lamps.</span>
+                </div>
+              </div>
             </div>
-            <div class="tip-body">
-              <strong>Straight-down shot</strong>
-              <span>Hold the camera perpendicular (90°) directly above the plate to eliminate perspective parallax and sidewall shadowing.</span>
-            </div>
-          </div>
 
-          <div class="tip-item">
-            <div class="tip-check">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
+            <!-- Slide 2 -->
+            <div class="tips-slide" role="group" aria-roledescription="slide" aria-label="2 of 3">
+              <div class="tip-item">
+                <div class="tip-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tip-body">
+                  <strong>Locked exposure &amp; white balance</strong>
+                  <span>Lock auto-exposure (AE/AF lock) and disable computational HDR on your phone to prevent automatic per-shot brightness drift.</span>
+                </div>
+              </div>
+              <div class="tip-item">
+                <div class="tip-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tip-body">
+                  <strong>Avoid meniscus glare &amp; bubbles</strong>
+                  <span>Tap the plate gently to dislodge liquid bubbles. Ensure lamp reflections do not directly fall onto well liquid menisci.</span>
+                </div>
+              </div>
             </div>
-            <div class="tip-body">
-              <strong>Light box or diffuse illumination</strong>
-              <span>Place the plate on a uniform white light box or use diffuse ambient daylight. Avoid harsh single-point ceiling lights.</span>
-            </div>
-          </div>
 
-          <div class="tip-item">
-            <div class="tip-check">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <div class="tip-body">
-              <strong>Locked exposure &amp; white balance</strong>
-              <span>Lock auto-exposure (AE/AF lock) and disable computational HDR on your phone to prevent per-shot brightness drift.</span>
+            <!-- Slide 3 -->
+            <div class="tips-slide" role="group" aria-roledescription="slide" aria-label="3 of 3">
+              <div class="tip-item">
+                <div class="tip-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tip-body">
+                  <strong>Use PNG or original camera file</strong>
+                  <span>Upload original camera JPEGs or PNGs. Avoid transferring photos through messaging apps that compress or re-encode images.</span>
+                </div>
+              </div>
+              <div class="tip-item">
+                <div class="tip-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="tip-body">
+                  <strong>Keep blank wells in frame</strong>
+                  <span>Always include designated substrate/empty blank wells in the photograph under identical lighting for blank-referencing.</span>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="tip-item">
-            <div class="tip-check">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <div class="tip-body">
-              <strong>Avoid meniscus glare</strong>
-              <span>Tap the plate gently to dislodge air bubbles. Ensure reflections from overhead lamps do not fall on the liquid menisci.</span>
-            </div>
-          </div>
-
-          <div class="tip-item">
-            <div class="tip-check">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <div class="tip-body">
-              <strong>Use PNG or original camera file</strong>
-              <span>Upload uncompressed PNGs or original camera JPEGs. Avoid transferring images through WhatsApp or messaging apps that compress files.</span>
-            </div>
-          </div>
-
-          <div class="tip-item">
-            <div class="tip-check">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <div class="tip-body">
-              <strong>Keep blank wells in frame</strong>
-              <span>Always include designated substrate/empty blank wells in the photograph under identical lighting for blank-referencing.</span>
-            </div>
-          </div>
+        <!-- Carousel Indicators -->
+        <div class="carousel-dots" id="tips-dots" aria-label="Photo tips carousel pagination">
+          <button type="button" class="dot-btn active" data-slide="0" aria-label="Slide 1"></button>
+          <button type="button" class="dot-btn" data-slide="1" aria-label="Slide 2"></button>
+          <button type="button" class="dot-btn" data-slide="2" aria-label="Slide 3"></button>
         </div>
       </div>
     </section>

@@ -3,20 +3,34 @@
 /**
  * PlateOD Results Module (results.js)
  * 
- * Renders QC evaluation pill, KPI summary cards with countUp animations,
- * Calculation & Paper reference panels, stacked proportion bar,
- * synchronized views (Table, OD heatmap, Value heatmap, Annotated plate lightbox),
- * CSV export, and print bundle.
+ * - Morphing QC status pill (PASS / FAIL) with check/cross icons
+ * - KPI summary cards with countUp animator and sparkline gauges
+ * - Class distribution: animated stacked bar + interactive donut chart (canvas)
+ * - Linked views: synchronized hovering across heatmap, table, and canvas
+ * - Slide-in Well Inspector Drawer with 4x photographic crop, cutoff gauge, and arrow-key walkthrough
+ * - Interactive Heatmap: TMB amber ramp for OD, diverging ramp for PI/PP,
+ *   draggable cutoff marker with live client re-color & reset, scrub slider, and values/classes toggle
+ * - Searchable, multi-column sorted, class-filtered table with row-hover highlights
+ * - Compare Mode: pin two wells and inspect Delta OD and Delta Value
+ * - Exports: CSV, Copy table (TSV for Excel), Download Heatmap PNG, Print bundle
  */
 
 import { S, TBL } from "./state.js";
-import { $, el, clearChildren, fmt, showToast } from "./dom.js";
-import { countUp } from "./effects.js";
+import { $, $$, el, clearChildren, fmt, showToast } from "./dom.js";
+import { countUp, initSpotlight } from "./effects.js";
 import { draw } from "./plate-canvas.js";
 
-// -----------------------------------------------------------------------------
-// Color Math & Ramps
-// -----------------------------------------------------------------------------
+// Results State
+let activeInspectorWell = null;
+let pinnedCompareWells = [];
+let clientCutoffPreview = null;
+let scrubThreshold = null;
+let heatmapViewMode = "values"; // "values" | "classes"
+let activeTableFilter = "ALL";
+let highlightedWellId = null;
+let highlightedClass = null;
+
+// Color Ramps
 function lerp(a, b, t) { return a + (b - a) * t; }
 function lerpRgb(c1, c2, t) {
   return [lerp(c1[0], c2[0], t), lerp(c1[1], c2[1], t), lerp(c1[2], c2[2], t)];
@@ -29,10 +43,10 @@ function contrastColor(rgb) {
 }
 
 const TMB_STOPS = [
-  { t: 0.0, rgb: [246, 234, 188] },
-  { t: 0.333, rgb: [245, 165, 36] },
-  { t: 0.667, rgb: [194, 86, 12] },
-  { t: 1.0, rgb: [91, 30, 8] }
+  { t: 0.0, rgb: [255, 243, 196] }, // #FFF3C4
+  { t: 0.35, rgb: [245, 165, 36] }, // #F5A524
+  { t: 0.70, rgb: [232, 89, 12] },  // #E8590C
+  { t: 1.0, rgb: [100, 28, 8] }     // deep amber-brown
 ];
 
 export function tmbAmberColor(t) {
@@ -54,10 +68,11 @@ export function divergingColor(val, cutoff, lo, hi) {
     return { bg: "#1E2633", fg: "#8B97A8", isAbove: false };
   }
   const isAbove = val >= cutoff;
-  const TEAL = [60, 184, 168];     // #3CB8A8
-  const WHITE = [232, 236, 242];   // #E8ECF2
-  const VERMILION = [240, 113, 79]; // #F0714F
+  const TEAL = [60, 184, 168];     // #3CB8A8 (negative)
+  const WHITE = [240, 244, 250];   // #F0F4FA (at cutoff)
+  const CORAL = [240, 113, 79];    // #F0714F (positive)
   let rgb;
+
   if (val < cutoff) {
     const span = Math.max(1e-4, cutoff - lo);
     const t = Math.max(0, Math.min(1, (val - lo) / span));
@@ -65,60 +80,328 @@ export function divergingColor(val, cutoff, lo, hi) {
   } else {
     const span = Math.max(1e-4, hi - cutoff);
     const t = Math.max(0, Math.min(1, (val - cutoff) / span));
-    rgb = lerpRgb(WHITE, VERMILION, t);
+    rgb = lerpRgb(WHITE, CORAL, t);
   }
   return { bg: rgbToHex(...rgb), fg: contrastColor(rgb), isAbove };
 }
 
+export function getClassColor(clsName) {
+  const c = (clsName || "").toLowerCase();
+  if (c.includes("pos")) return "#F0714F";
+  if (c.includes("neg")) return "#3CB8A8";
+  if (c.includes("doubt")) return "#EBCB6B";
+  if (c.includes("inv")) return "#C47DB6";
+  if (c.includes("ctl") || c.includes("control") || c.includes("antigen")) return "#6C97C4";
+  if (c.includes("blank")) return "#9AA1AB";
+  return "#64748B";
+}
+
 // -----------------------------------------------------------------------------
-// Reference Values Panel
+// Linked View Synchronization
 // -----------------------------------------------------------------------------
-function renderReferencePanel(r) {
-  const panel = $("reference-panel");
-  if (!panel) return;
-  clearChildren(panel);
-  if (!r.reference) {
-    panel.hidden = true;
+export function setHighlightedWell(wellId) {
+  highlightedWellId = wellId;
+  // Update canvas
+  S.highlightWell = wellId;
+  draw();
+
+  // Update heatmap cells
+  document.querySelectorAll(".heat-cell").forEach((cell) => {
+    cell.classList.toggle("linked-highlight", cell.getAttribute("data-well") === wellId);
+  });
+
+  // Update table rows
+  document.querySelectorAll(".tbl tbody tr").forEach((tr) => {
+    tr.classList.toggle("linked-highlight-row", tr.getAttribute("data-well") === wellId);
+  });
+}
+
+export function setHighlightedClass(clsName) {
+  highlightedClass = clsName;
+  document.querySelectorAll(".heat-cell").forEach((cell) => {
+    if (!clsName) {
+      cell.classList.remove("class-dimmed", "class-matched");
+    } else {
+      const match = cell.getAttribute("data-class") === clsName;
+      cell.classList.toggle("class-matched", match);
+      cell.classList.toggle("class-dimmed", !match);
+    }
+  });
+
+  document.querySelectorAll(".tbl tbody tr").forEach((tr) => {
+    if (!clsName) {
+      tr.classList.remove("class-dimmed", "class-matched");
+    } else {
+      const match = tr.getAttribute("data-class") === clsName;
+      tr.classList.toggle("class-matched", match);
+      tr.classList.toggle("class-dimmed", !match);
+    }
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Slide-In Well Inspector Drawer
+// -----------------------------------------------------------------------------
+export function openWellInspector(well) {
+  if (!well || !S.last) return;
+  activeInspectorWell = well;
+
+  const drawer = $("well-inspector-drawer");
+  if (!drawer) return;
+
+  drawer.setAttribute("aria-hidden", "false");
+  drawer.classList.add("open");
+
+  // Well Title & Class
+  const titleEl = $("inspector-well-id");
+  const classEl = $("inspector-well-class");
+  if (titleEl) titleEl.textContent = `Well ${well.well}`;
+  if (classEl) {
+    classEl.textContent = well.class;
+    classEl.className = "b " + (well.class.split(" ")[0]);
+  }
+
+  // Metrics
+  $("inspector-val-role") && ($("inspector-val-role").textContent = well.role);
+  $("inspector-val-intensity") && ($("inspector-val-intensity").textContent = fmt(well.intensity, 2));
+  $("inspector-val-od") && ($("inspector-val-od").textContent = fmt(well.od, 4));
+  $("inspector-val-od-cal") && ($("inspector-val-od-cal").textContent = fmt(well.od_cal, 4));
+
+  const isPI = S.last.mode === "PI";
+  const lblVal = $("inspector-lbl-value");
+  const valVal = $("inspector-val-value");
+  if (lblVal) lblVal.textContent = isPI ? "Inhibition (PI)" : "Positivity (PP)";
+  if (valVal) valVal.textContent = `${fmt(well.value, 1)}%`;
+
+  // Cutoff Gauge
+  const cutoff = clientCutoffPreview !== null ? clientCutoffPreview : (S.last.cutoff || 40);
+  const cutoffLabel = $("inspector-gauge-cutoff");
+  if (cutoffLabel) cutoffLabel.textContent = `Cutoff: ${cutoff}%`;
+
+  const needle = $("inspector-gauge-needle");
+  const fill = $("inspector-gauge-fill");
+  const cutoffLine = $("inspector-gauge-cutoff-line");
+
+  const pct = Math.max(0, Math.min(100, well.value !== null ? well.value : 0));
+  if (needle) needle.style.left = `${pct}%`;
+  if (fill) {
+    fill.style.width = `${pct}%`;
+    fill.style.background = pct >= cutoff ? "linear-gradient(90deg, #F5A524, #F0714F)" : "linear-gradient(90deg, #3CB8A8, #2DD4BF)";
+  }
+  if (cutoffLine) cutoffLine.style.left = `${cutoff}%`;
+
+  // Photographic 4x crop from source plate
+  renderInspectorCrop(well);
+
+  // Set highlighted in views
+  setHighlightedWell(well.well);
+}
+
+function renderInspectorCrop(well) {
+  const cropCv = $("inspector-crop-cv");
+  if (!cropCv || !S.img || !S.circles) return;
+
+  const ctx = cropCv.getContext("2d");
+  const cw = cropCv.width;
+  const ch = cropCv.height;
+  ctx.clearRect(0, 0, cw, ch);
+
+  // Find well coordinates
+  const cols = S.last.cols || 12;
+  const circleIdx = well.row * cols + well.col;
+  const circle = S.circles[circleIdx];
+  if (!circle) return;
+
+  const [cx, cy, rad] = circle;
+  const zoom = 4;
+  const cropW = (cw / zoom);
+  const cropH = (ch / zoom);
+
+  ctx.save();
+  // Circular mask
+  ctx.beginPath();
+  ctx.arc(cw / 2, ch / 2, cw / 2 - 2, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Draw zoomed portion
+  ctx.drawImage(
+    S.img,
+    cx - cropW / 2, cy - cropH / 2, cropW, cropH,
+    0, 0, cw, ch
+  );
+
+  // Overlay crosshair
+  ctx.strokeStyle = "rgba(245, 165, 36, 0.75)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cw / 2, 0); ctx.lineTo(cw / 2, ch);
+  ctx.moveTo(0, ch / 2); ctx.lineTo(cw, ch / 2);
+  ctx.stroke();
+
+  // Well ring outline
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cw / 2, ch / 2, rad * zoom, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Outer border
+  ctx.save();
+  ctx.strokeStyle = "#F5A524";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cw / 2, ch / 2, cw / 2 - 2, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function closeWellInspector() {
+  const drawer = $("well-inspector-drawer");
+  if (drawer) {
+    drawer.setAttribute("aria-hidden", "true");
+    drawer.classList.remove("open");
+  }
+  activeInspectorWell = null;
+  setHighlightedWell(null);
+}
+
+function walkInspectorWell(step) {
+  if (!activeInspectorWell || !S.last || !S.last.wells) return;
+  const wells = S.last.wells;
+  const curIdx = wells.findIndex((w) => w.well === activeInspectorWell.well);
+  if (curIdx < 0) return;
+
+  const nextIdx = (curIdx + step + wells.length) % wells.length;
+  openWellInspector(wells[nextIdx]);
+}
+
+// -----------------------------------------------------------------------------
+// Compare Mode
+// -----------------------------------------------------------------------------
+export function pinWellToCompare(well) {
+  if (!well) return;
+  if (pinnedCompareWells.length >= 2) {
+    pinnedCompareWells.shift(); // keep last 2
+  }
+  pinnedCompareWells.push(well);
+  updateCompareBar();
+}
+
+function updateCompareBar() {
+  const bar = $("compare-bar");
+  if (!bar) return;
+
+  if (pinnedCompareWells.length === 0) {
+    bar.hidden = true;
     return;
   }
-  panel.hidden = false;
+  bar.hidden = false;
 
-  const w = el("div", undefined, "ref-panel");
-  const head = el("div", undefined, "ref-panel-header");
-  const title = el("div", undefined, "ref-panel-title");
-  title.appendChild(el("span", `Calculation & Paper Verification (${r.assay || (r.mode === "PI" ? "SPCE" : "DIVA")})`));
-  if (r.reference.used_reader_ods) {
-    title.appendChild(el("span", "Direct Reader OD Mode", "ref-mode-badge"));
+  const w1El = $("compare-well-1");
+  const w2El = $("compare-well-2");
+  const diffEl = $("compare-diff");
+
+  const w1 = pinnedCompareWells[0];
+  const w2 = pinnedCompareWells[1] || null;
+
+  if (w1El) w1El.textContent = `Well 1: ${w1.well} (${fmt(w1.od_cal, 3)} OD)`;
+  if (w2El) w2El.textContent = w2 ? `Well 2: ${w2.well} (${fmt(w2.od_cal, 3)} OD)` : "Well 2: (Click another well to pin)";
+
+  if (diffEl) {
+    if (w1 && w2) {
+      const dOD = (w2.od_cal - w1.od_cal);
+      const dVal = (w2.value - w1.value);
+      diffEl.textContent = `ΔOD: ${dOD >= 0 ? "+" : ""}${dOD.toFixed(3)} | ΔVal: ${dVal >= 0 ? "+" : ""}${dVal.toFixed(1)}%`;
+    } else {
+      diffEl.textContent = "ΔOD: – | ΔValue: –";
+    }
   }
-  head.appendChild(title);
-  w.appendChild(head);
+}
 
-  const grid = el("div", undefined, "ref-grid");
-  const addRef = (label, val, formula) => {
-    const it = el("div", undefined, "ref-item");
-    it.appendChild(el("div", label, "ref-label"));
-    it.appendChild(el("div", val, "ref-value"));
-    it.appendChild(el("div", formula, "ref-formula"));
-    grid.appendChild(it);
+// -----------------------------------------------------------------------------
+// Interactive Donut Chart (Canvas)
+// -----------------------------------------------------------------------------
+function renderDonutChart(r) {
+  const cv = $("donut-chart-cv");
+  if (!cv) return;
+  const ctx = cv.getContext("2d");
+  const w = cv.width;
+  const h = cv.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const s = r.summary || {};
+  const data = [
+    { label: "Positive", count: s.positive || 0, color: "#F0714F" },
+    { label: "Negative", count: s.negative || 0, color: "#3CB8A8" },
+    { label: "Doubtful", count: s.doubtful || 0, color: "#EBCB6B" },
+    { label: "Invalid", count: s.invalid || 0, color: "#C47DB6" }
+  ].filter((d) => d.count > 0);
+
+  const total = data.reduce((acc, d) => acc + d.count, 0) || 1;
+  const centerLabel = $("donut-center-label");
+  if (centerLabel) {
+    centerLabel.innerHTML = `${total}<br><span>samples</span>`;
+  }
+
+  const cx = w / 2;
+  const cy = h / 2;
+  const rOuter = 62;
+  const rInner = 44;
+
+  let startAngle = -Math.PI / 2;
+
+  data.forEach((slice) => {
+    const sliceAngle = (slice.count / total) * Math.PI * 2;
+    const endAngle = startAngle + sliceAngle;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, rOuter, startAngle, endAngle);
+    ctx.arc(cx, cy, rInner, endAngle, startAngle, true);
+    ctx.closePath();
+
+    ctx.fillStyle = slice.color;
+    ctx.fill();
+
+    // Segment gap line
+    ctx.strokeStyle = "rgba(11, 16, 26, 0.9)";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.restore();
+
+    slice.startAngle = startAngle;
+    slice.endAngle = endAngle;
+    startAngle = endAngle;
+  });
+
+  // Interactive hover on donut
+  cv.onpointermove = (e) => {
+    const rect = cv.getBoundingClientRect();
+    const mx = e.clientX - rect.left - cx;
+    const my = e.clientY - rect.top - cy;
+    const dist = Math.hypot(mx, my);
+
+    if (dist >= rInner && dist <= rOuter) {
+      let angle = Math.atan2(my, mx);
+      if (angle < -Math.PI / 2) angle += Math.PI * 2;
+      const hovered = data.find((d) => angle >= d.startAngle && angle <= d.endAngle);
+      if (hovered) {
+        setHighlightedClass(hovered.label);
+        cv.style.cursor = "pointer";
+        return;
+      }
+    }
+    setHighlightedClass(null);
+    cv.style.cursor = "default";
   };
 
-  const ref = r.reference;
-  if (r.assay === "SPCE" || (!ref.pos_od && ref.max_od !== undefined)) {
-    addRef("Antigen (Max) OD", fmt(ref.max_od, 3) + " OD", "Negative/Antigen control OD");
-    addRef("Blank Baseline", fmt(ref.blank_od !== undefined ? ref.blank_od : 0.0, 3) + " OD", "Substrate reference baseline");
-    addRef("Cutoff Percent", `${fmt(ref.cutoff_percent, 1)}%`, "Threshold: PI ≥ Cutoff is Positive");
-    addRef("Cutoff OD Threshold", fmt(ref.cutoff_od, 3) + " OD", "cutoff_od = max_od × (1 - cutoff/100)");
-  } else {
-    addRef("Positive Control OD", fmt(ref.pos_od, 3) + " OD", "Mean OD of positive control wells");
-    addRef("Negative Control OD", fmt(ref.neg_od, 3) + " OD", "Mean OD of negative control wells");
-    addRef("Blank Baseline", fmt(ref.blank_od !== undefined ? ref.blank_od : 0.0, 3) + " OD", "Substrate reference baseline");
-    addRef("Delta OD (Pos - Neg)", fmt(ref.delta_od, 3) + " OD", "Controls dynamic range (must be ≥ 0.05)");
-    addRef("Cutoff Percent", `${fmt(ref.cutoff_percent, 1)}%`, "Threshold: PP ≥ Cutoff is Positive");
-    addRef("Cutoff OD Threshold", fmt(ref.cutoff_od, 3) + " OD", "cutoff_od = neg_od + delta_od × (cutoff/100)");
-  }
-
-  w.appendChild(grid);
-  panel.appendChild(w);
+  cv.onpointerleave = () => {
+    setHighlightedClass(null);
+  };
 }
 
 // -----------------------------------------------------------------------------
@@ -128,6 +411,7 @@ function renderSummaryStrip(r) {
   const box = $("summary-strip");
   if (!box) return;
   clearChildren(box);
+
   const s = r.summary;
   const pos = s.positive || 0, neg = s.negative || 0, dbt = s.doubtful || 0, inv = s.invalid || 0;
   const total = (pos + neg + dbt + inv) || 1;
@@ -149,6 +433,9 @@ function renderSummaryStrip(r) {
     const txt = el("span", undefined, "summary-legend-text");
     txt.textContent = `${label}: ${cnt} (${pct.toFixed(1)}%)`;
     it.appendChild(txt);
+
+    it.onpointerenter = () => setHighlightedClass(label);
+    it.onpointerleave = () => setHighlightedClass(null);
     leg.appendChild(it);
   };
 
@@ -162,25 +449,29 @@ function renderSummaryStrip(r) {
 
   // Stacked proportion bar
   const bar = el("div", undefined, "summary-stacked-bar");
-  const addSegment = (pct, cls, titleText) => {
+  const addSegment = (pct, cls, titleText, label) => {
     if (pct <= 0) return;
     const seg = el("div", undefined, "summary-bar-segment " + cls);
     seg.style.width = pct + "%";
     seg.title = titleText;
+    seg.onpointerenter = () => setHighlightedClass(label);
+    seg.onpointerleave = () => setHighlightedClass(null);
     bar.appendChild(seg);
   };
 
-  addSegment(pPos, "Positive", `Positive: ${pPos.toFixed(1)}%`);
-  addSegment(pNeg, "Negative", `Negative: ${pNeg.toFixed(1)}%`);
-  addSegment(pDbt, "Doubtful", `Doubtful: ${pDbt.toFixed(1)}%`);
-  addSegment(pInv, "Invalid", `Invalid: ${pInv.toFixed(1)}%`);
+  addSegment(pPos, "Positive", `Positive: ${pPos.toFixed(1)}%`, "Positive");
+  addSegment(pNeg, "Negative", `Negative: ${pNeg.toFixed(1)}%`, "Negative");
+  addSegment(pDbt, "Doubtful", `Doubtful: ${pDbt.toFixed(1)}%`, "Doubtful");
+  addSegment(pInv, "Invalid", `Invalid: ${pInv.toFixed(1)}%`, "Invalid");
 
   container.appendChild(bar);
   box.appendChild(container);
+
+  renderDonutChart(r);
 }
 
 // -----------------------------------------------------------------------------
-// Results Table
+// Interactive Table View
 // -----------------------------------------------------------------------------
 function renderTable(r) {
   const wrap = el("div", undefined, "tbl-container");
@@ -188,48 +479,43 @@ function renderTable(r) {
 
   // Search box
   const sb = el("div", undefined, "tbl-search-box");
-  const searchSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  searchSvg.setAttribute("class", "tbl-search-icon");
-  searchSvg.setAttribute("width", "14");
-  searchSvg.setAttribute("height", "14");
-  searchSvg.setAttribute("viewBox", "0 0 24 24");
-  searchSvg.setAttribute("fill", "none");
-  searchSvg.setAttribute("stroke", "currentColor");
-  searchSvg.setAttribute("stroke-width", "2");
-  const cEl = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  cEl.setAttribute("cx", "11"); cEl.setAttribute("cy", "11"); cEl.setAttribute("r", "8");
-  const lEl = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  lEl.setAttribute("x1", "21"); lEl.setAttribute("y1", "21"); lEl.setAttribute("x2", "16.65"); lEl.setAttribute("y2", "16.65");
-  searchSvg.appendChild(cEl); searchSvg.appendChild(lEl);
-  sb.appendChild(searchSvg);
-
   const sinp = el("input");
   sinp.type = "text";
   sinp.id = "tbl-filter";
   sinp.placeholder = "Filter by well (e.g. A1, B)...";
   sinp.setAttribute("aria-label", "Filter wells by name");
   sinp.value = TBL.search || "";
-  sinp.oninput = sinp.onkeyup = sinp.onchange = () => {
+  sinp.oninput = () => {
     TBL.search = sinp.value.trim();
     refreshRows();
   };
   sb.appendChild(sinp);
   tb.appendChild(sb);
 
-  // Show Flagged Only toggle
-  const flagLabel = el("label", undefined, "check-label tbl-flag-toggle");
-  const flagInp = el("input");
-  flagInp.type = "checkbox";
-  flagInp.id = "tbl-flagged-only";
-  flagInp.checked = Boolean(TBL.flaggedOnly);
-  flagInp.onchange = () => {
-    TBL.flaggedOnly = flagInp.checked;
-    refreshRows();
-  };
-  flagLabel.appendChild(flagInp);
-  const flagTxt = document.createTextNode("Show flagged only");
-  flagLabel.appendChild(flagTxt);
-  tb.appendChild(flagLabel);
+  // Filter Chips (All, Positive, Negative, Doubtful, Invalid, Controls, Flagged)
+  const chipsWrap = el("div", undefined, "tbl-filter-chips");
+  const chipFilters = [
+    { id: "ALL", label: "All" },
+    { id: "Positive", label: "Positive" },
+    { id: "Negative", label: "Negative" },
+    { id: "Doubtful", label: "Doubtful" },
+    { id: "Invalid", label: "Invalid" },
+    { id: "Control", label: "Controls" },
+    { id: "Flagged", label: "Flagged" }
+  ];
+
+  chipFilters.forEach((f) => {
+    const chip = el("button", f.label, "tbl-chip-btn" + (activeTableFilter === f.id ? " active" : ""));
+    chip.type = "button";
+    chip.onclick = () => {
+      activeTableFilter = f.id;
+      chipsWrap.querySelectorAll(".tbl-chip-btn").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      refreshRows();
+    };
+    chipsWrap.appendChild(chip);
+  });
+  tb.appendChild(chipsWrap);
 
   const countSpan = el("span", "", "tbl-count");
   tb.appendChild(countSpan);
@@ -242,21 +528,20 @@ function renderTable(r) {
   const cols = [
     { key: "well", label: "Well", num: false },
     { key: "role", label: "Role", num: false },
-    { key: "intensity", label: "Intensity", num: true, fmt: 4 },
-    { key: "od", label: "Image OD", num: true, fmt: 4 },
-    { key: "od_cal", label: "Calibrated OD", num: true, fmt: 4 },
-    { key: "value", label: r.mode === "PI" ? "PI %" : "PP %", num: true, fmt: 1 },
+    { key: "intensity", label: "Intensity", num: true },
+    { key: "od", label: "Image OD", num: true },
+    { key: "od_cal", label: "Calibrated OD", num: true },
+    { key: "value", label: r.mode === "PI" ? "PI %" : "PP %", num: true },
     { key: "class", label: "Class", num: false },
     { key: "flag", label: "Note", num: false }
   ];
 
   cols.forEach((c) => {
-    const th = el("th", undefined, "sortable" + (c.num ? " num-col" : ""));
-    th.textContent = c.label;
-    const sIcon = el("span", "▲", "sort-icon");
+    const th = el("th", c.label, "sortable" + (c.num ? " num-col" : ""));
+    const sIcon = el("span", " ▲", "sort-icon");
     if (TBL.sortCol === c.key) {
       th.classList.add("sort-active");
-      sIcon.textContent = TBL.sortAsc ? "▲" : "▼";
+      sIcon.textContent = TBL.sortAsc ? " ▲" : " ▼";
     }
     th.appendChild(sIcon);
     th.onclick = () => {
@@ -266,7 +551,7 @@ function renderTable(r) {
         TBL.sortCol = c.key;
         TBL.sortAsc = true;
       }
-      renderResults(r);
+      refreshRows();
     };
     thr.appendChild(th);
   });
@@ -280,49 +565,53 @@ function renderTable(r) {
 
   function refreshRows() {
     clearChildren(tbody);
+
     let list = r.wells.filter((w) => {
-      if (TBL.flaggedOnly && (!w.flag || w.flag === "")) return false;
+      if (activeTableFilter === "Flagged" && (!w.flag || w.flag === "")) return false;
+      if (activeTableFilter === "Control" && !w.role.toLowerCase().includes("ctrl") && !w.role.toLowerCase().includes("blank") && !w.role.toLowerCase().includes("antigen")) return false;
+      if (activeTableFilter !== "ALL" && activeTableFilter !== "Flagged" && activeTableFilter !== "Control") {
+        if (!w.class.toLowerCase().includes(activeTableFilter.toLowerCase())) return false;
+      }
       if (!TBL.search) return true;
       return w.well.toUpperCase().includes(TBL.search.toUpperCase());
     });
+
     countSpan.textContent = `Showing ${list.length} of ${r.wells.length} wells`;
 
     list.sort((a, b) => {
       let va = a[TBL.sortCol], vb = b[TBL.sortCol];
       if (va === null || va === undefined) return 1;
       if (vb === null || vb === undefined) return -1;
-      let diff = 0;
-      if (typeof va === "number" && typeof vb === "number") {
-        diff = va - vb;
-      } else {
-        diff = String(va).localeCompare(String(vb), undefined, { numeric: true });
-      }
+      let diff = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true });
       return TBL.sortAsc ? diff : -diff;
     });
 
     list.forEach((x) => {
       const tr = el("tr");
+      tr.setAttribute("data-well", x.well);
+      tr.setAttribute("data-class", x.class);
+
       tr.appendChild(el("td", x.well));
-      let roleDisplay = x.role;
-      if (r.assay === "SPCE" && roleDisplay === "Negative ctrl") {
-        roleDisplay = "Antigen (max-signal) control";
-      }
-      tr.appendChild(el("td", roleDisplay));
-      tr.appendChild(el("td", fmt(x.intensity, 4), "num-col"));
+      tr.appendChild(el("td", x.role));
+      tr.appendChild(el("td", fmt(x.intensity, 2), "num-col"));
       tr.appendChild(el("td", fmt(x.od, 4), "num-col"));
       tr.appendChild(el("td", fmt(x.od_cal, 4), "num-col"));
       tr.appendChild(el("td", fmt(x.value, 1), "num-col"));
 
       const tdClass = el("td");
       const badge = el("span", undefined, "b " + x.class.split(" ")[0]);
-      const dot = el("span", undefined, "b-dot");
-      badge.appendChild(dot);
-      const badgeTxt = document.createTextNode(x.class);
-      badge.appendChild(badgeTxt);
+      badge.appendChild(el("span", undefined, "b-dot"));
+      badge.appendChild(document.createTextNode(x.class));
       tdClass.appendChild(badge);
       tr.appendChild(tdClass);
 
       tr.appendChild(el("td", x.flag || ""));
+
+      // Linked hover & click
+      tr.onpointerenter = () => setHighlightedWell(x.well);
+      tr.onpointerleave = () => setHighlightedWell(null);
+      tr.onclick = () => openWellInspector(x);
+
       tbody.appendChild(tr);
     });
   }
@@ -332,65 +621,67 @@ function renderTable(r) {
 }
 
 // -----------------------------------------------------------------------------
-// Heatmap View
+// Interactive Heatmap View
 // -----------------------------------------------------------------------------
-function showTooltip(e, w, r) {
-  const tooltip = $("heat-tooltip");
-  if (!tooltip) return;
-  clearChildren(tooltip);
-
-  const h = el("div", undefined, "tooltip-header");
-  h.appendChild(el("span", w.well, "tooltip-well"));
-  const b = el("span", w.class, "b " + w.class.split(" ")[0]);
-  h.appendChild(b);
-  tooltip.appendChild(h);
-
-  const addRow = (k, v) => {
-    const row = el("div", undefined, "tooltip-row");
-    row.appendChild(el("span", k));
-    row.appendChild(el("span", v, "tooltip-val"));
-    tooltip.appendChild(row);
-  };
-  addRow("Role", w.role);
-  addRow("Raw Intensity", fmt(w.intensity, 4));
-  addRow("Image OD", fmt(w.od, 4));
-  addRow("Calibrated OD", fmt(w.od_cal, 4));
-  addRow(r.mode === "PI" ? "PI %" : "PP %", fmt(w.value, 1));
-  if (w.flag) addRow("Note", w.flag);
-
-  tooltip.classList.add("show");
-  moveTooltip(e);
-}
-
-function moveTooltip(e) {
-  const tooltip = $("heat-tooltip");
-  if (!tooltip) return;
-  const pad = 14;
-  let x = e.clientX + pad, y = e.clientY + pad;
-  const rw = window.innerWidth, rh = window.innerHeight;
-  if (x + 210 > rw) x = e.clientX - 210 - pad;
-  if (y + 180 > rh) y = e.clientY - 180 - pad;
-  tooltip.style.left = Math.max(8, x) + "px";
-  tooltip.style.top = Math.max(8, y) + "px";
-}
-
-function hideTooltip() {
-  const tooltip = $("heat-tooltip");
-  if (tooltip) tooltip.classList.remove("show");
-}
-
 function heat(r, key, nd) {
   const rows = Math.max(...r.wells.map((w) => w.row)) + 1;
   const cols = Math.max(...r.wells.map((w) => w.col)) + 1;
   const isVal = (key === "value");
-  const cutoff = r.cutoff || (r.mode === "PP" ? 40 : 65);
+  const serverCutoff = r.cutoff || (r.mode === "PP" ? 40 : 65);
+  const activeCutoff = clientCutoffPreview !== null ? clientCutoffPreview : serverCutoff;
 
   const vs = r.wells.map((w) => w[key]).filter((v) => v !== null && isFinite(v));
   const lo = vs.length ? Math.min(...vs) : 0;
   const hi = vs.length ? Math.max(...vs) : 1;
 
   const container = el("div", undefined, "heat-container");
+
+  // Controls bar: Values/Classes toggle & Value Scrubber
+  const cBar = el("div", undefined, "heat-controls-bar");
+
+  // Toggle Values / Classes
+  const toggleGroup = el("div", undefined, "segmented-control heat-mode-toggle");
+  const btnVals = el("button", "Values", "seg-btn" + (heatmapViewMode === "values" ? " active" : ""));
+  const btnCls = el("button", "Classes", "seg-btn" + (heatmapViewMode === "classes" ? " active" : ""));
+  btnVals.onclick = () => { heatmapViewMode = "values"; renderResults(r); };
+  btnCls.onclick = () => { heatmapViewMode = "classes"; renderResults(r); };
+  toggleGroup.appendChild(btnVals);
+  toggleGroup.appendChild(btnCls);
+  cBar.appendChild(toggleGroup);
+
+  // Threshold scrub slider
+  const scrubWrap = el("div", undefined, "heat-scrub-wrap");
+  scrubWrap.appendChild(el("span", "Highlight ≥", "scrub-label"));
+  const scrubSlider = el("input");
+  scrubSlider.type = "range";
+  scrubSlider.min = lo;
+  scrubSlider.max = hi;
+  scrubSlider.step = ((hi - lo) / 50).toFixed(3);
+  scrubSlider.value = scrubThreshold !== null ? scrubThreshold : lo;
+  const scrubValText = el("span", scrubThreshold !== null ? fmt(scrubThreshold, 2) : "All", "scrub-val-text");
+
+  scrubSlider.oninput = () => {
+    scrubThreshold = parseFloat(scrubSlider.value);
+    scrubValText.textContent = fmt(scrubThreshold, 2);
+    updateHeatmapScrubHighlights(scrubThreshold);
+  };
+  scrubWrap.appendChild(scrubSlider);
+  scrubWrap.appendChild(scrubValText);
+
+  const resetScrubBtn = el("button", "Clear", "sec btn-xs");
+  resetScrubBtn.onclick = () => {
+    scrubThreshold = null;
+    scrubSlider.value = lo;
+    scrubValText.textContent = "All";
+    updateHeatmapScrubHighlights(null);
+  };
+  scrubWrap.appendChild(resetScrubBtn);
+  cBar.appendChild(scrubWrap);
+
+  container.appendChild(cBar);
+
   const g = el("div", undefined, "heat");
+  g.id = "active-heatmap-grid";
   g.style.gridTemplateColumns = `28px repeat(${cols},minmax(38px,1fr))`;
 
   // Header column numbers
@@ -404,21 +695,32 @@ function heat(r, key, nd) {
     g.appendChild(el("div", "ABCDEFGHIJKLMNOP"[i], "heat-header"));
     for (let c = 0; c < cols; c++) {
       const w = m[i + "," + c], v = w[key];
-      const cell = el("div", fmt(v, nd), "heat-cell");
+      const cell = el("div", "", "heat-cell");
+      cell.setAttribute("data-well", w.well);
+      cell.setAttribute("data-class", w.class);
+      cell.setAttribute("data-val", String(v));
 
-      if (v === null || !isFinite(v)) {
-        cell.style.background = "#1E2633";
-        cell.style.color = "#6B778C";
-      } else if (!isVal) {
-        const t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
-        const color = tmbAmberColor(t);
-        cell.style.background = color.bg;
-        cell.style.color = color.fg;
+      if (heatmapViewMode === "values") {
+        cell.textContent = fmt(v, nd);
+        if (v === null || !isFinite(v)) {
+          cell.style.background = "#1E2633";
+          cell.style.color = "#6B778C";
+        } else if (!isVal) {
+          const t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
+          const color = tmbAmberColor(t);
+          cell.style.background = color.bg;
+          cell.style.color = color.fg;
+        } else {
+          const color = divergingColor(v, activeCutoff, lo, hi);
+          cell.style.background = color.bg;
+          cell.style.color = color.fg;
+          if (color.isAbove) cell.classList.add("cutoff-outline");
+        }
       } else {
-        const color = divergingColor(v, cutoff, lo, hi);
-        cell.style.background = color.bg;
-        cell.style.color = color.fg;
-        if (color.isAbove) cell.classList.add("cutoff-outline");
+        // Classes mode
+        cell.textContent = w.well;
+        cell.style.background = getClassColor(w.class);
+        cell.style.color = "#FFFFFF";
       }
 
       if (w.role === "Positive ctrl" || w.role === "Negative ctrl" || (w.role && w.role.includes("Antigen"))) {
@@ -427,16 +729,16 @@ function heat(r, key, nd) {
         cell.appendChild(el("span", undefined, "corner-blk"));
       }
 
-      cell.onpointerenter = (e) => showTooltip(e, w, r);
-      cell.onpointermove = moveTooltip;
-      cell.onpointerleave = hideTooltip;
+      cell.onpointerenter = () => setHighlightedWell(w.well);
+      cell.onpointerleave = () => setHighlightedWell(null);
+      cell.onclick = () => openWellInspector(w);
 
       g.appendChild(cell);
     }
   }
   container.appendChild(g);
 
-  // Vertical Colour Legend
+  // Vertical Colour Legend with Draggable Cutoff Slider
   const leg = el("div", undefined, "heat-legend");
   leg.appendChild(el("span", isVal ? (r.mode === "PI" ? "PI %" : "PP %") : "OD", "legend-title"));
   leg.appendChild(el("span", fmt(hi, isVal ? 1 : 2), "legend-val"));
@@ -445,26 +747,83 @@ function heat(r, key, nd) {
   const bar = el("div", undefined, "legend-bar");
 
   if (!isVal) {
-    bar.style.background = "linear-gradient(180deg, #5B1E08 0%, #C2560C 33.3%, #F5A524 66.7%, #FFF3C4 100%)";
+    bar.style.background = "linear-gradient(180deg, #641C08 0%, #E8590C 33%, #F5A524 67%, #FFF3C4 100%)";
   } else {
-    const cutPos = hi > lo ? Math.max(0, Math.min(100, (1 - (cutoff - lo) / (hi - lo)) * 100)) : 50;
-    bar.style.background = `linear-gradient(180deg, #E4572E 0%, #F8FAFC ${cutPos}%, #2A9D8F 100%)`;
+    const cutPos = hi > lo ? Math.max(0, Math.min(100, (1 - (activeCutoff - lo) / (hi - lo)) * 100)) : 50;
+    bar.style.background = `linear-gradient(180deg, #F0714F 0%, #F0F4FA ${cutPos}%, #3CB8A8 100%)`;
 
-    const cMark = el("div", `Cutoff: ${cutoff}%`, "legend-cutoff-mark");
+    // Draggable Cutoff Marker
+    const cMark = el("div", undefined, "legend-cutoff-draggable");
     cMark.style.top = cutPos + "%";
+    cMark.title = "Drag to adjust diagnostic cutoff preview";
+
+    const labelSpan = el("span", `Cutoff: ${fmt(activeCutoff, 1)}%`, "cutoff-drag-label");
+    cMark.appendChild(labelSpan);
     bWrap.appendChild(cMark);
+
+    // Drag events on cutoff marker
+    let isDraggingCutoff = false;
+    cMark.onpointerdown = (e) => {
+      e.preventDefault();
+      isDraggingCutoff = true;
+      cMark.setPointerCapture(e.pointerId);
+    };
+
+    cMark.onpointermove = (e) => {
+      if (!isDraggingCutoff) return;
+      const rect = bWrap.getBoundingClientRect();
+      const normY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      const newCutoff = Math.round(hi - normY * (hi - lo));
+      clientCutoffPreview = newCutoff;
+      renderResults(r);
+    };
+
+    const stopCutoffDrag = () => { isDraggingCutoff = false; };
+    cMark.onpointerup = stopCutoffDrag;
+    cMark.onpointercancel = stopCutoffDrag;
   }
 
   bWrap.appendChild(bar);
   leg.appendChild(bWrap);
   leg.appendChild(el("span", fmt(lo, isVal ? 1 : 2), "legend-val"));
-  container.appendChild(leg);
 
+  // Reset Cutoff Button if modified
+  if (isVal && clientCutoffPreview !== null && clientCutoffPreview !== serverCutoff) {
+    const resetWrap = el("div", undefined, "legend-reset-wrap");
+    const previewTag = el("span", "Preview (not saved)", "cutoff-preview-tag");
+    const resetBtn = el("button", "Reset", "sec btn-xs");
+    resetBtn.onclick = () => {
+      clientCutoffPreview = null;
+      renderResults(r);
+    };
+    resetWrap.appendChild(previewTag);
+    resetWrap.appendChild(resetBtn);
+    leg.appendChild(resetWrap);
+  }
+
+  container.appendChild(leg);
   return container;
 }
 
+function updateHeatmapScrubHighlights(threshold) {
+  document.querySelectorAll(".heat-cell").forEach((cell) => {
+    if (threshold === null) {
+      cell.classList.remove("scrub-dimmed", "scrub-highlighted");
+      return;
+    }
+    const val = parseFloat(cell.getAttribute("data-val"));
+    if (!isNaN(val) && val >= threshold) {
+      cell.classList.add("scrub-highlighted");
+      cell.classList.remove("scrub-dimmed");
+    } else {
+      cell.classList.add("scrub-dimmed");
+      cell.classList.remove("scrub-highlighted");
+    }
+  });
+}
+
 // -----------------------------------------------------------------------------
-// Annotated Plate View with Lightbox
+// Annotated View
 // -----------------------------------------------------------------------------
 function annotatedView(r) {
   const wrap = el("div", undefined, "annot-container");
@@ -474,24 +833,6 @@ function annotatedView(r) {
   img.src = r.annotated;
   img.alt = "Annotated Plate";
   frame.appendChild(img);
-
-  const badge = el("div", undefined, "annot-zoom-badge");
-  const zoomSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  zoomSvg.setAttribute("width", "12");
-  zoomSvg.setAttribute("height", "12");
-  zoomSvg.setAttribute("viewBox", "0 0 24 24");
-  zoomSvg.setAttribute("fill", "none");
-  zoomSvg.setAttribute("stroke", "currentColor");
-  zoomSvg.setAttribute("stroke-width", "2");
-  const cZ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  cZ.setAttribute("cx", "11"); cZ.setAttribute("cy", "11"); cZ.setAttribute("r", "8");
-  const lZ = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  lZ.setAttribute("x1", "21"); lZ.setAttribute("y1", "21"); lZ.setAttribute("x2", "16.65"); lZ.setAttribute("y2", "16.65");
-  zoomSvg.appendChild(cZ); zoomSvg.appendChild(lZ);
-  badge.appendChild(zoomSvg);
-  const badgeTxt = document.createTextNode(" Click to zoom");
-  badge.appendChild(badgeTxt);
-  frame.appendChild(badge);
 
   frame.onclick = () => {
     const lb = $("lightbox");
@@ -506,7 +847,10 @@ function annotatedView(r) {
   const leg = el("div", undefined, "annot-legend");
   leg.appendChild(el("span", "Classes:", "annot-legend-title"));
   ["Positive", "Negative", "Doubtful", "Control", "Blank", "Invalid"].forEach((cls) => {
-    leg.appendChild(el("span", cls, "b " + cls));
+    const tag = el("span", cls, "b " + cls);
+    tag.onpointerenter = () => setHighlightedClass(cls);
+    tag.onpointerleave = () => setHighlightedClass(null);
+    leg.appendChild(tag);
   });
   wrap.appendChild(leg);
 
@@ -514,7 +858,7 @@ function annotatedView(r) {
 }
 
 // -----------------------------------------------------------------------------
-// Print Report Bundle Builder
+// Print Bundle Builder
 // -----------------------------------------------------------------------------
 function renderPrintBundle(r) {
   const p = $("print-bundle");
@@ -534,32 +878,24 @@ function renderPrintBundle(r) {
   const sGrid = el("div", undefined, "print-settings-grid");
   const addSetting = (k, val) => {
     const item = el("div");
-    const l = el("strong", k + ": ");
-    item.appendChild(l);
-    const v = el("span");
-    v.textContent = String(val);
-    item.appendChild(v);
+    item.appendChild(el("strong", k + ": "));
+    item.appendChild(el("span", String(val)));
     sGrid.appendChild(item);
   };
   addSetting("Protocol", r.assay || r.mode);
   addSetting("Dimensions", `${$("rows")?.value || 8} × ${$("cols")?.value || 12}`);
   addSetting("Channel", $("channel")?.value || "B");
-  addSetting("Diagnostic Cutoff", `${r.cutoff}%`);
-  addSetting("Linear Slope (m)", $("slope")?.value || "1.000");
-  addSetting("Intercept (c)", $("icpt")?.value || "0.000");
+  addSetting("Cutoff Threshold", `${r.cutoff}%`);
   addSetting("QC Evaluation", r.valid ? "PASS" : "FAIL");
   p.appendChild(sGrid);
 
-  const hmTitle = el("div", "Photometric Heatmaps (OD & Positivity/Inhibition)", "print-section-title");
-  p.appendChild(hmTitle);
-
+  p.appendChild(el("div", "Photometric Heatmaps (OD & Positivity/Inhibition)", "print-section-title"));
   const hmRow = el("div", undefined, "print-heatmaps-row");
   hmRow.appendChild(heat(r, "od_cal", 3));
   hmRow.appendChild(heat(r, "value", 1));
   p.appendChild(hmRow);
 
-  const tblTitle = el("div", "Well Quantification & Classification Table", "print-section-title print-page-break");
-  p.appendChild(tblTitle);
+  p.appendChild(el("div", "Well Quantification & Classification Table", "print-section-title print-page-break"));
   p.appendChild(renderTable(r));
 }
 
@@ -571,14 +907,42 @@ export function renderResults(r) {
   if (!res) return;
   res.hidden = false;
 
-  // QC Pill
-  const qcText = r.valid ? "PASS" : "FAIL";
+  // 1. Morphing QC Pill (PASS = teal check, FAIL = red cross)
   const qcPill = $("qc-pill");
+  const txt = $("qc-pill-text");
   if (qcPill) {
     qcPill.className = "qc-status-pill " + (r.valid ? "qc-pass" : "qc-fail");
-    const txt = $("qc-pill-text");
-    if (txt) txt.textContent = qcText;
+    clearChildren(qcPill);
+
+    const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    iconSvg.setAttribute("width", "16");
+    iconSvg.setAttribute("height", "16");
+    iconSvg.setAttribute("viewBox", "0 0 24 24");
+    iconSvg.setAttribute("fill", "none");
+    iconSvg.setAttribute("stroke", "currentColor");
+    iconSvg.setAttribute("stroke-width", "2.8");
+    iconSvg.setAttribute("stroke-linecap", "round");
+    iconSvg.setAttribute("stroke-linejoin", "round");
+
+    if (r.valid) {
+      const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      poly.setAttribute("points", "20 6 9 17 4 12");
+      iconSvg.appendChild(poly);
+    } else {
+      const l1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      l1.setAttribute("x1", "18"); l1.setAttribute("y1", "6"); l1.setAttribute("x2", "6"); l1.setAttribute("y2", "18");
+      const l2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      l2.setAttribute("x1", "6"); l2.setAttribute("y1", "6"); l2.setAttribute("x2", "18"); l2.setAttribute("y2", "18");
+      iconSvg.appendChild(l1); iconSvg.appendChild(l2);
+    }
+
+    qcPill.appendChild(iconSvg);
+    const labelSpan = el("span", r.valid ? "PASS" : "FAIL");
+    labelSpan.id = "qc-pill-text";
+    qcPill.appendChild(labelSpan);
   }
+
+  // Header meta tags
   const metaAssay = $("results-meta-assay");
   if (metaAssay) metaAssay.textContent = r.assay || (r.mode === "PI" ? "Competitive (PI)" : "Indirect (PP)");
   const metaTime = $("results-meta-time");
@@ -589,18 +953,18 @@ export function renderResults(r) {
     metaChan.textContent = r.auto_channel ? `${ch} (Auto)` : ch;
   }
 
-  // KPI cards
+  // 2. KPI Cards with count-up animator and sparkline gauges
   const s = r.summary;
   const st = $("stats");
   if (st) {
     clearChildren(st);
 
-    const addKpi = (label, val, iconName, cls = "", targetNumber = null) => {
+    const addKpi = (label, val, iconName, cls = "", targetNum = null, gaugePct = null) => {
       const card = el("div", undefined, "stat kpi-card" + (cls ? " " + cls : ""));
       const ic = el("div", undefined, "kpi-icon-wrap");
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("width", "15");
-      svg.setAttribute("height", "15");
+      svg.setAttribute("width", "16");
+      svg.setAttribute("height", "16");
       svg.setAttribute("viewBox", "0 0 24 24");
       svg.setAttribute("fill", "none");
       svg.setAttribute("stroke", "currentColor");
@@ -610,10 +974,6 @@ export function renderResults(r) {
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute("d", "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z");
         svg.appendChild(path);
-      } else if (iconName === "check") {
-        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-        poly.setAttribute("points", "20 6 9 17 4 12");
-        svg.appendChild(poly);
       } else {
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("cx", "12"); circle.setAttribute("cy", "12"); circle.setAttribute("r", "10");
@@ -622,45 +982,51 @@ export function renderResults(r) {
       ic.appendChild(svg);
       card.appendChild(ic);
 
-      const b = el("b", undefined, "kpi-value");
-      b.textContent = val;
-      if (targetNumber !== null) {
-        countUp(b, targetNumber, 600);
+      const b = el("b", val, "kpi-value");
+      if (targetNum !== null) {
+        countUp(b, targetNum, 700);
       }
       card.appendChild(b);
 
       const lbl = el("span", label, "kpi-label");
       card.appendChild(lbl);
+
+      // Tiny sparkline / progress gauge
+      if (gaugePct !== null) {
+        const gWrap = el("div", undefined, "kpi-sparkline");
+        const gFill = el("div", undefined, "kpi-sparkline-fill");
+        gFill.style.width = `${Math.max(4, Math.min(100, gaugePct))}%`;
+        gWrap.appendChild(gFill);
+        card.appendChild(gWrap);
+      }
+
+      initSpotlight(card);
       st.appendChild(card);
     };
 
-    addKpi("Plate QC", r.valid ? "PASS" : "FAIL", "shield", r.valid ? "qc-pass" : "qc-fail");
+    addKpi("Plate QC", r.valid ? "PASS" : "FAIL", "shield", r.valid ? "qc-pass" : "qc-fail", null, r.valid ? 100 : 25);
 
     if (r.assay === "SPCE" || (r.mode === "PI" && s.pos_od === null)) {
-      addKpi("Antigen (max) OD", fmt(s.neg_od, 3) + " OD", "circle");
+      addKpi("Antigen (max) OD", fmt(s.neg_od, 3) + " OD", "circle", "", null, 85);
     } else {
-      addKpi("Positive ctrl OD", fmt(s.pos_od, 3) + " OD", "circle");
-      addKpi("Negative ctrl OD", fmt(s.neg_od, 3) + " OD", "circle");
-      addKpi("Delta OD (Pos - Neg)", fmt(s.delta_od, 3) + " OD", "circle");
+      addKpi("Positive ctrl OD", fmt(s.pos_od, 3) + " OD", "circle", "", null, 80);
+      addKpi("Negative ctrl OD", fmt(s.neg_od, 3) + " OD", "circle", "", null, 25);
     }
-    addKpi("Blank baseline OD", fmt(s.blank_od, 3) + " OD", "circle");
+    addKpi("Blank baseline OD", fmt(s.blank_od, 3) + " OD", "circle", "", null, 15);
 
-    // Sample Counts
-    addKpi("Positive Wells", String(s.positive || 0), "check", "Positive", s.positive || 0);
-    addKpi("Negative Wells", String(s.negative || 0), "circle", "Negative", s.negative || 0);
+    const totalSamples = (s.positive || 0) + (s.negative || 0) + (s.doubtful || 0) + (s.invalid || 0) || 1;
+    addKpi("Positive Wells", String(s.positive || 0), "circle", "Positive", s.positive || 0, ((s.positive || 0) / totalSamples) * 100);
+    addKpi("Negative Wells", String(s.negative || 0), "circle", "Negative", s.negative || 0, ((s.negative || 0) / totalSamples) * 100);
     if ((s.doubtful || 0) > 0) {
-      addKpi("Doubtful Wells", String(s.doubtful), "circle", "Doubtful", s.doubtful);
-    }
-    if ((s.invalid || 0) > 0) {
-      addKpi("Invalid Wells", String(s.invalid), "circle", "Invalid", s.invalid);
+      addKpi("Doubtful Wells", String(s.doubtful), "circle", "Doubtful", s.doubtful, ((s.doubtful || 0) / totalSamples) * 100);
     }
   }
 
-  renderReferencePanel(r);
+  // 3. Distribution Strip & Donut Chart
   renderSummaryStrip(r);
   draw();
 
-  // Tabs
+  // 4. Tabs & Active View
   const names = [
     ["table", "Table"],
     ["od", "OD heatmap"],
@@ -672,37 +1038,13 @@ export function renderResults(r) {
   if (t) {
     clearChildren(t);
     t.setAttribute("role", "tablist");
-    t.setAttribute("aria-label", "Results view selector");
-
-    names.forEach(([k, n], idx) => {
+    names.forEach(([k, n]) => {
       const b = el("button", n, "tab-btn" + (k === S.tab ? " on" : ""));
-      b.setAttribute("role", "tab");
       b.id = "tab-" + k;
-      b.setAttribute("aria-selected", k === S.tab ? "true" : "false");
-      b.setAttribute("aria-controls", "view");
-      b.setAttribute("tabindex", k === S.tab ? "0" : "-1");
-
       b.onclick = () => {
         S.tab = k;
         renderResults(r);
       };
-
-      b.onkeydown = (e) => {
-        let targetIdx = null;
-        if (e.key === "ArrowRight") targetIdx = (idx + 1) % names.length;
-        else if (e.key === "ArrowLeft") targetIdx = (idx - 1 + names.length) % names.length;
-        else if (e.key === "Home") targetIdx = 0;
-        else if (e.key === "End") targetIdx = names.length - 1;
-
-        if (targetIdx !== null) {
-          e.preventDefault();
-          S.tab = names[targetIdx][0];
-          renderResults(r);
-          const nextBtn = $("tab-" + S.tab);
-          if (nextBtn) nextBtn.focus();
-        }
-      };
-
       t.appendChild(b);
     });
   }
@@ -719,10 +1061,14 @@ export function renderResults(r) {
   renderPrintBundle(r);
 }
 
+// -----------------------------------------------------------------------------
+// Interactive Toolbar & Global Events
+// -----------------------------------------------------------------------------
 export function initResultsControls() {
   const btnPrint = $("btn-print-report");
   if (btnPrint) btnPrint.onclick = () => window.print();
 
+  // CSV Export
   const btnExport = $("csv");
   if (btnExport) {
     btnExport.onclick = () => {
@@ -744,6 +1090,133 @@ export function initResultsControls() {
     };
   }
 
+  // Copy Table (TSV) to Clipboard
+  const btnCopy = $("btn-copy-table");
+  if (btnCopy) {
+    btnCopy.onclick = async () => {
+      if (!S.last || !S.last.wells) return;
+      const q = S.last;
+      const valHeader = q.mode === "PI" ? "PI_Percent" : "PP_Percent";
+      const lines = [`Well\tRole\tIntensity\tImage_OD\tCalibrated_OD\t${valHeader}\tClass\tNote`];
+
+      q.wells.forEach((w) => {
+        lines.push([
+          w.well,
+          w.role,
+          fmt(w.intensity, 4),
+          fmt(w.od, 4),
+          fmt(w.od_cal, 4),
+          fmt(w.value, 1),
+          w.class,
+          w.flag || ""
+        ].join("\t"));
+      });
+
+      try {
+        await navigator.clipboard.writeText(lines.join("\n"));
+        showToast("Table copied to clipboard (TSV format for Excel)", "success");
+      } catch (_) {
+        showToast("Could not access clipboard", "warning");
+      }
+    };
+  }
+
+  // Download Heatmap PNG
+  const btnHeatmapPng = $("btn-download-heatmap-png");
+  if (btnHeatmapPng) {
+    btnHeatmapPng.onclick = () => {
+      if (!S.last) return;
+      const gridCv = document.createElement("canvas");
+      const cols = S.last.cols || 12;
+      const rows = S.last.rows || 8;
+      const cellW = 54;
+      const cellH = 54;
+      gridCv.width = cols * cellW + 60;
+      gridCv.height = rows * cellH + 60;
+
+      const g = gridCv.getContext("2d");
+      g.fillStyle = "#0B0F14";
+      g.fillRect(0, 0, gridCv.width, gridCv.height);
+
+      const cutoff = S.last.cutoff || 40;
+      const vs = S.last.wells.map((w) => w.od_cal).filter((v) => v !== null && isFinite(v));
+      const lo = Math.min(...vs);
+      const hi = Math.max(...vs);
+
+      S.last.wells.forEach((w) => {
+        const x = 40 + w.col * cellW;
+        const y = 30 + w.row * cellH;
+        const t = hi > lo ? (w.od_cal - lo) / (hi - lo) : 0.5;
+        const col = tmbAmberColor(t);
+
+        g.fillStyle = col.bg;
+        g.beginPath();
+        g.roundRect ? g.roundRect(x, y, cellW - 4, cellH - 4, 8) : g.rect(x, y, cellW - 4, cellH - 4);
+        g.fill();
+
+        g.fillStyle = col.fg;
+        g.font = "bold 11px system-ui, sans-serif";
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        g.fillText(fmt(w.od_cal, 2), x + cellW / 2 - 2, y + cellH / 2 - 2);
+      });
+
+      const url = gridCv.toDataURL("image/png");
+      const a = el("a");
+      a.href = url;
+      a.download = `plateod-heatmap-${new Date().toISOString().slice(0, 10)}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("Heatmap PNG exported", "success");
+    };
+  }
+
+  // Clear compare bar
+  const btnClearCompare = $("btn-clear-compare");
+  if (btnClearCompare) {
+    btnClearCompare.onclick = () => {
+      pinnedCompareWells = [];
+      updateCompareBar();
+    };
+  }
+
+  // Well Inspector Drawer controls
+  const closeBtn = $("inspector-close-btn");
+  if (closeBtn) closeBtn.onclick = closeWellInspector;
+
+  const prevBtn = $("inspector-btn-prev");
+  if (prevBtn) prevBtn.onclick = () => walkInspectorWell(-1);
+
+  const nextBtn = $("inspector-btn-next");
+  if (nextBtn) nextBtn.onclick = () => walkInspectorWell(1);
+
+  const pinBtn = $("inspector-btn-pin");
+  if (pinBtn) {
+    pinBtn.onclick = () => {
+      if (activeInspectorWell) {
+        pinWellToCompare(activeInspectorWell);
+        showToast(`Pinned ${activeInspectorWell.well} to Compare Mode`, "info");
+      }
+    };
+  }
+
+  // Arrow key navigation when inspector is open
+  window.addEventListener("keydown", (e) => {
+    const drawer = $("well-inspector-drawer");
+    if (drawer && drawer.classList.contains("open")) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        walkInspectorWell(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        walkInspectorWell(1);
+      } else if (e.key === "Escape") {
+        closeWellInspector();
+      }
+    }
+  });
+
   // Lightbox handlers
   const lb = $("lightbox");
   if (lb) {
@@ -757,7 +1230,4 @@ export function initResultsControls() {
       if (lb) lb.hidden = true;
     };
   }
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && lb) lb.hidden = true;
-  });
 }

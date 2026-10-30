@@ -11,6 +11,7 @@ import { S } from "./state.js";
 import { $ } from "./dom.js";
 import { fetchPresets } from "./api.js";
 import { updateStepperValidation } from "./validation.js";
+import { syncPainterFromInputs } from "./painter.js";
 
 export function selectAssay(name) {
   if (!S.presets || !S.presets[name]) return;
@@ -67,6 +68,7 @@ export function selectAssay(name) {
 
   const runBtn = $("run");
   if (runBtn && S.img) runBtn.disabled = false;
+  syncPainterFromInputs();
   updateStepperValidation();
 }
 

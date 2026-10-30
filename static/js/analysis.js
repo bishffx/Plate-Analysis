@@ -12,7 +12,7 @@ import { S, setState } from "./state.js";
 import { $, el, clearChildren, showToast } from "./dom.js";
 import { uploadImage, analyzePlate } from "./api.js";
 import { isConvexQuad } from "./grid.js";
-import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout } from "./plate-canvas.js";
+import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout, startAnalysisScan, finishAnalysisScan } from "./plate-canvas.js";
 import { selectAssay } from "./presets.js";
 import { updateStepperValidation } from "./validation.js";
 import { renderResults } from "./results.js";
@@ -137,17 +137,17 @@ export async function handleFileUpload(file) {
     return;
   }
 
-  // Update file chip
+  // Update file chip with initial size
   const chip = $("file-chip");
+  const szStr = file.size < 1048576
+    ? (file.size / 1024).toFixed(1) + " KB"
+    : (file.size / 1048576).toFixed(1) + " MB";
   if (chip) {
     chip.hidden = false;
     const nameEl = $("file-chip-name");
     if (nameEl) nameEl.textContent = file.name;
-    const sz = file.size < 1048576
-      ? (file.size / 1024).toFixed(1) + " KB"
-      : (file.size / 1048576).toFixed(1) + " MB";
     const szEl = $("file-chip-size");
-    if (szEl) szEl.textContent = "(" + sz + ")";
+    if (szEl) szEl.textContent = `(${szStr})`;
   }
 
   try {
@@ -166,21 +166,72 @@ export async function handleFileUpload(file) {
     S.w = res.width || scaled.width;
     S.h = res.height || scaled.height;
 
+    // Update chip with dimensions
+    const szEl = $("file-chip-size");
+    if (szEl) szEl.textContent = `(${szStr} • ${S.w} × ${S.h} px)`;
+
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(previewUrl);
       S.img = img;
       initCorners();
-      $("stage")?.classList.add("has-image");
-      const ph = $("ph");
-      if (ph) ph.hidden = true;
-      const cv = $("cv");
-      if (cv) cv.hidden = false;
 
-      sizeCanvas();
-      draw();
-      refreshGrid();
-      updateLiveReadout();
+      const ph = $("ph");
+      const cv = $("cv");
+      const stage = $("stage");
+
+      // FLIP Animation: thumbnail flies from dropzone into canvas
+      const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!prefersReduced && ph && ph.offsetWidth > 0) {
+        const startRect = ph.getBoundingClientRect();
+        const flying = document.createElement("div");
+        flying.className = "flip-flying-thumbnail";
+        flying.style.position = "fixed";
+        flying.style.top = `${startRect.top}px`;
+        flying.style.left = `${startRect.left}px`;
+        flying.style.width = `${startRect.width}px`;
+        flying.style.height = `${startRect.height}px`;
+        flying.style.backgroundImage = `url(${S.dataUrl})`;
+        flying.style.backgroundSize = "contain";
+        flying.style.backgroundRepeat = "no-repeat";
+        flying.style.backgroundPosition = "center";
+        flying.style.borderRadius = "14px";
+        flying.style.zIndex = "9999";
+        flying.style.boxShadow = "0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(245, 165, 36, 0.5)";
+        flying.style.pointerEvents = "none";
+        flying.style.transition = "transform 440ms cubic-bezier(.2,.8,.2,1), opacity 440ms ease";
+        document.body.appendChild(flying);
+
+        stage?.classList.add("has-image");
+        if (ph) ph.hidden = true;
+        if (cv) cv.hidden = false;
+        sizeCanvas();
+        draw();
+        refreshGrid();
+        updateLiveReadout();
+
+        const endRect = cv.getBoundingClientRect();
+        const dx = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
+        const dy = (endRect.top + endRect.height / 2) - (startRect.top + startRect.height / 2);
+        const scale = (endRect.width || 400) / (startRect.width || 400);
+
+        requestAnimationFrame(() => {
+          flying.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+          flying.style.opacity = "0.75";
+        });
+
+        setTimeout(() => {
+          if (flying.parentElement) flying.parentElement.removeChild(flying);
+        }, 460);
+      } else {
+        stage?.classList.add("has-image");
+        if (ph) ph.hidden = true;
+        if (cv) cv.hidden = false;
+        sizeCanvas();
+        draw();
+        refreshGrid();
+        updateLiveReadout();
+      }
 
       S.selectedAssay = null;
       S.isCustomised = false;
@@ -241,6 +292,10 @@ export async function run() {
   const skeleton = $("skeleton-loader");
   if (skeleton) skeleton.hidden = false;
 
+  startAnalysisScan();
+  document.body.classList.add("analyzing-active");
+  const scanStart = performance.now();
+
   try {
     const currentCfg = cfg();
     let res;
@@ -265,8 +320,17 @@ export async function run() {
       }
     }
 
-    S.last = res;
-    renderResults(res);
+    // Ensure scanning runs for at least 900ms
+    const elapsed = performance.now() - scanStart;
+    if (elapsed < 900) {
+      await new Promise((r) => setTimeout(r, 900 - elapsed));
+    }
+
+    finishAnalysisScan(res.valid, () => {
+      document.body.classList.remove("analyzing-active");
+      S.last = res;
+      renderResults(res);
+    });
 
     // Show warnings if any
     const warns = [];
@@ -312,11 +376,15 @@ export async function run() {
 export function initUpload() {
   const stage = $("stage");
   if (stage) {
+    const phBox = $("ph");
     ["dragenter", "dragover"].forEach((evt) => {
       stage.addEventListener(evt, (e) => {
         e.preventDefault();
         e.stopPropagation();
         stage.classList.add("dragover");
+        if (phBox) phBox.classList.add("drag-active");
+        const ghost = $("ghost-plate-wrap");
+        if (ghost) ghost.classList.add("visible");
       });
     });
     ["dragleave", "drop"].forEach((evt) => {
@@ -324,6 +392,9 @@ export function initUpload() {
         e.preventDefault();
         e.stopPropagation();
         stage.classList.remove("dragover");
+        if (phBox) phBox.classList.remove("drag-active");
+        const ghost = $("ghost-plate-wrap");
+        if (ghost) ghost.classList.remove("visible");
       });
     });
     stage.addEventListener("drop", (e) => {
