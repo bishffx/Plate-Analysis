@@ -7,7 +7,7 @@
  * and informational section quick-select buttons.
  */
 
-import { S } from "./state.js";
+import { S, setState } from "./state.js";
 import { $ } from "./dom.js";
 import { fetchPresets } from "./api.js";
 import { updateStepperValidation } from "./validation.js";
@@ -15,7 +15,7 @@ import { syncPainterFromInputs } from "./painter.js";
 
 export function selectAssay(name) {
   if (!S.presets || !S.presets[name]) return;
-  S.selectedAssay = name;
+  setState("selectedAssay", name);
   S.isCustomised = false;
   const p = S.presets[name];
 

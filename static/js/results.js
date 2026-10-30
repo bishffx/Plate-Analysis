@@ -1,3 +1,4 @@
+import { transitionView } from "./interactions.js";
 "use strict";
 
 /**
@@ -144,6 +145,11 @@ export function setHighlightedClass(clsName) {
 // -----------------------------------------------------------------------------
 export function openWellInspector(well) {
   if (!well || !S.last) return;
+  if (typeof well === "string") {
+    const found = S.last.wells ? S.last.wells.find((w) => w.well.toUpperCase() === well.toUpperCase()) : null;
+    if (!found) return;
+    well = found;
+  }
   activeInspectorWell = well;
 
   const drawer = $("well-inspector-drawer");
@@ -1042,8 +1048,10 @@ export function renderResults(r) {
       const b = el("button", n, "tab-btn" + (k === S.tab ? " on" : ""));
       b.id = "tab-" + k;
       b.onclick = () => {
-        S.tab = k;
-        renderResults(r);
+        transitionView(() => {
+          S.tab = k;
+          renderResults(r);
+        });
       };
       t.appendChild(b);
     });

@@ -11,6 +11,21 @@
   <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
+  <!-- Ambient Aurora Canvas Background -->
+  <canvas id="ambient-aurora-cv" class="ambient-aurora-canvas" aria-hidden="true"></canvas>
+
+  <!-- Server Offline Alert Banner -->
+  <div id="server-offline-banner" class="server-offline-banner" hidden role="alert">
+    <div class="offline-banner-content">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span><strong>Server Offline:</strong> Unable to connect to PlateOD backend. Check that <code>server.py</code> is running.</span>
+      <button type="button" class="btn btn-sm btn-retry-server" id="server-retry-btn">Retry Connection</button>
+    </div>
+  </div>
   <!-- Accessibility Skip to Main Content Link -->
   <a href="#analyzer" class="skip-link">Skip to main content</a>
 
@@ -56,6 +71,37 @@
       <!-- Header Actions: Theme Toggle, Server Status, Mobile Hamburger -->
       <div class="header-actions">
         <!-- Theme Switcher (Light / Dark / System) -->
+        <!-- Command Palette Trigger Button -->
+        <button type="button" class="btn-palette-trigger" id="command-palette-trigger" data-open-palette title="Search commands & actions (Ctrl+K)" aria-label="Search commands (Ctrl+K)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span class="palette-btn-text">Commands</span>
+          <kbd class="kbd-chip">Ctrl+K</kbd>
+        </button>
+
+        <!-- Morphing Theme Toggle Button (Sun to Moon) -->
+        <button type="button" class="theme-morph-btn" id="theme-toggle-morph" aria-label="Toggle light / dark mode" title="Toggle light / dark mode">
+          <svg class="theme-morph-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <mask id="moon-mask">
+              <rect x="0" y="0" width="24" height="24" fill="white"/>
+              <circle class="mask-moon-circle" cx="19" cy="5" r="8" fill="black"/>
+            </mask>
+            <circle class="sun-moon-center" cx="12" cy="12" r="5" mask="url(#moon-mask)" fill="currentColor"/>
+            <g class="sun-rays" stroke="currentColor">
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </g>
+          </svg>
+        </button>
+
         <div class="theme-switch" role="group" aria-label="Theme mode switcher">
           <button type="button" class="theme-btn" data-theme-val="light" title="Light mode" aria-label="Light mode">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -788,6 +834,25 @@
           <div id="banner"></div>
 
           <!-- Results Section with Dashboard Header & Actions -->
+          <!-- Empty State Card (Before analysis is run) -->
+          <div class="card results-empty-card" id="results-empty-state">
+            <div class="empty-state-inner">
+              <svg class="state-illustration" viewBox="0 0 160 110" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="10" y="10" width="140" height="90" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+                <circle cx="35" cy="35" r="8" fill="rgba(245,165,36,0.15)" stroke="#F5A524" stroke-width="1.2" stroke-dasharray="2 2"/>
+                <circle cx="65" cy="35" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+                <circle cx="95" cy="35" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+                <circle cx="125" cy="35" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+                <circle cx="35" cy="65" r="8" fill="rgba(45,212,191,0.15)" stroke="#2DD4BF" stroke-width="1.2" stroke-dasharray="2 2"/>
+                <circle cx="65" cy="65" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+                <circle cx="95" cy="65" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+                <circle cx="125" cy="65" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+              </svg>
+              <h3>No Analysis Run Yet</h3>
+              <p>Upload a plate image, place corner handles, and press <strong>Run Analysis (R)</strong> to inspect optical density, control checks, and QC metrics.</p>
+            </div>
+          </div>
+
           <div class="card results-dashboard-card" id="results" hidden>
             <div class="results-header-row">
               <div class="results-header-left">
@@ -1653,5 +1718,62 @@
 
   <script type="module" src="js/main.js"></script>
 <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+  <!-- Fixed Bottom Status Bar -->
+  <div id="status-bar" class="site-status-bar" role="status" aria-label="Instrument status">
+    <div class="sb-col sb-left">
+      <span class="sb-item sb-conn"><span id="sb-status-dot" class="status-dot green"></span> <span id="sb-status-text">Connected</span></span>
+      <span class="sb-sep" aria-hidden="true">•</span>
+      <span id="sb-latency-info" class="sb-item sb-latency">Ready</span>
+    </div>
+    <div class="sb-col sb-center">
+      <span id="sb-image-info" class="sb-item sb-image">No photo loaded</span>
+    </div>
+    <div class="sb-col sb-right">
+      <span id="sb-assay-info" class="sb-item sb-assay">Assay: SPCE (PI)</span>
+      <span class="sb-sep" aria-hidden="true">•</span>
+      <button type="button" class="sb-kbd-pill" data-open-palette title="Search commands & actions"><kbd>Ctrl+K</kbd> Commands</button>
+      <button type="button" class="sb-kbd-pill" id="sb-btn-shortcuts" title="Keyboard shortcuts cheat-sheet"><kbd>?</kbd> Shortcuts</button>
+    </div>
+  </div>
+
+  <!-- Command Palette Modal (Ctrl/Cmd+K) -->
+  <div id="command-palette-modal" class="palette-modal" hidden role="dialog" aria-modal="true" aria-label="Command Palette">
+    <div class="palette-backdrop" id="command-palette-backdrop"></div>
+    <div class="palette-dialog glass-card">
+      <div class="palette-input-wrap">
+        <svg class="palette-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="command-palette-input" class="palette-input" placeholder="Type a command or well (e.g. 'C7', 'Run', 'SPCE')..." autocomplete="off" spellcheck="false" />
+        <button type="button" id="command-palette-close" class="palette-close-btn" aria-label="Close command palette">&times;</button>
+      </div>
+      <div id="command-palette-list" class="palette-list" role="listbox"></div>
+      <div class="palette-footer">
+        <span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span>
+        <span><kbd>↵</kbd> Execute</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Cheat-sheet Modal (?) -->
+  <div id="shortcuts-modal" class="shortcuts-modal" hidden role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts Reference">
+    <div class="shortcuts-backdrop" id="shortcuts-modal-backdrop"></div>
+    <div class="shortcuts-dialog glass-card">
+      <div class="shortcuts-header">
+        <div class="shortcuts-title-group">
+          <span class="shortcuts-icon">⌨</span>
+          <h3>Keyboard Shortcuts</h3>
+        </div>
+        <button type="button" id="shortcuts-modal-close" class="modal-close-btn" aria-label="Close shortcuts modal">&times;</button>
+      </div>
+      <div id="shortcuts-list" class="shortcuts-grid"></div>
+      <div class="shortcuts-footer">
+        <span>Press <kbd>?</kbd> anywhere to open this reference</span>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

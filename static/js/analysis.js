@@ -16,6 +16,7 @@ import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout, startAna
 import { selectAssay } from "./presets.js";
 import { updateStepperValidation } from "./validation.js";
 import { renderResults } from "./results.js";
+import { updateProblemsCard } from "./toast-system.js";
 
 const val = (id, def) => {
   const elem = $(id);
@@ -48,6 +49,7 @@ export function showMsgs(errs, warns) {
   });
 
   b.className = hasAny ? "banner visible" : "banner hidden";
+  updateProblemsCard(errs || [], warns || []);
 
   if (errs && errs.length) {
     showToast(errs[0], "error");
@@ -163,8 +165,9 @@ export async function handleFileUpload(file) {
     // Upload to server cache
     const res = await uploadImage(S.dataUrl);
     S.imageId = res.id;
-    S.w = res.width || scaled.width;
-    S.h = res.height || scaled.height;
+    S.imageFileSize = szStr;
+    setState("w", res.width || scaled.width);
+    setState("h", res.height || scaled.height);
 
     // Update chip with dimensions
     const szEl = $("file-chip-size");
@@ -233,18 +236,11 @@ export async function handleFileUpload(file) {
         updateLiveReadout();
       }
 
-      S.selectedAssay = null;
-      S.isCustomised = false;
       const cardAssay = $("card-assay");
       if (cardAssay) cardAssay.hidden = false;
-
-      $("btn-assay-spce")?.classList.remove("active");
-      $("btn-assay-spce")?.setAttribute("aria-checked", "false");
-      $("btn-assay-diva")?.classList.remove("active");
-      $("btn-assay-diva")?.setAttribute("aria-checked", "false");
-
-      const assayInfo = $("assay-info");
-      if (assayInfo) assayInfo.hidden = true;
+      selectAssay(S.selectedAssay || "SPCE");
+      const runBtn = $("run");
+      if (runBtn) runBtn.disabled = false;
       const customBadge = $("badge-customised");
       if (customBadge) customBadge.hidden = true;
 
@@ -329,6 +325,8 @@ export async function run() {
     finishAnalysisScan(res.valid, () => {
       document.body.classList.remove("analyzing-active");
       S.last = res;
+      const emptyState = $("results-empty-state");
+      if (emptyState) emptyState.hidden = true;
       renderResults(res);
     });
 
@@ -353,6 +351,8 @@ export async function run() {
     showMsgs([err.message], []);
     const resultsEl = $("results");
     if (resultsEl) resultsEl.hidden = true;
+    const emptyState = $("results-empty-state");
+    if (emptyState) emptyState.hidden = false;
   } finally {
     if (skeleton) skeleton.hidden = true;
     if (runBtn) {

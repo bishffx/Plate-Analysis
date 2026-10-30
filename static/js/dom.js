@@ -85,44 +85,22 @@ export function roundRect(ctx, x, y, w, h, r) {
 }
 
 /**
- * Shows a toast message notification.
+ * Shows a toast message notification with stacked toasts, progress bars, and swipe-to-dismiss.
  * @param {string} msg
  * @param {"info"|"success"|"warning"|"error"} type
  * @param {number} duration
  */
 export function showToast(msg, type = "info", duration = 3500) {
-  const container = $("toast-container");
-  if (!container) return;
-
-  const toast = el("div", undefined, `toast-pill toast-${type}`);
-  const iconSpan = el("span", undefined, "toast-icon");
-  const icons = {
-    success: "✓",
-    error: "✕",
-    warning: "⚠",
-    info: "ℹ"
-  };
-  iconSpan.textContent = icons[type] || "ℹ";
-  toast.appendChild(iconSpan);
-
-  const msgSpan = el("span", msg, "toast-msg");
-  toast.appendChild(msgSpan);
-
-  container.appendChild(toast);
-
-  // Trigger enter transition
-  requestAnimationFrame(() => {
-    toast.classList.add("visible");
+  import("./toast-system.js").then((m) => {
+    m.showRichToast(msg, type, duration);
+  }).catch(() => {
+    // Fallback if dynamic import fails
+    const container = $("toast-container");
+    if (!container) return;
+    const toast = el("div", msg, `toast-pill toast-${type} visible`);
+    container.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, duration);
   });
-
-  setTimeout(() => {
-    toast.classList.remove("visible");
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
-      }
-    }, 300);
-  }, duration);
 }
 
 /**

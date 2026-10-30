@@ -38,6 +38,10 @@ export async function api(path, body, signal = null) {
   const dur = (performance.now() - t0).toFixed(1);
   const timing = r.headers.get("Server-Timing");
   console.log(`[API] ${path} -> HTTP ${r.status} (${dur} ms${timing ? ", " + timing : ""})`);
+  setState("lastLatency", dur);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("plateod:api", { detail: { path, dur, ok: r.ok } }));
+  }
 
   let j;
   try {
@@ -72,10 +76,16 @@ export async function checkServerHealth() {
     const isUp = r.ok;
     setState("online", isUp);
     updateStatusChip(isUp);
+    if (!isUp) {
+      import("./status-bar.js").then((m) => m.showOfflineBanner()).catch(() => {});
+    } else {
+      import("./status-bar.js").then((m) => m.hideOfflineBanner()).catch(() => {});
+    }
     return isUp;
   } catch (e) {
     setState("online", false);
     updateStatusChip(false);
+    import("./status-bar.js").then((m) => m.showOfflineBanner()).catch(() => {});
     return false;
   }
 }
