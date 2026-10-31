@@ -294,7 +294,7 @@ aside.stepper-aside {
   border: 1px solid var(--card-border);
   background-color: var(--card-bg);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(245, 165, 36, 0.12), transparent 45%),
+    radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.18), transparent 45%),
     radial-gradient(circle at 90% 80%, rgba(11, 31, 58, 0.45), transparent 50%),
     radial-gradient(var(--card-border) 1.2px, transparent 1.2px);
   background-size: 100% 100%, 100% 100%, 24px 24px;
@@ -318,12 +318,12 @@ aside.stepper-aside {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: rgba(245, 165, 36, 0.1);
-  border: 1px solid rgba(245, 165, 36, 0.25);
+  background: rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(167, 139, 250, 0.3);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--amber-primary);
+  color: var(--glow-violet);
   width: fit-content;
 }
 
@@ -331,8 +331,8 @@ aside.stepper-aside {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--amber-primary);
-  box-shadow: 0 0 8px var(--amber-primary);
+  background: var(--glow-violet);
+  box-shadow: 0 0 8px var(--glow-violet);
 }
 
 .hero-title {
@@ -573,8 +573,8 @@ aside.stepper-aside {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: rgba(245, 165, 36, 0.12);
-  color: var(--amber-primary);
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--glow-violet);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -629,9 +629,9 @@ aside.stepper-aside {
 }
 
 .spce-pill {
-  background: rgba(245, 165, 36, 0.15);
-  color: var(--amber-primary);
-  border: 1px solid rgba(245, 165, 36, 0.3);
+  background: rgba(124, 58, 237, 0.16);
+  color: var(--glow-violet);
+  border: 1px solid rgba(167, 139, 250, 0.35);
 }
 
 .diva-pill {
@@ -717,8 +717,8 @@ aside.stepper-aside {
 }
 
 .spec-value code {
-  background: rgba(245, 165, 36, 0.12);
-  color: var(--amber-primary);
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--glow-violet);
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 12px;
@@ -749,7 +749,7 @@ aside.stepper-aside {
   height: 48px;
   border-radius: var(--radius-sm);
   background: rgba(245, 165, 36, 0.14);
-  color: var(--amber-primary);
+  color: var(--glow-violet);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -960,12 +960,12 @@ aside.stepper-aside {
 }
 
 .footer-links a:hover {
-  color: var(--amber-primary);
+  color: var(--glow-violet);
 }
 
 .notice-box {
   background: rgba(167, 139, 250, 0.12);
-  border: 1px solid rgba(245, 165, 36, 0.25);
+  border: 1px solid rgba(167, 139, 250, 0.3);
   border-radius: var(--radius-sm);
   padding: var(--space-4);
   font-size: 13px;
