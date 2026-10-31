@@ -217,129 +217,366 @@
           <ellipse cx="42" cy="35" rx="14" ry="7" fill="#FFFFFF" opacity="0.65" transform="rotate(-25 42 35)"/>
         </svg>
       </div>
-      <!-- Full-viewport soft perspective canvas -->
-      <div class="hero-canvas-wrap" id="hero-canvas-wrap">
-        <canvas id="hero-plate-canvas" class="hero-plate-canvas" aria-label="Interactive 96-well ELISA microplate simulation"></canvas>
-        <div id="hero-well-tooltip" class="hero-well-tooltip" role="tooltip" hidden></div>
-      </div>
 
-      <div class="hero-overlay-content">
-        <div class="hero-badge">
-          <span class="badge-dot"></span>
-          <span>Scientific Optical Density Quantification</span>
-        </div>
-        <h1 id="hero-heading" class="hero-title">
-          <span class="gradient-text">Microplate Photometry</span><br>
-          <span class="hero-title-sub">Engineered for Precision</span>
-        </h1>
-        
-        <!-- Typewriter-style rotating subline -->
-        <div class="hero-typewriter-container" aria-live="polite">
-          <span id="hero-typewriter" class="hero-typewriter">From plate photo to OD in seconds</span>
-          <span class="typewriter-cursor" aria-hidden="true">|</span>
-        </div>
-
-        <!-- Magnetic action buttons -->
-        <div class="hero-actions">
-          <a href="#analyzer" class="btn btn-primary hero-btn btn-magnetic" id="btn-hero-open">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            Open analyzer
-          </a>
-          <a href="#how-it-works" class="btn btn-secondary hero-btn btn-magnetic" id="btn-hero-how">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            See how it works
-          </a>
-        </div>
-
-        <!-- Live Demo Meter beside/under the hero text -->
-        <div class="hero-demo-meter" id="hero-demo-meter" aria-label="Real-time performance indicators">
-          <div class="demo-meter-card glass-card">
-            <div class="demo-meter-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            </div>
-            <div class="demo-meter-body">
-              <div class="demo-meter-val" id="meter-wells" data-target="96">96</div>
-              <div class="demo-meter-lbl">Wells analysed / photo</div>
-            </div>
+      <!-- Two-Column Balanced Hero Grid (Max-width 1440px) -->
+      <div class="hero-layout-grid">
+        <!-- LEFT COLUMN: Headline, subline, summary, and primary actions -->
+        <div class="hero-left-col">
+          <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span>01 / High-Throughput Photometry</span>
           </div>
-          <div class="demo-meter-card glass-card">
-            <div class="demo-meter-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            </div>
-            <div class="demo-meter-body">
-              <div class="demo-meter-val" id="meter-qc" data-target="6">6</div>
-              <div class="demo-meter-lbl">Rigorous QC rules</div>
-            </div>
+
+          <h1 id="hero-heading" class="hero-title">
+            From plate photo to <span class="gradient-text">optical density</span>, in seconds
+          </h1>
+          
+          <!-- Typewriter-style rotating subline -->
+          <div class="hero-typewriter-container" aria-live="polite">
+            <span id="hero-typewriter" class="hero-typewriter">From plate photo to OD in seconds</span>
+            <span class="typewriter-cursor" aria-hidden="true">|</span>
           </div>
-          <div class="demo-meter-card glass-card">
-            <div class="demo-meter-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+
+          <p class="hero-subheading">
+            Automated microplate photometry directly in your browser. Rectify angled captures with projective homography, linearize sRGB reflectance to absorbance, execute blank-subtraction with quality control validation, and export publication-ready datasets.
+          </p>
+
+          <!-- Magnetic action buttons -->
+          <div class="hero-actions">
+            <a href="#analyzer" class="btn btn-primary hero-btn btn-magnetic" id="btn-hero-open">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Open analyzer</span>
+            </a>
+            <button type="button" class="btn btn-secondary hero-btn btn-magnetic" id="btn-try-sample">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"></path>
+              </svg>
+              <span>Try a sample plate</span>
+            </button>
+          </div>
+
+          <div class="hero-feature-tags" aria-label="Key highlights">
+            <span class="feature-tag-chip">⚡ 100% Offline Client-Side</span>
+            <span class="feature-tag-chip">🔬 sRGB Inversion Math</span>
+            <span class="feature-tag-chip">✓ SPCE &amp; DIVA Presets</span>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 3D Living Plate Canvas + Floating Live Preview Card -->
+        <div class="hero-right-col">
+          <div class="hero-canvas-wrap" id="hero-canvas-wrap">
+            <canvas id="hero-plate-canvas" class="hero-plate-canvas" aria-label="Interactive 96-well ELISA microplate simulation"></canvas>
+            <div id="hero-well-tooltip" class="hero-well-tooltip" role="tooltip" hidden></div>
+          </div>
+
+          <!-- Floating "Live Preview" Instrument Card (Requirement 6) -->
+          <div class="hero-live-preview glass-card" id="hero-live-preview" aria-label="Real-time optical density preview demonstration">
+            <div class="preview-mini-header">
+              <div class="preview-mini-title">
+                <span class="preview-pulse-dot" aria-hidden="true"></span>
+                <span>Live Instrument Preview</span>
+              </div>
+              <div class="qc-status-pill qc-pass mini-pass">
+                <span class="qc-dot"></span>
+                <span>PASS</span>
+              </div>
             </div>
-            <div class="demo-meter-body">
-              <div class="demo-meter-val" id="meter-time" data-target="1.2">&lt; 1.2s</div>
-              <div class="demo-meter-lbl">Average result time</div>
+            <div class="preview-mini-metrics">
+              <div class="mini-metric">
+                <span class="mini-metric-lbl">Blank Mean</span>
+                <span class="mini-metric-val" id="hero-preview-blank">0.042 OD</span>
+                <span class="mini-sparkline sparkline-blank" aria-hidden="true"></span>
+              </div>
+              <div class="mini-metric">
+                <span class="mini-metric-lbl">Pos Control</span>
+                <span class="mini-metric-val" id="hero-preview-pos">1.84 OD</span>
+                <span class="mini-sparkline sparkline-pos" aria-hidden="true"></span>
+              </div>
+              <div class="mini-metric">
+                <span class="mini-metric-lbl">QC Validity</span>
+                <span class="mini-metric-val mini-qc-val" id="hero-preview-qc">100% PASS</span>
+                <span class="mini-sparkline sparkline-qc" aria-hidden="true"></span>
+              </div>
+            </div>
+            <!-- Tiny 8x12 mini heatmap preview matrix -->
+            <div class="preview-mini-matrix-wrap">
+              <canvas id="hero-mini-heatmap" class="hero-mini-heatmap" width="220" height="110" aria-label="Microplate 96-well preview heatmap"></canvas>
+              <div class="mini-matrix-hint">Active photometry matrix · DPR &le; 2</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 2. TRUST STRIP -->
-    <section class="trust-strip-section reveal" aria-label="Key Capabilities">
-      <div class="trust-card">
-        <div class="trust-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
+    <!-- 2. GLASS STAT STRIP (Four animated counters, count-up on scroll) -->
+    <section class="stat-strip-section" id="hero-stat-strip" aria-label="Instrument Performance Indicators">
+      <div class="stat-strip-container">
+        <div class="stat-metric-card glass-card">
+          <div class="stat-metric-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </div>
+          <div class="stat-metric-content">
+            <div class="stat-metric-val" id="stat-wells" data-target="96">96</div>
+            <div class="stat-metric-lbl">Wells analysed / photo</div>
+          </div>
         </div>
-        <div class="trust-text">
-          <div class="trust-title">96 wells in one image</div>
-          <div class="trust-desc">Automated parallel ROI extraction from a single overhead capture</div>
+
+        <div class="stat-metric-card glass-card">
+          <div class="stat-metric-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+          </div>
+          <div class="stat-metric-content">
+            <div class="stat-metric-val" id="stat-qc" data-target="6">6</div>
+            <div class="stat-metric-lbl">Rigorous QC validation rules</div>
+          </div>
+        </div>
+
+        <div class="stat-metric-card glass-card">
+          <div class="stat-metric-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <div class="stat-metric-content">
+            <div class="stat-metric-val" id="stat-time" data-target="1.2">&lt; 1.2s</div>
+            <div class="stat-metric-lbl">Average result turnaround</div>
+          </div>
+        </div>
+
+        <div class="stat-metric-card glass-card">
+          <div class="stat-metric-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </div>
+          <div class="stat-metric-content">
+            <div class="stat-metric-val" id="stat-res" data-target="0.001">0.001</div>
+            <div class="stat-metric-lbl">Absorbance resolution (OD)</div>
+          </div>
         </div>
       </div>
-      <div class="trust-card">
-        <div class="trust-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
-          </svg>
-        </div>
-        <div class="trust-text">
-          <div class="trust-title">Perspective-correct grid</div>
-          <div class="trust-desc">4-corner projective homography rectifies angled captures</div>
+    </section>
+
+    <!-- 3. INFINITE CAPABILITIES MARQUEE (Pausing on hover) -->
+    <section class="marquee-section" id="capabilities-marquee" aria-label="Capabilities Marquee">
+      <div class="marquee-inner">
+        <div class="marquee-track">
+          <!-- Item set 1 -->
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Perspective-correct grid</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> sRGB linearised OD</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Blank-referenced</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> SPCE preset (% PI)</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> DIVA preset (% PP)</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Automated QC checks</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Publication CSV export</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Plate-reader calibration</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Flat-field compensation</div>
+          <div class="marquee-item"><span class="marquee-bullet">✦</span> Interactive well inspector</div>
+
+          <!-- Item set 2 (seamless duplication for infinite scroll) -->
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Perspective-correct grid</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> sRGB linearised OD</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Blank-referenced</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> SPCE preset (% PI)</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> DIVA preset (% PP)</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Automated QC checks</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Publication CSV export</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Plate-reader calibration</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Flat-field compensation</div>
+          <div class="marquee-item" aria-hidden="true"><span class="marquee-bullet">✦</span> Interactive well inspector</div>
         </div>
       </div>
-      <div class="trust-card">
-        <div class="trust-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 3v18h18"></path>
-            <path d="M18 9l-5 5-4-4-3 3"></path>
-          </svg>
-        </div>
-        <div class="trust-text">
-          <div class="trust-title">sRGB linearised OD</div>
-          <div class="trust-desc">Gamma-corrected blank-subtracted absorbance with transmittance math</div>
-        </div>
+    </section>
+
+        <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
+        <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
+
+    <!-- BENTO FEATURE GRID (Moodboard Dashboard Style) -->
+    <section id="features" class="info-section bento-section reveal" aria-labelledby="features-heading">
+      <div class="section-header-block">
+        <span class="section-eyebrow">02 / System Architecture</span>
+        <h2 id="features-heading" class="info-section-title">Engineered for Quantitative Rigor</h2>
+        <p class="info-section-desc">A complete microplate photometry instrument operating entirely inside your browser with zero server dependencies, sub-pixel grid precision, and publication-ready validation.</p>
       </div>
-      <div class="trust-card">
-        <div class="trust-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            <polyline points="9 12 11 14 15 10"></polyline>
-          </svg>
+
+      <div class="bento-grid">
+        <!-- Tile 1: Perspective-correct grid (Wide 2-col) -->
+        <div class="bento-card bento-wide glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">01</span>
+            <span class="bento-tag">Computer Vision</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">Perspective-correct homography</h3>
+            <p class="bento-desc">4-corner projective transform rectifies angled, handheld smartphone captures into an orthogonal 8×12 well matrix with sub-pixel snap precision and 4× magnifier loupe guidance.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <svg class="bento-svg-homography" viewBox="0 0 280 110" fill="none" aria-hidden="true">
+              <!-- Warped quad -->
+              <polygon points="20,25 250,15 270,95 35,105" stroke="rgba(139, 92, 246, 0.4)" stroke-width="1.5" stroke-dasharray="4 3" fill="rgba(139, 92, 246, 0.04)"/>
+              <!-- Rectified target grid -->
+              <rect x="40" y="25" width="200" height="70" rx="8" stroke="rgba(34, 211, 238, 0.8)" stroke-width="1.5" fill="rgba(34, 211, 238, 0.06)"/>
+              <!-- Grid lines -->
+              <line x1="90" y1="25" x2="90" y2="95" stroke="rgba(34, 211, 238, 0.25)" stroke-width="1"/>
+              <line x1="140" y1="25" x2="140" y2="95" stroke="rgba(34, 211, 238, 0.25)" stroke-width="1"/>
+              <line x1="190" y1="25" x2="190" y2="95" stroke="rgba(34, 211, 238, 0.25)" stroke-width="1"/>
+              <line x1="40" y1="60" x2="240" y2="60" stroke="rgba(34, 211, 238, 0.25)" stroke-width="1"/>
+              <!-- Corner handles -->
+              <circle cx="40" cy="25" r="5" fill="#22D3EE" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="240" cy="25" r="5" fill="#22D3EE" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="240" cy="95" r="5" fill="#22D3EE" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="40" cy="95" r="5" fill="#22D3EE" stroke="#FFFFFF" stroke-width="1.5"/>
+              <!-- Transform arrows -->
+              <path d="M22 25 Q30 20 38 25" stroke="#F5A524" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <path d="M250 15 Q245 20 240 24" stroke="#F5A524" stroke-width="1.5"/>
+            </svg>
+          </div>
         </div>
-        <div class="trust-text">
-          <div class="trust-title">Built-in QC checks</div>
-          <div class="trust-desc">Automated validation for blank brightness, control separation &amp; CV</div>
+
+        <!-- Tile 2: Linearised OD -->
+        <div class="bento-card glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">02</span>
+            <span class="bento-tag">Optics</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">Linearised sRGB OD</h3>
+            <p class="bento-desc">Inverts sRGB gamma response to extract true physical transmittance and Beer-Lambert absorbance.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <svg class="bento-svg-gamma" viewBox="0 0 160 90" fill="none" aria-hidden="true">
+              <path d="M20 75 L145 75" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+              <path d="M20 75 L20 15" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+              <path d="M20 75 Q70 70 140 18" stroke="url(#bentoGradViolet)" stroke-width="2.5" fill="none"/>
+              <circle cx="105" cy="42" r="4" fill="#22D3EE" stroke="#FFFFFF" stroke-width="1.5"/>
+              <text x="35" y="32" fill="#A8A3C0" font-size="10" font-family="monospace">OD = -log₁₀(T)</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Tile 3: Blank-referenced -->
+        <div class="bento-card glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">03</span>
+            <span class="bento-tag">Baselines</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">Blank-referenced</h3>
+            <p class="bento-desc">Substrate-blank subtraction isolates pure chromogenic signal from plastic absorbance and meniscus effects.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <svg class="bento-svg-blank" viewBox="0 0 160 90" fill="none" aria-hidden="true">
+              <circle cx="45" cy="45" r="22" fill="rgba(245, 165, 36, 0.4)" stroke="#F5A524" stroke-width="1.5"/>
+              <text x="45" y="49" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">Sample</text>
+              <text x="80" y="49" fill="#22D3EE" font-size="16" font-weight="bold" text-anchor="middle">−</text>
+              <circle cx="115" cy="45" r="22" fill="rgba(45, 212, 191, 0.15)" stroke="#2DD4BF" stroke-width="1.5"/>
+              <text x="115" y="49" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">Blank</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Tile 4: Built-in QC -->
+        <div class="bento-card glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">04</span>
+            <span class="bento-tag">Quality Control</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">Built-in QC validation</h3>
+            <p class="bento-desc">Automated rules verify blank transmission, control dynamic range separation, and replicate CV thresholds.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <div class="bento-qc-pills-row">
+              <span class="qc-status-pill qc-pass"><span class="qc-dot"></span>PASS</span>
+              <span class="bento-qc-rule-badge">6 Rules Checked</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 5: SPCE and DIVA presets (Wide 2-col) -->
+        <div class="bento-card bento-wide glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">05</span>
+            <span class="bento-tag">Standard Protocols</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">SPCE &amp; DIVA assay presets</h3>
+            <p class="bento-desc">One-click presets for Solid Phase Competition (% PI) and Differential Positivity (% PP) with pre-mapped control locations and validated diagnostic cutoff thresholds.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <svg class="bento-svg-curves" viewBox="0 0 280 110" fill="none" aria-hidden="true">
+              <!-- Threshold cutoff line -->
+              <line x1="20" y1="55" x2="260" y2="55" stroke="rgba(244, 114, 182, 0.6)" stroke-width="1.5" stroke-dasharray="4 4"/>
+              <text x="210" y="50" fill="#F472B6" font-size="10">Cutoff (65%)</text>
+              <!-- SPCE sigmoidal curve -->
+              <path d="M25 20 Q100 25 140 55 T255 95" stroke="#22D3EE" stroke-width="2.5" fill="none"/>
+              <text x="35" y="28" fill="#22D3EE" font-size="10">Inhibition %</text>
+              <!-- Data markers -->
+              <circle cx="70" cy="24" r="3.5" fill="#22D3EE"/>
+              <circle cx="140" cy="55" r="4.5" fill="#F472B6" stroke="#FFFFFF" stroke-width="1"/>
+              <circle cx="210" cy="85" r="3.5" fill="#22D3EE"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Tile 6: Plate-reader calibration -->
+        <div class="bento-card glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">06</span>
+            <span class="bento-tag">Metrology</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">Plate-reader calibration</h3>
+            <p class="bento-desc">Fit linear or quadratic regression against benchtop spectrophotometer ODs for 100% paper concordance.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <svg class="bento-svg-scatter" viewBox="0 0 160 90" fill="none" aria-hidden="true">
+              <path d="M25 75 L145 75" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+              <path d="M25 75 L25 15" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+              <line x1="30" y1="70" x2="140" y2="20" stroke="#38BDF8" stroke-width="1.8"/>
+              <circle cx="45" cy="62" r="3" fill="#A78BFA"/>
+              <circle cx="68" cy="55" r="3" fill="#A78BFA"/>
+              <circle cx="92" cy="40" r="3" fill="#A78BFA"/>
+              <circle cx="118" cy="31" r="3" fill="#A78BFA"/>
+              <circle cx="135" cy="22" r="3" fill="#A78BFA"/>
+              <text x="80" y="70" fill="#38BDF8" font-size="9" font-family="monospace">R² = 0.998</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Tile 7: High-density Heatmaps -->
+        <div class="bento-card glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">07</span>
+            <span class="bento-tag">Diagnostics</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">Linked Heatmaps</h3>
+            <p class="bento-desc">Interactive 8×12 heatmap linked synchronously to the table and photo with instant well inspector drawer.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <div class="bento-mini-heatmap-deck" aria-hidden="true">
+              <span class="bmh-w bmh-hi"></span><span class="bmh-w bmh-hi"></span><span class="bmh-w bmh-mid"></span><span class="bmh-w bmh-lo"></span>
+              <span class="bmh-w bmh-mid"></span><span class="bmh-w bmh-hi"></span><span class="bmh-w bmh-mid"></span><span class="bmh-w bmh-lo"></span>
+              <span class="bmh-w bmh-lo"></span><span class="bmh-w bmh-mid"></span><span class="bmh-w bmh-lo"></span><span class="bmh-w bmh-lo"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 8: CSV and print reports -->
+        <div class="bento-card glass-card spotlight-card">
+          <div class="bento-header">
+            <span class="bento-num-badge">08</span>
+            <span class="bento-tag">Export</span>
+          </div>
+          <div class="bento-body">
+            <h3 class="bento-title">CSV &amp; print reports</h3>
+            <p class="bento-desc">One-click export of 96-well tabular data, Excel clipboard TSV, and high-resolution annotated plates.</p>
+          </div>
+          <div class="bento-illust-wrap">
+            <div class="bento-export-chip-wrap">
+              <span class="bento-file-chip">📄 results.csv</span>
+              <span class="bento-file-chip">📋 TSV Clipboard</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -743,6 +980,10 @@
                 </div>
                 <span class="drop-primary-txt">Drop a plate photo or click to browse</span>
                 <span class="drop-sub-txt">Supports JPG, PNG, TIFF, WebP up to 80 MB</span>
+                <button type="button" class="btn btn-secondary btn-xs dropzone-sample-btn" id="btn-sample-dropzone">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"></path></svg>
+                  <span>Or try a sample plate</span>
+                </button>
                 <div class="ghost-plate-wrap" id="ghost-plate-wrap" aria-hidden="true">
                   <svg class="ghost-plate-svg" viewBox="0 0 320 200">
                     <rect x="4" y="4" width="312" height="192" rx="10" class="ghost-plate-rim" />
@@ -888,22 +1129,115 @@
           <div id="banner"></div>
 
           <!-- Results Section with Dashboard Header & Actions -->
-          <!-- Empty State Card (Before analysis is run) -->
+          <!-- Empty State Card (Before analysis is run - Requirement 4) -->
           <div class="card results-empty-card" id="results-empty-state">
-            <div class="empty-state-inner">
-              <svg class="state-illustration" viewBox="0 0 160 110" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect x="10" y="10" width="140" height="90" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-                <circle cx="35" cy="35" r="8" fill="rgba(245,165,36,0.15)" stroke="#F5A524" stroke-width="1.2" stroke-dasharray="2 2"/>
-                <circle cx="65" cy="35" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
-                <circle cx="95" cy="35" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
-                <circle cx="125" cy="35" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
-                <circle cx="35" cy="65" r="8" fill="rgba(45,212,191,0.15)" stroke="#2DD4BF" stroke-width="1.2" stroke-dasharray="2 2"/>
-                <circle cx="65" cy="65" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
-                <circle cx="95" cy="65" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
-                <circle cx="125" cy="65" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
-              </svg>
-              <h3>No Analysis Run Yet</h3>
-              <p>Upload a plate image, place corner handles, and press <strong>Run Analysis (R)</strong> to inspect optical density, control checks, and QC metrics.</p>
+            <div class="empty-state-workspace">
+              <!-- Ghost Header -->
+              <div class="ghost-results-header">
+                <div class="ghost-header-left">
+                  <div class="ghost-badge">
+                    <span class="ghost-status-dot"></span>
+                    <span>Ready for analysis</span>
+                  </div>
+                  <h3 class="ghost-results-title">2 · Expected Photometric Results</h3>
+                </div>
+                <button type="button" class="btn btn-secondary btn-xs ghost-demo-btn" id="btn-sample-empty-state">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"></path></svg>
+                  <span>Load demo plate (synthetic)</span>
+                </button>
+              </div>
+
+              <!-- Shimmering Skeleton KPI Cards -->
+              <div class="ghost-kpi-grid">
+                <div class="ghost-kpi-card glass-card shimmer-fx">
+                  <div class="ghost-kpi-head">
+                    <span class="ghost-pill-sm"></span>
+                    <span class="ghost-line-xs"></span>
+                  </div>
+                  <div class="ghost-line-lg"></div>
+                  <div class="ghost-line-sm"></div>
+                  <div class="ghost-kpi-meta">Mean Blank OD · sRGB linearized</div>
+                </div>
+
+                <div class="ghost-kpi-card glass-card shimmer-fx">
+                  <div class="ghost-kpi-head">
+                    <span class="ghost-pill-sm"></span>
+                    <span class="ghost-line-xs"></span>
+                  </div>
+                  <div class="ghost-line-lg"></div>
+                  <div class="ghost-line-sm"></div>
+                  <div class="ghost-kpi-meta">Positive Control Mean · Max separation</div>
+                </div>
+
+                <div class="ghost-kpi-card glass-card shimmer-fx">
+                  <div class="ghost-kpi-head">
+                    <span class="ghost-pill-sm"></span>
+                    <span class="ghost-line-xs"></span>
+                  </div>
+                  <div class="ghost-line-lg"></div>
+                  <div class="ghost-line-sm"></div>
+                  <div class="ghost-kpi-meta">Valid sample wells · 96 quantified</div>
+                </div>
+              </div>
+
+              <!-- Placeholder Heatmap & Table Ghost Grid -->
+              <div class="ghost-preview-layout">
+                <!-- Heatmap Ghost Deck -->
+                <div class="ghost-heatmap-card glass-card">
+                  <div class="ghost-card-label">
+                    <span>96-Well Matrix Heatmap Preview</span>
+                    <span class="ghost-tag">8 × 12 Grid</span>
+                  </div>
+                  <div class="ghost-wells-deck" aria-hidden="true">
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                    <div class="ghost-row"><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span><span class="gw"></span></div>
+                  </div>
+                </div>
+
+                <!-- "What You'll Get" Checklist Card -->
+                <div class="ghost-checklist-card glass-card">
+                  <div class="ghost-card-label">
+                    <span>What You'll Get</span>
+                    <span class="ghost-tag-cyan">Photometric Pipeline</span>
+                  </div>
+                  <ul class="ghost-checklist">
+                    <li class="checklist-item">
+                      <span class="check-icon">✓</span>
+                      <div>
+                        <strong>96 linearized optical densities</strong>
+                        <p>Blank-subtracted absorbance with transmittance math</p>
+                      </div>
+                    </li>
+                    <li class="checklist-item">
+                      <span class="check-icon">✓</span>
+                      <div>
+                        <strong>Automated QC validation</strong>
+                        <p>Validates blank levels, control separation &amp; CV thresholds</p>
+                      </div>
+                    </li>
+                    <li class="checklist-item">
+                      <span class="check-icon">✓</span>
+                      <div>
+                        <strong>Interactive linked views</strong>
+                        <p>Heatmap, scatter plot, and slide-in well inspector drawer</p>
+                      </div>
+                    </li>
+                    <li class="checklist-item">
+                      <span class="check-icon">✓</span>
+                      <div>
+                        <strong>Publication-ready export</strong>
+                        <p>One-click CSV, TSV clipboard, and JSON config export</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1135,6 +1469,7 @@
 
 
     <!-- 3. HOW IT WORKS SCROLL STORY -->
+        <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
     <section id="how-it-works" class="info-section scroll-story-section reveal" aria-labelledby="how-heading">
       <div class="section-header-block">
         <span class="section-eyebrow">Methodology</span>
@@ -1206,6 +1541,7 @@
     </section>
 
     <!-- 4. ASSAYS SECTION -->
+        <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
     <section id="assays" class="info-section reveal" aria-labelledby="assays-heading">
       <div class="section-header-block">
         <span class="section-eyebrow">Protocols</span>
@@ -1213,408 +1549,187 @@
         <p class="info-section-desc">Built-in protocol configurations adhering to international diagnostic guidelines, with verified well mappings, mathematical formulas, and automatic validation.</p>
       </div>
 
-      <div class="assay-cards-grid">
-        <!-- SPCE Card with 3D Tilt and Mini Diagram -->
-        <div class="assay-protocol-card tilt-card glass-card" id="card-proto-spce" data-tilt-max="6">
-          <div class="protocol-card-header">
-            <div class="protocol-badge-group">
-              <span class="protocol-pill spce-pill">Competitive ELISA</span>
-              <span class="protocol-mode-tag">PI Mode</span>
+      <div class="assay-pricing-grid">
+        <!-- Card 1: SPCE Protocol -->
+        <div class="assay-pricing-card tilt-card glass-card spotlight-card" id="card-proto-spce" data-tilt-max="6">
+          <div class="pricing-card-glow" aria-hidden="true"></div>
+          <div class="pricing-card-header">
+            <div class="pricing-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 60 60" fill="none" class="pricing-3d-icon">
+                <polygon points="30,8 50,22 30,52 10,22" fill="url(#mbCrystA)" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+                <polygon points="30,8 50,22 40,32 30,18" fill="url(#mbCrystB)" opacity="0.85"/>
+              </svg>
             </div>
-            <h3 class="protocol-name">SPCE (Solid Phase Competition)</h3>
-            <p class="protocol-subtitle">Percentage inhibition protocol for competitive antibody detection.</p>
+            <span class="pricing-badge spce-badge">Competitive ELISA</span>
+            <h3 class="pricing-title">SPCE Protocol</h3>
+            <p class="pricing-desc">Solid Phase Competition Percentage Inhibition assay for sensitive antibody titer screening.</p>
           </div>
 
-          <!-- Mini Plate Diagram that lights up on hover -->
-          <div class="assay-mini-diagram" aria-hidden="true">
-            <div class="mini-diagram-title">Control Layout (A1–D1 Antigen, E1–F1 Blank)</div>
-            <svg class="mini-diagram-svg" viewBox="0 0 280 120">
-              <rect x="2" y="2" width="276" height="116" rx="8" class="mini-diag-plate" />
-              <!-- Render 8x12 mini dots -->
-<circle cx="24" cy="16" r="4" class="mini-dot-antigen" />
-              <circle cx="45" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="29" r="4" class="mini-dot-antigen" />
-              <circle cx="45" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="42" r="4" class="mini-dot-antigen" />
-              <circle cx="45" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="55" r="4" class="mini-dot-antigen" />
-              <circle cx="45" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="68" r="4" class="mini-dot-blank" />
-              <circle cx="45" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="81" r="4" class="mini-dot-blank" />
-              <circle cx="45" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="107" r="4" class="mini-dot-sample" />
-            </svg>
+          <div class="pricing-formula-box">
+            <span class="pricing-formula-lbl">Diagnostic Equation</span>
+            <code class="pricing-formula-code">PI (%) = 100 × [1 − (OD − Blank) / (Max − Blank)]</code>
           </div>
 
-          <div class="formula-box" aria-label="SPCE Formula">
-            <div class="formula-label">Calculation Formula</div>
-            <code class="formula-code">PI (%) = 100 × [ 1 − (OD<sub>sample</sub> / OD<sub>max</sub>) ]</code>
-          </div>
+          <ul class="pricing-specs-list">
+            <li><span class="spec-check">✓</span> <span><strong>Antigen Wells:</strong> A1–D1 (Max Signal)</span></li>
+            <li><span class="spec-check">✓</span> <span><strong>Substrate Blanks:</strong> E1–F1 (Baseline)</span></li>
+            <li><span class="spec-check">✓</span> <span><strong>Diagnostic Cutoff:</strong> &ge; 65.0% Positive</span></li>
+            <li><span class="spec-check">✓</span> <span>Automated Range &amp; CV Integrity QC</span></li>
+          </ul>
 
-          <div class="protocol-specs">
-            <div class="spec-row">
-              <span class="spec-label">Antigen (max-signal) wells</span>
-              <span class="spec-value"><code>A1–D1</code> (uninhibited maximum signal)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Substrate blank wells</span>
-              <span class="spec-value"><code>E1–F1</code> (substrate optical baseline)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Diagnostic Cutoff</span>
-              <span class="spec-value"><strong>65.0%</strong> inhibition (≥ 65% = Positive)</span>
-            </div>
+          <div class="pricing-card-footer">
+            <button type="button" class="btn btn-primary preset-act-btn btn-magnetic" data-preset="SPCE" id="btn-use-spce-hero">
+              Use this preset
+            </button>
           </div>
-
-          <button type="button" class="btn btn-secondary preset-act-btn btn-magnetic" data-preset="SPCE">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="9 11 12 14 22 4"></polyline>
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-            </svg>
-            Use this preset
-          </button>
         </div>
 
-        <!-- DIVA Card with 3D Tilt and Mini Diagram -->
-        <div class="assay-protocol-card tilt-card glass-card" id="card-proto-diva" data-tilt-max="6">
-          <div class="protocol-card-header">
-            <div class="protocol-badge-group">
-              <span class="protocol-pill diva-pill">Differential ELISA</span>
-              <span class="protocol-mode-tag">PP Mode</span>
+        <!-- Card 2: DIVA Protocol -->
+        <div class="assay-pricing-card tilt-card glass-card spotlight-card featured-protocol" id="card-proto-diva" data-tilt-max="6">
+          <div class="featured-ribbon">Popular Standard</div>
+          <div class="pricing-card-glow featured-glow" aria-hidden="true"></div>
+          <div class="pricing-card-header">
+            <div class="pricing-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 60 60" fill="none" class="pricing-3d-icon">
+                <circle cx="30" cy="30" r="22" fill="url(#mbOrbGrad)" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+                <ellipse cx="25" cy="20" rx="9" ry="4.5" fill="#FFFFFF" opacity="0.65" transform="rotate(-25 25 20)"/>
+              </svg>
             </div>
-            <h3 class="protocol-name">DIVA (Differential / Indirect)</h3>
-            <p class="protocol-subtitle">Percentage positivity protocol differentiating infected from vaccinated animals.</p>
+            <span class="pricing-badge diva-badge">Differential ELISA</span>
+            <h3 class="pricing-title">DIVA Protocol</h3>
+            <p class="pricing-desc">Percentage Positivity differentiation protocol discriminating infected from vaccinated populations.</p>
           </div>
 
-          <!-- Mini Plate Diagram that lights up on hover -->
-          <div class="assay-mini-diagram" aria-hidden="true">
-            <div class="mini-diagram-title">Control Layout (H7–H8 Pos, H9–H10 Neg, H11–H12 Blank)</div>
-            <svg class="mini-diagram-svg" viewBox="0 0 280 120">
-              <rect x="2" y="2" width="276" height="116" rx="8" class="mini-diag-plate" />
-<circle cx="24" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="16" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="29" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="42" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="55" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="68" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="81" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="171" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="192" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="213" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="234" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="255" cy="94" r="4" class="mini-dot-sample" />
-              <circle cx="24" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="45" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="66" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="87" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="108" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="129" cy="107" r="4" class="mini-dot-sample" />
-              <circle cx="150" cy="107" r="4" class="mini-dot-pos" />
-              <circle cx="171" cy="107" r="4" class="mini-dot-pos" />
-              <circle cx="192" cy="107" r="4" class="mini-dot-neg" />
-              <circle cx="213" cy="107" r="4" class="mini-dot-neg" />
-              <circle cx="234" cy="107" r="4" class="mini-dot-blank" />
-              <circle cx="255" cy="107" r="4" class="mini-dot-blank" />
-            </svg>
+          <div class="pricing-formula-box">
+            <span class="pricing-formula-lbl">Diagnostic Equation</span>
+            <code class="pricing-formula-code">PP (%) = 100 × [(OD − Neg) / (Pos − Neg)]</code>
           </div>
 
-          <div class="formula-box" aria-label="DIVA Formula">
-            <div class="formula-label">Calculation Formula</div>
-            <code class="formula-code">PP (%) = 100 × [ (OD<sub>sample</sub> − OD<sub>neg</sub>) / (OD<sub>pos</sub> − OD<sub>neg</sub>) ]</code>
+          <ul class="pricing-specs-list">
+            <li><span class="spec-check">✓</span> <span><strong>Positive Controls:</strong> H7–H8</span></li>
+            <li><span class="spec-check">✓</span> <span><strong>Negative Controls:</strong> H9–H10</span></li>
+            <li><span class="spec-check">✓</span> <span><strong>Substrate Blanks:</strong> H11–H12</span></li>
+            <li><span class="spec-check">✓</span> <span><strong>Diagnostic Cutoff:</strong> &ge; 40.0% Positive</span></li>
+          </ul>
+
+          <div class="pricing-card-footer">
+            <button type="button" class="btn btn-primary preset-act-btn btn-magnetic" data-preset="DIVA" id="btn-use-diva-hero">
+              Use this preset
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3: Custom Protocol -->
+        <div class="assay-pricing-card tilt-card glass-card spotlight-card" id="card-proto-custom" data-tilt-max="6">
+          <div class="pricing-card-glow" aria-hidden="true"></div>
+          <div class="pricing-card-header">
+            <div class="pricing-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 60 60" fill="none" class="pricing-3d-icon">
+                <polygon points="30,10 50,45 10,45" fill="url(#mbCrystB)" stroke="rgba(255,255,255,0.6)" stroke-width="1.2"/>
+                <polygon points="30,10 50,45 30,40" fill="url(#mbCrystA)" opacity="0.8"/>
+              </svg>
+            </div>
+            <span class="pricing-badge custom-badge">User Configured</span>
+            <h3 class="pricing-title">Custom Protocol</h3>
+            <p class="pricing-desc">Free-form control geometry, dual gray-zone thresholds, and spectrophotometer curve fitting.</p>
           </div>
 
-          <div class="protocol-specs">
-            <div class="spec-row">
-              <span class="spec-label">Positive control wells</span>
-              <span class="spec-value"><code>H7–H8</code> (strongly positive reference)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Negative control wells</span>
-              <span class="spec-value"><code>H9–H10</code> (negative serum reference)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Substrate blank wells</span>
-              <span class="spec-value"><code>H11–H12</code> (substrate baseline)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Diagnostic Cutoff</span>
-              <span class="spec-value"><strong>40.0%</strong> positivity (≥ 40% = Positive)</span>
-            </div>
+          <div class="pricing-formula-box">
+            <span class="pricing-formula-lbl">Diagnostic Equation</span>
+            <code class="pricing-formula-code">OD_cal = (OD − Blank) × m + c</code>
           </div>
 
-          <button type="button" class="btn btn-secondary preset-act-btn btn-magnetic" data-preset="DIVA">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="9 11 12 14 22 4"></polyline>
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-            </svg>
-            Use this preset
-          </button>
+          <ul class="pricing-specs-list">
+            <li><span class="spec-check">✓</span> <span>Interactive 8×12 Well Role Painter</span></li>
+            <li><span class="spec-check">✓</span> <span>Upper &amp; Lower Borderline Limits</span></li>
+            <li><span class="spec-check">✓</span> <span>Linear / Quadratic Spectrophotometer Fit</span></li>
+            <li><span class="spec-check">✓</span> <span>JSON Configuration Import &amp; Export</span></li>
+          </ul>
+
+          <div class="pricing-card-footer">
+            <a href="#analyzer" class="btn btn-secondary preset-act-btn btn-magnetic">
+              Customise in analyzer
+            </a>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- 5. PHOTO TIPS SECTION (Interactive Carousel) -->
+        <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
     <section id="photo-tips" class="info-section reveal" aria-labelledby="tips-heading">
-      <div class="photo-tips-card glass-card">
-        <div class="tips-header">
-          <div class="tips-icon-wrap">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-          </div>
-          <div>
-            <h2 id="tips-heading" class="tips-title">Plate Photography Best Practices</h2>
-            <p class="tips-subtitle">Laboratory imaging guidelines for quantitative photometric accuracy. Swipe or use arrow keys to browse.</p>
-          </div>
-          <!-- Carousel Navigation Controls -->
-          <div class="carousel-nav-controls">
-            <button type="button" class="carousel-btn prev-btn" id="btn-tips-prev" aria-label="Previous photo tips slide">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <button type="button" class="carousel-btn next-btn" id="btn-tips-next" aria-label="Next photo tips slide">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-          </div>
-        </div>
+      <div class="section-header-block">
+        <span class="section-eyebrow">04 / Laboratory Standards</span>
+        <h2 id="tips-heading" class="info-section-title">Principles of Optical Capture</h2>
+        <p class="info-section-desc">Smartphone camera sensors deliver analytical accuracy within 2% of spectrophotometers when following these physical capture principles.</p>
+      </div>
 
-        <!-- Carousel Track Wrapper -->
-        <div class="tips-carousel-wrap" id="tips-carousel-wrap" tabindex="0" role="region" aria-label="Photo Tips Carousel" aria-roledescription="carousel">
-          <div class="tips-carousel-track" id="tips-carousel-track">
-            <!-- Slide 1 -->
-            <div class="tips-slide active" role="group" aria-roledescription="slide" aria-label="1 of 3">
-              <div class="tip-item">
-                <div class="tip-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="tip-body">
-                  <strong>Straight-down shot (90°)</strong>
-                  <span>Hold the camera perpendicular directly above the plate center to eliminate perspective parallax and sidewall shadowing.</span>
-                </div>
+      <div class="principles-panel glass-card">
+        <!-- Ambient radial glow behind principles -->
+        <div class="principles-glow" aria-hidden="true"></div>
+
+        <div class="principles-layout">
+          <!-- Left Satellite Cards -->
+          <div class="principles-col col-left">
+            <div class="principle-card glass-card spotlight-card">
+              <div class="principle-num">01</div>
+              <h4>Straight-down (90°)</h4>
+              <p>Position camera lens perpendicular to the plate deck. Prevents perspective parallax and optical sidewall shadowing.</p>
+            </div>
+            <div class="principle-card glass-card spotlight-card">
+              <div class="principle-num">02</div>
+              <h4>Even diffuse lighting</h4>
+              <p>Use a white light box or indirect ambient daylight. Avoid harsh single-point ceiling spotlights that create specular glints on menisci.</p>
+            </div>
+          </div>
+
+          <!-- Central Glowing Core Card -->
+          <div class="principles-center-card glass-card">
+            <div class="center-card-inner">
+              <div class="center-icon-wrap" aria-hidden="true">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
               </div>
-              <div class="tip-item">
-                <div class="tip-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="tip-body">
-                  <strong>Light box or diffuse illumination</strong>
-                  <span>Place the plate on a uniform white light box or use diffuse ambient daylight. Avoid harsh single-point ceiling spot lamps.</span>
-                </div>
+              <span class="center-eyebrow">OPTICAL INTEGRITY</span>
+              <h3 class="center-title">Optimal Imaging Environment</h3>
+              <p class="center-desc">Eliminates geometric distortion, meniscus reflection, and tonal compression before computational homography.</p>
+              <div class="center-meter-pill">
+                <span class="center-dot"></span>
+                <span>Photometric Fidelity &ge; 98.4%</span>
               </div>
             </div>
+          </div>
 
-            <!-- Slide 2 -->
-            <div class="tips-slide" role="group" aria-roledescription="slide" aria-label="2 of 3">
-              <div class="tip-item">
-                <div class="tip-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="tip-body">
-                  <strong>Locked exposure &amp; white balance</strong>
-                  <span>Lock auto-exposure (AE/AF lock) and disable computational HDR on your phone to prevent automatic per-shot brightness drift.</span>
-                </div>
-              </div>
-              <div class="tip-item">
-                <div class="tip-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="tip-body">
-                  <strong>Avoid meniscus glare &amp; bubbles</strong>
-                  <span>Tap the plate gently to dislodge liquid bubbles. Ensure lamp reflections do not directly fall onto well liquid menisci.</span>
-                </div>
-              </div>
+          <!-- Right Satellite Cards -->
+          <div class="principles-col col-right">
+            <div class="principle-card glass-card spotlight-card">
+              <div class="principle-num">03</div>
+              <h4>Locked exposure &amp; WB</h4>
+              <p>Lock exposure (AE/AF lock) and turn off computational multi-frame HDR to avoid inconsistent per-well tone-mapping.</p>
             </div>
-
-            <!-- Slide 3 -->
-            <div class="tips-slide" role="group" aria-roledescription="slide" aria-label="3 of 3">
-              <div class="tip-item">
-                <div class="tip-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="tip-body">
-                  <strong>Use PNG or original camera file</strong>
-                  <span>Upload original camera JPEGs or PNGs. Avoid transferring photos through messaging apps that compress or re-encode images.</span>
-                </div>
-              </div>
-              <div class="tip-item">
-                <div class="tip-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="tip-body">
-                  <strong>Keep blank wells in frame</strong>
-                  <span>Always include designated substrate/empty blank wells in the photograph under identical lighting for blank-referencing.</span>
-                </div>
-              </div>
+            <div class="principle-card glass-card spotlight-card">
+              <div class="principle-num">04</div>
+              <h4>Lossless PNG format</h4>
+              <p>Upload original camera captures. Avoid messaging apps that recompress images and introduce 8×8 DCT block artifacts.</p>
             </div>
           </div>
         </div>
 
-        <!-- Carousel Indicators -->
-        <div class="carousel-dots" id="tips-dots" aria-label="Photo tips carousel pagination">
-          <button type="button" class="dot-btn active" data-slide="0" aria-label="Slide 1"></button>
-          <button type="button" class="dot-btn" data-slide="1" aria-label="Slide 2"></button>
-          <button type="button" class="dot-btn" data-slide="2" aria-label="Slide 3"></button>
+        <!-- Bottom 5th Satellite Card -->
+        <div class="principle-card-bottom glass-card spotlight-card">
+          <div class="principle-num">05</div>
+          <div class="principle-bottom-content">
+            <h4>Substrate blanks in identical illumination</h4>
+            <p>Always keep clear substrate/stop buffer reference wells in frame to compute exact transmittance baseline T = I_sample / I_blank.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- 6. ACCESSIBLE FAQ ACCORDION -->
+        <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
     <section id="faq" class="info-section reveal" aria-labelledby="faq-heading">
       <div class="section-header-block">
         <span class="section-eyebrow">Knowledge Base</span>
@@ -1722,6 +1837,39 @@
               <p>Lossless 24-bit PNG or original camera JPEG files without aggressive post-processing offer optimal color depth for optical density quantification.</p>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+    <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
+
+    <!-- 7. FINAL BIG CTA BAND (Moodboard Orbiting Horizon Glow) -->
+    <section class="final-cta-section reveal" aria-labelledby="cta-heading">
+      <div class="cta-orbit-glow" aria-hidden="true"></div>
+      <div class="cta-inner-card glass-card">
+        <div class="cta-badge">
+          <span class="cta-dot"></span>
+          <span>Zero Installation · 100% Offline</span>
+        </div>
+        <h2 id="cta-heading" class="cta-title">
+          Ready to quantify your microplates with <span class="gradient-text">laboratory rigor</span>?
+        </h2>
+        <p class="cta-desc">
+          Upload any stopped ELISA photo or explore with our built-in synthetic 96-well test plate. No account, no cloud servers, and no subscriptions.
+        </p>
+        <div class="cta-actions">
+          <a href="#analyzer" class="btn btn-primary hero-btn btn-magnetic" id="btn-cta-open">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>Open analyzer</span>
+          </a>
+          <button type="button" class="btn btn-secondary hero-btn btn-magnetic" id="btn-try-sample-cta">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"></path>
+            </svg>
+            <span>Try a sample plate</span>
+          </button>
         </div>
       </div>
     </section>

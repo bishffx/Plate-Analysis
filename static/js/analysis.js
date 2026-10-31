@@ -174,8 +174,9 @@ export async function handleFileUpload(file) {
     if (szEl) szEl.textContent = `(${szStr} • ${S.w} × ${S.h} px)`;
 
     const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(previewUrl);
+    await new Promise((resolve, reject) => {
+      img.onload = () => {
+        URL.revokeObjectURL(previewUrl);
       S.img = img;
       initCorners();
 
@@ -247,7 +248,6 @@ export async function handleFileUpload(file) {
       const modeEl = $("mode");
       if (modeEl) modeEl.disabled = false;
 
-      if (runBtn) runBtn.disabled = true;
       const resultsEl = $("results");
       if (resultsEl) resultsEl.hidden = true;
 
@@ -257,8 +257,11 @@ export async function handleFileUpload(file) {
         window.pendingAssay = null;
       }
       updateStepperValidation();
-    };
-    img.src = previewUrl;
+        resolve();
+      };
+      img.onerror = () => reject(new Error("Failed to load image element"));
+      img.src = previewUrl;
+    });
   } catch (err) {
     showMsgs([err.message], []);
   }

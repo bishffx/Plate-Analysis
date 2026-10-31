@@ -17,6 +17,7 @@ import { initWellPainter } from "./painter.js";
 import { initValidation } from "./validation.js";
 import { initGridControls } from "./grid.js";
 import { initUpload, initAnalysis } from "./analysis.js";
+import { initSamplePlateControls } from "./sample-plate.js";
 import { initResultsControls } from "./results.js";
 import { initCalibration } from "./calibration.js";
 import { initConfigControls } from "./config.js";
@@ -61,6 +62,7 @@ function bootstrap() {
   // 7. Initialize Upload & Analysis Execution
   initUpload();
   initAnalysis();
+  initSamplePlateControls();
 
   // 8. Initialize Results & Lightbox
   initResultsControls();
@@ -75,8 +77,8 @@ function bootstrap() {
   initBatchControls();
 
   // 12. Initialize Premium Micro-Effects & Finishing Interactions
-  initScrollReveal(".scroll-reveal, .timeline-item, .card, .preset-card, .summary-card");
-  initAllSpotlights(".card, .preset-card, .kpi-card, .summary-card, .faq-item, .summary-strip-card");
+  initScrollReveal(".scroll-reveal, .timeline-item, .card, .preset-card, .summary-card, .bento-card, .assay-pricing-card, .principles-panel, .final-cta-section, .reveal");
+  initAllSpotlights(".card, .preset-card, .kpi-card, .summary-card, .faq-item, .summary-strip-card, .bento-card, .assay-pricing-card, .principle-card");
   initAllMagnetics(".btn-primary, .btn-run, .btn-magnetic");
   initAmbientAurora();
   initCommandPalette();

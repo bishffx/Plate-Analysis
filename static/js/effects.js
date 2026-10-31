@@ -163,6 +163,7 @@ export function initScrollReveal(selector = ".scroll-reveal, .timeline-item") {
   if (isReducedMotion()) {
     document.querySelectorAll(selector).forEach((el) => {
       el.classList.add("visible");
+      el.classList.add("revealed");
     });
     return;
   }
@@ -172,6 +173,7 @@ export function initScrollReveal(selector = ".scroll-reveal, .timeline-item") {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("visible");
+          entry.target.classList.add("revealed");
           obs.unobserve(entry.target);
         }
       });
@@ -190,6 +192,7 @@ export function observeReveal(element) {
   if (!element) return;
   if (isReducedMotion()) {
     element.classList.add("visible");
+    element.classList.add("revealed");
     return;
   }
   if (!sharedObserver) {

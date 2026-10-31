@@ -26,6 +26,7 @@ export function initNavigation() {
   initScrollSpy();
   initTypewriter();
   initDemoMeter();
+  initHeroLivePreviewCard();
   initScrollStory();
   initAssayTilt();
   initPhotoTipsCarousel();
@@ -184,12 +185,13 @@ function initTypewriter() {
 // 5. Live Demo Meter Animation
 // -----------------------------------------------------------------------------
 function initDemoMeter() {
-  const meterWrap = $("hero-demo-meter");
-  if (!meterWrap) return;
+  const statWrap = $("hero-stat-strip") || $("hero-demo-meter");
+  if (!statWrap) return;
 
-  const elWells = $("meter-wells");
-  const elQC = $("meter-qc");
-  const elTime = $("meter-time");
+  const elWells = $("stat-wells") || $("meter-wells");
+  const elQC = $("stat-qc") || $("meter-qc");
+  const elTime = $("stat-time") || $("meter-time");
+  const elRes = $("stat-res");
 
   let animated = false;
 
@@ -206,19 +208,97 @@ function initDemoMeter() {
     if (elTime) {
       countUp(elTime, 1.2, 800, (n) => `< ${n.toFixed(1)}s`);
     }
+    if (elRes) {
+      countUp(elRes, 0.001, 800, (n) => n.toFixed(3));
+    }
   };
 
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
         triggerAnimation();
-        observer.unobserve(meterWrap);
+        observer.unobserve(statWrap);
       }
     }, { threshold: 0.1 });
-    observer.observe(meterWrap);
+    observer.observe(statWrap);
   } else {
     triggerAnimation();
   }
+}
+
+// Floating Live Preview Card in Hero
+function initHeroLivePreviewCard() {
+  const cv = $("hero-mini-heatmap");
+  if (!cv) return;
+  const ctx = cv.getContext("2d");
+  if (!ctx) return;
+
+  const rows = 8;
+  const cols = 12;
+  const cellW = cv.width / cols;
+  const cellH = cv.height / rows;
+
+  const demoODs = [
+    [1.85, 1.72, 1.54, 1.32, 1.10, 0.88, 0.65, 0.44, 0.28, 0.18, 0.12, 0.08],
+    [1.89, 1.68, 1.49, 1.28, 1.05, 0.82, 0.60, 0.41, 0.25, 0.16, 0.10, 0.07],
+    [0.15, 0.95, 0.84, 0.72, 0.58, 0.46, 0.34, 0.22, 0.15, 0.11, 0.08, 0.06],
+    [0.14, 0.52, 0.48, 0.42, 0.36, 0.30, 0.24, 0.18, 0.14, 0.10, 0.07, 0.05],
+    [0.04, 0.38, 0.36, 0.34, 0.32, 0.28, 0.22, 0.16, 0.12, 0.09, 0.06, 0.05],
+    [0.04, 0.14, 0.13, 0.12, 0.11, 0.10, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04],
+    [0.04, 0.12, 0.11, 0.10, 0.09, 0.08, 0.07, 0.07, 0.06, 0.05, 0.05, 0.04],
+    [0.04, 1.45, 1.12, 0.85, 0.62, 0.45, 0.31, 0.21, 0.14, 0.09, 0.06, 0.04]
+  ];
+
+  function drawHeatmap(shift = 0) {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const val = Math.max(0.02, Math.min(2.2, demoODs[r][c] + Math.sin(shift + r * 0.4 + c * 0.3) * 0.05));
+        const t = val / 2.2;
+        
+        const red = Math.round(250 - t * 40);
+        const grn = Math.round(240 - t * 130);
+        const blu = Math.round(210 - t * 190);
+        const alpha = 0.3 + t * 0.65;
+
+        const x = c * cellW + 1.5;
+        const y = r * cellH + 1.5;
+        const w = cellW - 3;
+        const h = cellH - 3;
+
+        ctx.fillStyle = `rgba(${red}, ${grn}, ${blu}, ${alpha})`;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, w, h, 2);
+        } else {
+          ctx.rect(x, y, w, h);
+        }
+        ctx.fill();
+      }
+    }
+  }
+
+  drawHeatmap(0);
+
+  if (isReducedMotion()) return;
+
+  let step = 0;
+  setInterval(() => {
+    if (document.hidden) return;
+    step += 0.4;
+    drawHeatmap(step);
+
+    const blankEl = $("hero-preview-blank");
+    const posEl = $("hero-preview-pos");
+    if (blankEl) {
+      const bVal = (0.041 + Math.sin(step) * 0.002).toFixed(3);
+      blankEl.textContent = `${bVal} OD`;
+    }
+    if (posEl) {
+      const pVal = (1.84 + Math.cos(step) * 0.03).toFixed(2);
+      posEl.textContent = `${pVal} OD`;
+    }
+  }, 3200);
 }
 
 // -----------------------------------------------------------------------------
@@ -251,7 +331,7 @@ function initScrollStory() {
 // 7. 3D Tilt on Assay Cards
 // -----------------------------------------------------------------------------
 function initAssayTilt() {
-  const tiltCards = $$(".assay-protocol-card.tilt-card");
+  const tiltCards = $$(".assay-protocol-card.tilt-card, .assay-pricing-card.tilt-card");
   if (isReducedMotion() || tiltCards.length === 0) return;
 
   tiltCards.forEach((card) => {
@@ -363,23 +443,48 @@ function initPhotoTipsCarousel() {
 // 9. Accessible FAQ Accordion
 // -----------------------------------------------------------------------------
 function initFaqAccordion() {
-  $$(".faq-question").forEach((btn) => {
+  $$(".accordion-header, .faq-question").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const item = btn.closest(".faq-item");
+      const item = btn.closest(".accordion-item, .faq-item");
       if (!item) return;
       const isOpen = item.classList.contains("open");
 
       // Close other accordion items
-      $$(".faq-item.open").forEach((other) => {
+      $$(".accordion-item, .faq-item").forEach((other) => {
         if (other !== item) {
           other.classList.remove("open");
-          const otherBtn = other.querySelector(".faq-question");
+          const otherBtn = other.querySelector(".accordion-header, .faq-question");
+          const otherPanel = other.querySelector(".accordion-panel, .faq-answer");
           if (otherBtn) otherBtn.setAttribute("aria-expanded", "false");
+          if (otherPanel) {
+            otherPanel.setAttribute("aria-hidden", "true");
+            setTimeout(() => {
+              if (!other.classList.contains("open")) otherPanel.hidden = true;
+            }, 320);
+          }
         }
       });
 
-      item.classList.toggle("open", !isOpen);
-      btn.setAttribute("aria-expanded", String(!isOpen));
+      const panel = item.querySelector(".accordion-panel, .faq-answer");
+      if (isOpen) {
+        item.classList.remove("open");
+        btn.setAttribute("aria-expanded", "false");
+        if (panel) {
+          panel.setAttribute("aria-hidden", "true");
+          setTimeout(() => {
+            if (!item.classList.contains("open")) panel.hidden = true;
+          }, 320);
+        }
+      } else {
+        if (panel) {
+          panel.hidden = false;
+          panel.setAttribute("aria-hidden", "false");
+        }
+        // Force reflow so transition runs
+        void item.offsetHeight;
+        item.classList.add("open");
+        btn.setAttribute("aria-expanded", "true");
+      }
     });
   });
 }

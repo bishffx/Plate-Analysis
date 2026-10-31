@@ -226,6 +226,24 @@
   .mobile-nav:not([hidden]) { display: flex; }
 }
 
+@media (max-width: 600px) {
+  .site-header { overflow: hidden; }
+  .header-container { padding: 10px 14px; gap: 8px; }
+  .theme-switch { display: none !important; }
+  .header-actions { gap: 6px; }
+  .status-chip .status-text { display: none; }
+  .header-logo-text { font-size: 15px; }
+  .brand-desc { display: none; }
+  .btn-palette-trigger .palette-btn-text,
+  .btn-palette-trigger .kbd-chip { display: none !important; }
+  .btn-palette-trigger { padding: 6px 8px; }
+}
+
+html, body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 /* ---------- Layout: Main Shell & Grid ---------- */
 .content-wrapper {
   max-width: var(--max-width);
