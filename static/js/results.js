@@ -47,8 +47,8 @@ function contrastColor(rgb) {
 const TMB_STOPS = [
   { t: 0.0, rgb: [255, 243, 196] }, // #FFF3C4
   { t: 0.35, rgb: [245, 165, 36] }, // #F5A524
-  { t: 0.70, rgb: [232, 89, 12] },  // #E8590C
-  { t: 1.0, rgb: [100, 28, 8] }     // deep amber-brown
+  { t: 0.70, rgb: [194, 86, 12] },  // #C2560C
+  { t: 1.0, rgb: [91, 30, 8] }      // #5B1E08
 ];
 
 export function tmbAmberColor(t) {
@@ -70,9 +70,9 @@ export function divergingColor(val, cutoff, lo, hi) {
     return { bg: "#1E2633", fg: "#8B97A8", isAbove: false };
   }
   const isAbove = val >= cutoff;
-  const TEAL = [60, 184, 168];     // #3CB8A8 (negative)
-  const WHITE = [240, 244, 250];   // #F0F4FA (at cutoff)
-  const CORAL = [240, 113, 79];    // #F0714F (positive)
+  const TEAL = [52, 211, 190];     // #34D3BE (negative)
+  const WHITE = [244, 241, 255];   // #F4F1FF (at cutoff)
+  const CORAL = [255, 122, 89];    // #FF7A59 (positive)
   let rgb;
 
   if (val < cutoff) {
@@ -89,13 +89,13 @@ export function divergingColor(val, cutoff, lo, hi) {
 
 export function getClassColor(clsName) {
   const c = (clsName || "").toLowerCase();
-  if (c.includes("pos")) return "#F0714F";
-  if (c.includes("neg")) return "#3CB8A8";
-  if (c.includes("doubt")) return "#EBCB6B";
-  if (c.includes("inv")) return "#C47DB6";
-  if (c.includes("ctl") || c.includes("control") || c.includes("antigen")) return "#6C97C4";
-  if (c.includes("blank")) return "#9AA1AB";
-  return "#64748B";
+  if (c.includes("pos")) return "#FF7A59";
+  if (c.includes("neg")) return "#34D3BE";
+  if (c.includes("doubt")) return "#F3CF6B";
+  if (c.includes("inv")) return "#E27BD0";
+  if (c.includes("ctl") || c.includes("control") || c.includes("antigen")) return "#7AA7FF";
+  if (c.includes("blank")) return "#A8A3C0";
+  return "#8279A8";
 }
 
 // -----------------------------------------------------------------------------
@@ -196,7 +196,7 @@ export function openWellInspector(well) {
   if (needle) needle.style.left = `${pct}%`;
   if (fill) {
     fill.style.width = `${pct}%`;
-    fill.style.background = pct >= cutoff ? "linear-gradient(90deg, #F5A524, #F0714F)" : "linear-gradient(90deg, #3CB8A8, #2DD4BF)";
+    fill.style.background = pct >= cutoff ? "linear-gradient(90deg, #F5A524, #FF7A59)" : "linear-gradient(90deg, #34D3BE, #22D3EE)";
   }
   if (cutoffLine) cutoffLine.style.left = `${cutoff}%`;
 
@@ -348,16 +348,19 @@ function renderDonutChart(r) {
 
   const s = r.summary || {};
   const data = [
-    { label: "Positive", count: s.positive || 0, color: "#F0714F" },
-    { label: "Negative", count: s.negative || 0, color: "#3CB8A8" },
-    { label: "Doubtful", count: s.doubtful || 0, color: "#EBCB6B" },
-    { label: "Invalid", count: s.invalid || 0, color: "#C47DB6" }
+    { label: "Positive", count: s.positive || 0, color: "#FF7A59" },
+    { label: "Negative", count: s.negative || 0, color: "#34D3BE" },
+    { label: "Doubtful", count: s.doubtful || 0, color: "#F3CF6B" },
+    { label: "Invalid", count: s.invalid || 0, color: "#E27BD0" }
   ].filter((d) => d.count > 0);
 
   const total = data.reduce((acc, d) => acc + d.count, 0) || 1;
   const centerLabel = $("donut-center-label");
   if (centerLabel) {
-    centerLabel.innerHTML = `${total}<br><span>samples</span>`;
+    clearChildren(centerLabel);
+    centerLabel.appendChild(document.createTextNode(String(total)));
+    centerLabel.appendChild(document.createElement("br"));
+    centerLabel.appendChild(el("span", "samples"));
   }
 
   const cx = w / 2;
@@ -761,10 +764,10 @@ function heat(r, key, nd) {
   const bar = el("div", undefined, "legend-bar");
 
   if (!isVal) {
-    bar.style.background = "linear-gradient(180deg, #641C08 0%, #E8590C 33%, #F5A524 67%, #FFF3C4 100%)";
+    bar.style.background = "linear-gradient(180deg, #5B1E08 0%, #C2560C 33%, #F5A524 67%, #FFF3C4 100%)";
   } else {
     const cutPos = hi > lo ? Math.max(0, Math.min(100, (1 - (activeCutoff - lo) / (hi - lo)) * 100)) : 50;
-    bar.style.background = `linear-gradient(180deg, #F0714F 0%, #F0F4FA ${cutPos}%, #3CB8A8 100%)`;
+    bar.style.background = `linear-gradient(180deg, #FF7A59 0%, #F4F1FF ${cutPos}%, #34D3BE 100%)`;
 
     // Draggable Cutoff Marker
     const cMark = el("div", undefined, "legend-cutoff-draggable");

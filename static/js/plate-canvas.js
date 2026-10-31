@@ -349,13 +349,13 @@ function drawDirect() {
 
       g.save();
       if (active) {
-        g.shadowColor = "#F5A524";
+        g.shadowColor = "#8B5CF6";
         g.shadowBlur = isDragged ? 22 : 14;
       }
 
       // Outer ring
       g.lineWidth = active ? 3 : 2.5;
-      g.strokeStyle = "#F5A524";
+      g.strokeStyle = "#A78BFA";
       g.fillStyle = isDragged
         ? "rgba(245, 165, 36, 0.4)"
         : (isSelected ? "rgba(245, 165, 36, 0.22)" : "rgba(11, 15, 20, 0.85)");
@@ -389,7 +389,7 @@ function drawDirect() {
       g.strokeStyle = "rgba(0, 0, 0, 0.85)";
       g.lineWidth = 2.5;
       g.strokeText(lb[i], lx + 13, ly + 9);
-      g.fillStyle = isSelected ? "#F5A524" : "#FFFFFF";
+      g.fillStyle = isSelected ? "#D946EF" : "#FFFFFF";
       g.fillText(lb[i], lx + 13, ly + 9);
       g.restore();
     });
@@ -451,7 +451,7 @@ function drawDirect() {
 
     // Loupe outer ring
     g.save();
-    g.strokeStyle = "#F5A524";
+    g.strokeStyle = "#A78BFA";
     g.lineWidth = 2.5;
     g.beginPath();
     g.arc(lx, ly, loupeR, 0, 6.2832);
@@ -459,7 +459,7 @@ function drawDirect() {
 
     // 4x zoom badge
     g.fillStyle = "rgba(11, 15, 20, 0.9)";
-    g.strokeStyle = "#F5A524";
+    g.strokeStyle = "#A78BFA";
     g.lineWidth = 1;
     roundRect(g, lx - 18, ly + loupeR - 12, 36, 16, 4);
     g.fill();
@@ -950,13 +950,13 @@ function renderHeroFrame(now, dt) {
 
   // Subtle ink glass gradient
   const slabGrad = heroCtx.createLinearGradient(centerX, plateTopY, centerX, plateBotY);
-  slabGrad.addColorStop(0, "rgba(18, 28, 45, 0.75)");
-  slabGrad.addColorStop(1, "rgba(8, 14, 24, 0.88)");
+  slabGrad.addColorStop(0, "rgba(28, 16, 52, 0.85)");
+  slabGrad.addColorStop(1, "rgba(10, 7, 24, 0.94)");
   heroCtx.fillStyle = slabGrad;
   heroCtx.fill();
 
   heroCtx.lineWidth = 1.5;
-  heroCtx.strokeStyle = "rgba(255, 255, 255, 0.09)";
+  heroCtx.strokeStyle = "rgba(167, 139, 250, 0.25)";
   heroCtx.stroke();
   heroCtx.restore();
 
@@ -968,9 +968,9 @@ function renderHeroFrame(now, dt) {
   heroCtx.lineTo(plateRightBot + 2, plateBotY + 10);
   heroCtx.lineTo(plateLeftBot - 2, plateBotY + 10);
   heroCtx.closePath();
-  heroCtx.fillStyle = "rgba(12, 20, 32, 0.95)";
+  heroCtx.fillStyle = "rgba(18, 10, 36, 0.96)";
   heroCtx.fill();
-  heroCtx.strokeStyle = "rgba(245, 165, 36, 0.2)";
+  heroCtx.strokeStyle = "rgba(217, 70, 239, 0.35)";
   heroCtx.lineWidth = 1;
   heroCtx.stroke();
   heroCtx.restore();
@@ -1072,10 +1072,10 @@ function renderHeroFrame(now, dt) {
 
     heroCtx.beginPath();
     heroCtx.ellipse(well.x, well.y, rx * well.scale, ry * well.scale, 0, 0, Math.PI * 2);
-    heroCtx.fillStyle = "rgba(10, 16, 26, 0.9)";
+    heroCtx.fillStyle = "rgba(15, 10, 30, 0.92)";
     heroCtx.fill();
     heroCtx.lineWidth = 1.2;
-    heroCtx.strokeStyle = `rgba(255, 255, 255, ${0.06 + well.glow * 0.25})`;
+    heroCtx.strokeStyle = `rgba(167, 139, 250, ${0.12 + well.glow * 0.4})`;
     heroCtx.stroke();
 
     // Well inner glowing liquid disc

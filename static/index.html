@@ -162,7 +162,61 @@
   <div class="content-wrapper">
 
     <!-- 1. HERO (Home) -->
-    <section class="hero-section reveal" id="home" aria-labelledby="hero-heading">
+    <section class="hero-section revealed" id="home" aria-labelledby="hero-heading">
+      <!-- Luminous Horizon-Arc Glow (Moodboard) -->
+      <div class="hero-horizon-arc" aria-hidden="true"></div>
+
+      <!-- Glossy 3D Abstract Iridescent Crystal & Glass Orb -->
+      <div class="moodboard-crystal-wrap crystal-hero-right" aria-hidden="true">
+        <svg viewBox="0 0 140 140" fill="none" class="glossy-crystal-svg">
+          <defs>
+            <linearGradient id="mbCrystA" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+              <stop offset="30%" stop-color="#E9D5FF" stop-opacity="0.85"/>
+              <stop offset="70%" stop-color="#8B5CF6" stop-opacity="0.75"/>
+              <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.9"/>
+            </linearGradient>
+            <linearGradient id="mbCrystB" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#F472B6" stop-opacity="0.95"/>
+              <stop offset="45%" stop-color="#D946EF" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#4F46E5" stop-opacity="0.6"/>
+            </linearGradient>
+            <radialGradient id="mbGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#D946EF" stop-opacity="0.45"/>
+              <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="70" cy="70" r="60" fill="url(#mbGlow)"/>
+          <polygon points="70,16 112,50 70,122 28,50" fill="url(#mbCrystA)" stroke="rgba(255,255,255,0.75)" stroke-width="1.2"/>
+          <polygon points="70,16 112,50 88,68 70,40" fill="url(#mbCrystB)" opacity="0.88"/>
+          <polygon points="70,16 28,50 52,68 70,40" fill="url(#mbCrystA)" opacity="0.7"/>
+          <polygon points="70,122 112,50 88,68" fill="url(#mbCrystB)" opacity="0.75"/>
+          <polygon points="70,122 28,50 52,68" fill="url(#mbCrystA)" opacity="0.6"/>
+          <polygon points="70,40 88,68 70,122 52,68" fill="url(#mbCrystB)" opacity="0.95" stroke="rgba(255,255,255,0.9)" stroke-width="0.8"/>
+        </svg>
+      </div>
+
+      <div class="moodboard-crystal-wrap crystal-hero-left" aria-hidden="true">
+        <svg viewBox="0 0 100 100" fill="none" class="glossy-ribbon-svg">
+          <defs>
+            <linearGradient id="mbOrbGrad" x1="20%" y1="20%" x2="90%" y2="90%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+              <stop offset="25%" stop-color="#A78BFA" stop-opacity="0.75"/>
+              <stop offset="65%" stop-color="#4F46E5" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#0A0718" stop-opacity="0.95"/>
+            </linearGradient>
+            <radialGradient id="mbOrbRim" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+              <stop offset="40%" stop-color="#D946EF" stop-opacity="0.4"/>
+              <stop offset="85%" stop-color="#7C3AED" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#22D3EE" stop-opacity="0.5"/>
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="38" fill="url(#mbOrbGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+          <circle cx="50" cy="50" r="38" fill="url(#mbOrbRim)"/>
+          <ellipse cx="42" cy="35" rx="14" ry="7" fill="#FFFFFF" opacity="0.65" transform="rotate(-25 42 35)"/>
+        </svg>
+      </div>
       <!-- Full-viewport soft perspective canvas -->
       <div class="hero-canvas-wrap" id="hero-canvas-wrap">
         <canvas id="hero-plate-canvas" class="hero-plate-canvas" aria-label="Interactive 96-well ELISA microplate simulation"></canvas>

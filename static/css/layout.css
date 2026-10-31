@@ -44,7 +44,7 @@
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--amber-primary), var(--amber-end));
+  background: linear-gradient(135deg, #FFFFFF 0%, #D8B4FE 45%, #C084FC 75%, #F472B6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1.1;
@@ -76,12 +76,13 @@
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(245, 165, 36, 0.08);
+  background: rgba(167, 139, 250, 0.12);
 }
 
 .nav-link.active {
-  color: var(--amber-primary);
-  background: rgba(245, 165, 36, 0.12);
+  color: #FFFFFF;
+  background: rgba(124, 58, 237, 0.25);
+  border: 1px solid rgba(167, 139, 250, 0.35);
 }
 
 /* Header Actions: Theme Switcher, Server Status, Mobile Toggle */
@@ -443,11 +444,12 @@ aside.stepper-aside {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: rgba(245, 165, 36, 0.12);
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--amber-primary);
+  color: #D8B4FE;
   flex-shrink: 0;
 }
 
@@ -483,8 +485,9 @@ aside.stepper-aside {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--amber-primary);
+  color: #C084FC;
   margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.4);
 }
 
 .info-section-title {
@@ -663,7 +666,7 @@ aside.stepper-aside {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
   font-weight: 600;
-  color: var(--amber-primary);
+  color: #D8B4FE;
   display: block;
 }
 
@@ -943,7 +946,7 @@ aside.stepper-aside {
 }
 
 .notice-box {
-  background: rgba(245, 165, 36, 0.08);
+  background: rgba(167, 139, 250, 0.12);
   border: 1px solid rgba(245, 165, 36, 0.25);
   border-radius: var(--radius-sm);
   padding: var(--space-4);
@@ -953,7 +956,7 @@ aside.stepper-aside {
 }
 
 .notice-box strong {
-  color: var(--amber-primary);
+  color: #D8B4FE;
   display: block;
   margin-bottom: 4px;
 }

@@ -16,9 +16,9 @@ let isReducedMotion = false;
 
 // Slow-moving gradient blobs
 const blobs = [
-  { cx: 0.25, cy: 0.35, r: 0.38, colorDark: "rgba(245, 165, 36, 0.08)", colorLight: "rgba(245, 165, 36, 0.04)", speedX: 0.00015, speedY: 0.00021, phaseX: 0, phaseY: 1.2 },
-  { cx: 0.75, cy: 0.65, r: 0.42, colorDark: "rgba(45, 212, 191, 0.07)", colorLight: "rgba(45, 212, 191, 0.035)", speedX: 0.00018, speedY: 0.00014, phaseX: 2.1, phaseY: 0.5 },
-  { cx: 0.50, cy: 0.85, r: 0.35, colorDark: "rgba(139, 92, 246, 0.06)", colorLight: "rgba(139, 92, 246, 0.03)", speedX: 0.00012, speedY: 0.00025, phaseX: 4.2, phaseY: 3.1 }
+  { cx: 0.25, cy: 0.35, r: 0.40, colorDark: "rgba(139, 92, 246, 0.22)", colorLight: "rgba(139, 92, 246, 0.08)", speedX: 0.00015, speedY: 0.00021, phaseX: 0, phaseY: 1.2 },
+  { cx: 0.75, cy: 0.65, r: 0.44, colorDark: "rgba(217, 70, 239, 0.18)", colorLight: "rgba(217, 70, 239, 0.06)", speedX: 0.00018, speedY: 0.00014, phaseX: 2.1, phaseY: 0.5 },
+  { cx: 0.50, cy: 0.85, r: 0.38, colorDark: "rgba(59, 130, 246, 0.16)", colorLight: "rgba(59, 130, 246, 0.05)", speedX: 0.00012, speedY: 0.00025, phaseX: 4.2, phaseY: 3.1 }
 ];
 
 export function initAmbientAurora() {
