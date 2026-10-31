@@ -69,10 +69,10 @@
   /* Typography / High-Contrast Compliant (>= 4.5:1 against ink backgrounds) */
   --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-subtle: #64748B;
+  --text-muted: #8CA0B8;
+  --text-subtle: #8CA0B8;
   --input-color: #F1F5F9;
-  --placeholder-color: #64748B;
+  --placeholder-color: #8CA0B8;
 
   /* Semantic */
   --color-success: #34D399;
@@ -153,7 +153,7 @@
   --footer-bg: #070B12;
   --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-muted: #8CA0B8;
   --input-color: #F1F5F9;
   --card-border: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(255, 255, 255, 0.08);
@@ -194,8 +194,8 @@
 
   --text-primary: #0F172A;
   --text-secondary: #334155;
-  --text-muted: #64748B;
-  --text-subtle: #64748B;
+  --text-muted: #475569;
+  --text-subtle: #475569;
   --input-color: #0F172A;
   --placeholder-color: #94A3B8;
 

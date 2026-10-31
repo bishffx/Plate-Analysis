@@ -23,6 +23,7 @@ import { draw } from "./plate-canvas.js";
 
 // Results State
 let activeInspectorWell = null;
+let lastInspectorFocus = null;
 let pinnedCompareWells = [];
 let clientCutoffPreview = null;
 let scrubThreshold = null;
@@ -155,8 +156,11 @@ export function openWellInspector(well) {
   const drawer = $("well-inspector-drawer");
   if (!drawer) return;
 
+  lastInspectorFocus = document.activeElement;
   drawer.setAttribute("aria-hidden", "false");
   drawer.classList.add("open");
+  const closeBtn = $("inspector-close-btn");
+  if (closeBtn) closeBtn.focus();
 
   // Well Title & Class
   const titleEl = $("inspector-well-id");
@@ -271,6 +275,10 @@ export function closeWellInspector() {
   }
   activeInspectorWell = null;
   setHighlightedWell(null);
+  if (lastInspectorFocus && typeof lastInspectorFocus.focus === "function") {
+    lastInspectorFocus.focus();
+    lastInspectorFocus = null;
+  }
 }
 
 function walkInspectorWell(step) {
@@ -1044,9 +1052,13 @@ export function renderResults(r) {
   if (t) {
     clearChildren(t);
     t.setAttribute("role", "tablist");
+    t.setAttribute("aria-label", "Results views");
     names.forEach(([k, n]) => {
       const b = el("button", n, "tab-btn" + (k === S.tab ? " on" : ""));
       b.id = "tab-" + k;
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", k === S.tab ? "true" : "false");
+      b.setAttribute("aria-controls", "view");
       b.onclick = () => {
         transitionView(() => {
           S.tab = k;
@@ -1060,6 +1072,9 @@ export function renderResults(r) {
   const v = $("view");
   if (v) {
     clearChildren(v);
+    v.setAttribute("role", "tabpanel");
+    v.setAttribute("aria-labelledby", "tab-" + S.tab);
+    v.setAttribute("tabindex", "0");
     if (S.tab === "table") v.appendChild(renderTable(r));
     else if (S.tab === "od") v.appendChild(heat(r, "od_cal", 3));
     else if (S.tab === "val") v.appendChild(heat(r, "value", 1));
@@ -1221,6 +1236,19 @@ export function initResultsControls() {
         walkInspectorWell(1);
       } else if (e.key === "Escape") {
         closeWellInspector();
+      } else if (e.key === "Tab") {
+        const focusables = Array.from(drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.disabled && el.offsetParent !== null);
+        if (focusables.length > 0) {
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     }
   });

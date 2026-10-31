@@ -3719,7 +3719,7 @@ body.analyzing-active #stage {
   height: 100vh;
   pointer-events: none;
   z-index: -1;
-  filter: blur(50px);
+  filter: blur(12px);
   opacity: 0.85;
 }
 

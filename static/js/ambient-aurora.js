@@ -63,12 +63,9 @@ export function initAmbientAurora() {
 
 function handleResize() {
   if (!canvas) return;
-  // Use a modest resolution for high performance
-  const w = Math.min(window.innerWidth, 1920);
-  const h = Math.min(window.innerHeight, 1200);
-  // Scale down for smooth blur & minimal GPU cost
-  canvas.width = Math.floor(w / 2);
-  canvas.height = Math.floor(h / 2);
+  // Compact canvas resolution with bilinear CSS stretch for ultra-fast, smooth aurora
+  canvas.width = 240;
+  canvas.height = 135;
 }
 
 function startAurora() {
@@ -78,9 +75,10 @@ function startAurora() {
 
   function loop(now) {
     if (!isRunning) return;
-    const dt = now - lastTime;
-    lastTime = now;
-    renderAurora(now);
+    if (now - lastTime >= 33) {
+      lastTime = now;
+      renderAurora(now);
+    }
     animId = requestAnimationFrame(loop);
   }
 

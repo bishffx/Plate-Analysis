@@ -933,7 +933,9 @@ function renderHeroFrame(now, dt) {
   heroCtx.lineTo(plateLeftBot, plateBotY + 12);
   heroCtx.closePath();
   heroCtx.fillStyle = "rgba(0, 0, 0, 0.45)";
-  heroCtx.filter = "blur(24px)";
+  heroCtx.shadowColor = "rgba(0, 0, 0, 0.5)";
+  heroCtx.shadowBlur = 20;
+  heroCtx.shadowOffsetY = 6;
   heroCtx.fill();
   heroCtx.restore();
 
@@ -1067,7 +1069,7 @@ function renderHeroFrame(now, dt) {
     const odRatio = effectiveOD / 2.5; // 0 to 1
 
     // Draw Well outer rim (well collar)
-    heroCtx.save();
+
     heroCtx.beginPath();
     heroCtx.ellipse(well.x, well.y, rx * well.scale, ry * well.scale, 0, 0, Math.PI * 2);
     heroCtx.fillStyle = "rgba(10, 16, 26, 0.9)";
@@ -1139,12 +1141,12 @@ function renderHeroFrame(now, dt) {
       heroCtx.fill();
     }
 
-    heroCtx.restore();
+
   }
 
   // Draw the passing Assay Sweep Light Bar overlay across the plate
   if (sweepActive) {
-    heroCtx.save();
+
     const barCenterNorm = sweepPosNorm;
     const barW = plateW * 0.22;
     const barX = centerX - (plateW * topScale) / 2 + barCenterNorm * (plateW * topScale);
@@ -1163,7 +1165,7 @@ function renderHeroFrame(now, dt) {
 
     heroCtx.fillStyle = sweepGrad;
     heroCtx.fill();
-    heroCtx.restore();
+
   }
 }
 

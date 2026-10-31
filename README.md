@@ -129,16 +129,60 @@ plate-od/
 ├── analysis.py             # Pure mathematical core and computer vision pipeline
 ├── server.py               # Stdlib HTTP API server and routing
 ├── static/
-│   ├── index.html          # Accessible, offline HTML5 UI
+│   ├── index.html          # Semantic HTML5 instrument workbench UI
 │   ├── css/
-│   │   └── styles.css      # Dark/light design tokens and responsive styles
+│   │   ├── tokens.css      # Design tokens (colors, gradients, motion, radii)
+│   │   ├── base.css        # Reset, typography, focus rings, reduced motion
+│   │   ├── layout.css      # Responsive grid, header, status bar, drawer
+│   │   ├── components.css  # Cards, buttons, tabs, tables, tooltips, dialogs
+│   │   └── styles.css      # Main CSS bundle entry
 │   └── js/
-│       └── app.js          # Interactive canvas, loupe, batch, and API client
+│       ├── main.js         # Application bootstrap & lifecycle orchestrator
+│       ├── api.js          # Resilient Fetch API client with AbortController
+│       ├── state.js        # Lightweight reactive observable store
+│       ├── dom.js          # Safe DOM construction helpers (strict textContent)
+│       ├── plate-canvas.js # Perspective hero, 4x magnifier loupe, grid canvas
+│       ├── effects.js      # Spring animations, count-up numbers, spotlit cards
+│       ├── navigation.js   # Tab routing, smooth scroll, hero typewriter
+│       ├── results.js      # WOW results, donut charts, linked views, inspector
+│       ├── ambient-aurora.js# Low-overhead fixed aurora canvas background
+│       ├── batch.js        # Multi-plate batch runner with progress bar
+│       ├── calibration.js  # Standard curve fitting & regression view
+│       └── presets.js      # Assay configuration presets & custom curves
 └── tests/
     └── test_analysis.py    # 30 comprehensive unit and integration tests
 ```
 
 ---
 
-## 6. License
+## 6. Frontend Architecture & Customization
+
+The PlateOD frontend is built with pure vanilla web standards (HTML5, modular ES2022 JavaScript, and modern CSS custom properties). It runs **100% offline** with zero external CDN dependencies, conforms to WCAG AA accessibility standards ($\ge 4.5:1$ contrast ratio), and strictly enforces data-safe DOM rendering (`textContent` exclusively).
+
+### Design Tokens (`static/css/tokens.css`)
+
+All visual styling is governed by design tokens defined as CSS variables:
+* **Ink Backgrounds**: `--bg-page-start: #070B12`, `--bg-page-end: #0E1622` (deep dark theme default).
+* **TMB Palette**: `--tmb-start: #FFD166`, `--tmb-mid: #F5A524`, `--tmb-end: #E8590C` (mimicking chromogenic ELISA peroxidase reactions).
+* **Aurora Accents**: `--aurora-teal: #2DD4BF`, `--aurora-violet: #8B5CF6`.
+* **Class Colours**: Positive `#F0714F`, Negative `#3CB8A8`, Doubtful `#EBCB6B`, Control `#6C97C4`, Blank `#8CA0B8`, Invalid `#C47DB6`.
+* **Motion Tokens**: `--duration-instant: 120ms`, `--duration-fast: 200ms`, `--duration-normal: 400ms`, `--duration-slow: 800ms`.
+
+### How to Change Colours
+Edit `static/css/tokens.css`:
+1. Change the primary amber accent by altering `--amber-primary: #F5A524;` and `--gradient-tmb`.
+2. Modify plate well classification colors under `/* Class Colours */` (`--col-pos`, `--col-neg`, `--col-dbt`, `--col-ctl`).
+3. For light theme overrides, modify variables within the `[data-theme="light"] { ... }` block.
+
+### How to Change Brand Name
+1. Update the logo text and document title in `static/index.html` (e.g. `<span class="brand-name">PlateOD</span>` and `<title>PlateOD - Microplate Photometry</title>`).
+2. Update the brand name string in `static/js/main.js` and `static/js/navigation.js`.
+
+### How to Adjust Animation Intensity
+1. **Reduce Duration**: Adjust motion duration tokens in `static/css/tokens.css` (e.g., set `--duration-normal: 200ms;` instead of `400ms`).
+2. **Instant / Minimal Motion**: Turn on reduced-motion preference in your OS or browser. The application automatically detects `prefers-reduced-motion: reduce` and sets all animation/transition durations to `0.01ms`, pauses the background ambient aurora canvas, and disables spring physics.
+
+---
+
+## 7. License
 Laboratory open source tool for microplate optical density research.
