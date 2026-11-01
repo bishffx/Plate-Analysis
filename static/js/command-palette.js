@@ -13,6 +13,7 @@ import { S } from "./state.js";
 import { selectAssay } from "./presets.js";
 import { applyTheme, getStoredTheme, setStoredTheme } from "./theme.js";
 import { openWellInspector } from "./results.js";
+import { AESTHETIC_STYLES, applyAesthetic } from "./aesthetics.js";
 
 const RECENT_KEY = "plateod_recent_actions";
 
@@ -36,6 +37,21 @@ const BASE_COMMANDS = [
   { id: "shortcuts", title: "Keyboard Shortcuts Reference", category: "Help", icon: "⌨", shortcut: "?", run: () => window.dispatchEvent(new CustomEvent("plateod:shortcuts")) },
   { id: "tour", title: "Take Guided Onboarding Tour", category: "Help", icon: "🚀", run: () => window.dispatchEvent(new CustomEvent("plateod:tour")) }
 ];
+
+// Dynamic aesthetic style commands for all 19 design movements
+AESTHETIC_STYLES.forEach((style) => {
+  BASE_COMMANDS.push({
+    id: `style_${style.id}`,
+    title: `Style: ${style.name} (${style.era})`,
+    category: "Design Aesthetic",
+    icon: "🎨",
+    run: () => {
+      applyAesthetic(style.id);
+      showToast(`Activated ${style.name} aesthetic`, "info");
+    }
+  });
+});
+
 
 let selectedIndex = 0;
 let currentResults = [];

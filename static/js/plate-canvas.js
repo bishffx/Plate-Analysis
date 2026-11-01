@@ -1203,10 +1203,10 @@ export function updateStoryPlate(step) {
   const statusLabel = document.getElementById("story-status-label");
   
   const labels = [
-    "Stage 1: Photographing Plate",
-    "Stage 2: Automatic Grid Detection & RANSAC",
-    "Stage 3: Setting Controls & QC Baselines",
-    "Stage 4: Calibrated Optical Density Heatmap"
+    "Photographing Plate",
+    "Automatic Grid Detection & RANSAC",
+    "Setting Controls & QC Baselines",
+    "Calibrated Optical Density Heatmap"
   ];
 
   if (statusLabel) {

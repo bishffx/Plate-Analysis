@@ -20,31 +20,31 @@ const TOUR_STORAGE_KEY = "plateod_tour_completed";
 const TOUR_STEPS = [
   {
     targetId: "dropzone",
-    title: "1. Upload Plate Photo",
+    title: "Upload Plate Photo",
     content: "Drag & drop your 96-well microplate photo here or click to browse. Supports high-res JPG, PNG, and TIFF images.",
     position: "bottom"
   },
   {
     targetId: "cv-wrap",
-    title: "2. Position Grid Corners",
+    title: "Position Grid Corners",
     content: "Align the 4 handles onto corner wells (A1, A12, H12, H1) with magnetic snap, or click 'Auto-detect grid' for automatic fitting.",
     position: "top"
   },
   {
     targetId: "step-3",
-    title: "3. Set Controls & Assay",
+    title: "Set Controls & Assay",
     content: "Choose SPCE (% inhibition) or DIVA (% positivity) presets, or use the interactive 8x12 Well Painter to customize your layout.",
     position: "left"
   },
   {
     targetId: "run",
-    title: "4. Run Analysis",
+    title: "Run Analysis",
     content: "Click Run (or press key 'R') to start reading wells with animated optical density scanning and blank-referencing.",
     position: "bottom"
   },
   {
     targetId: "step-4",
-    title: "5. Explore Results & QC",
+    title: "Explore Results & QC",
     content: "Check QC PASS/FAIL status, examine heatmap distributions, click any well to open the photographic inspector, and export CSV or PNG.",
     position: "top"
   }

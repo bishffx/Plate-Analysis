@@ -1,0 +1,1140 @@
+/* ==========================================================================
+   PlateOD — 19 Design Movement Aesthetics (aesthetics.css)
+   1. Skeuomorphism      2. Neumorphism       3. Art Nouveau
+   4. Liquid Chrome      5. De Stijl          6. Memphis
+   7. Psychedelic        8. Vaporwave         9. Steampunk
+   10. Grunge            11. Paper Cutout     12. Glitch
+   13. Anti-Design       14. 3D-Inflated      15. Isometric
+   16. Ukiyo-e           17. Brutalism        18. Bauhaus
+   19. Mid-Century Modern
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   SHARED AESTHETICS LAB UI & SWITCHER STYLES
+   -------------------------------------------------------------------------- */
+.aesthetics-section {
+  padding: 80px 24px;
+  background: var(--surface-1);
+  border-top: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.aesthetics-container {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.aesthetics-header {
+  margin-bottom: 40px;
+}
+
+.aesthetics-header .section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-amber);
+  margin-bottom: 8px;
+}
+
+.aesthetics-header h2 {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.aesthetics-header p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  max-width: 780px;
+  line-height: 1.5;
+}
+
+.aesthetics-controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 16px 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.current-aesthetic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.aesthetic-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+}
+
+.aesthetics-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  height: 32px;
+  padding: 0 12px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.filter-btn.active {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+/* 19-Item Grid */
+.aesthetics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.aesthetic-card {
+  position: relative;
+  background: var(--surface-2);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color var(--duration-fast) ease, transform var(--duration-fast) ease;
+  overflow: hidden;
+}
+
+.aesthetic-card:hover {
+  border-color: var(--border-strong);
+}
+
+.aesthetic-card.active-style {
+  border-color: var(--accent-amber);
+  background: var(--surface-3);
+}
+
+.aesthetic-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aesthetic-num-badge {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--accent-amber);
+  font-weight: 700;
+}
+
+.aesthetic-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.aesthetic-era {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.aesthetic-preview-box {
+  width: 100%;
+  height: 120px;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-hairline);
+}
+
+/* Microplate preview inside card */
+.microplate-sim {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  padding: 10px;
+  width: 80%;
+  max-width: 220px;
+  border-radius: 4px;
+}
+
+.micro-well {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(242, 176, 30, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.aesthetic-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  flex: 1;
+}
+
+.aesthetic-palette-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.aesthetic-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-apply-aesthetic {
+  flex: 1;
+  height: 34px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border: 1px solid var(--border-hairline);
+  transition: all var(--duration-fast) ease;
+}
+
+.btn-apply-aesthetic:hover {
+  background: var(--accent-amber);
+  color: var(--ink);
+  border-color: var(--accent-amber);
+}
+
+.aesthetic-card.active-style .btn-apply-aesthetic {
+  background: var(--accent-amber);
+  color: var(--ink);
+  border-color: var(--accent-amber);
+}
+
+/* Header style selector dropdown */
+.header-style-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-style-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.btn-style-selector:hover {
+  border-color: var(--accent-amber);
+}
+
+.style-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 260px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+.style-dropdown-menu.show {
+  display: block;
+}
+
+.style-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
+}
+
+.style-dropdown-item:hover {
+  background: var(--surface-3);
+  color: var(--accent-amber);
+}
+
+.style-dropdown-item.active {
+  background: var(--accent-amber);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   THE 19 AESTHETIC THEME DEFINITIONS
+   Applied via html[data-style="<key>"]
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. SKEUOMORPHISM
+   Physical brushed metal, tactile bevels, etched glass, analog dials
+   -------------------------------------------------------------------------- */
+html[data-style="skeuomorphism"] {
+  --ink: #101214;
+  --bg-page: radial-gradient(circle at 50% 20%, #1f2327 0%, #101214 100%);
+  --surface-1: linear-gradient(180deg, #24292e 0%, #1a1e22 100%);
+  --surface-2: linear-gradient(180deg, #2a3036 0%, #1e2226 100%);
+  --surface-3: linear-gradient(180deg, #323940 0%, #24292e 100%);
+  --surface-hover: #363d45;
+  --border-hairline: #3b444c;
+  --border-strong: #4f5b66;
+  --text-primary: #f0f3f6;
+  --text-secondary: #c0c8d0;
+  --text-muted: #8b97a2;
+  --accent-amber: #ff9e1b;
+  --accent-amber-hover: #ffb144;
+  --accent-amber-pressed: #d97d07;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-card: 10px;
+}
+
+html[data-style="skeuomorphism"] .card,
+html[data-style="skeuomorphism"] .bento-card,
+html[data-style="skeuomorphism"] .aesthetic-card {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.7);
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 6px 14px rgba(0, 0, 0, 0.55);
+}
+
+html[data-style="skeuomorphism"] .btn-primary,
+html[data-style="skeuomorphism"] .btn-run {
+  background: linear-gradient(180deg, #ffb144 0%, #d97d07 100%) !important;
+  border-top: 1px solid #ffcc77 !important;
+  border-bottom: 2px solid #995000 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 3px 6px rgba(0,0,0,0.4) !important;
+  color: #1a0f00 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+html[data-style="skeuomorphism"] .btn-primary:active,
+html[data-style="skeuomorphism"] .btn-run:active {
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.5) !important;
+  transform: translateY(1px);
+}
+
+/* --------------------------------------------------------------------------
+   2. NEUMORPHISM
+   Soft continuous extruded surfaces, dual ambient cast shadows
+   -------------------------------------------------------------------------- */
+html[data-style="neumorphism"] {
+  --ink: #18191c;
+  --bg-page: #1e2025;
+  --surface-1: #1e2025;
+  --surface-2: #212429;
+  --surface-3: #26292f;
+  --surface-hover: #2a2e35;
+  --border-hairline: rgba(255, 255, 255, 0.04);
+  --border-strong: rgba(255, 255, 255, 0.08);
+  --text-primary: #e6e8ee;
+  --text-secondary: #9da3b4;
+  --text-muted: #727888;
+  --accent-amber: #00e5ff;
+  --accent-amber-hover: #33ebff;
+  --accent-amber-pressed: #00b4cc;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-card: 16px;
+}
+
+html[data-style="neumorphism"] .card,
+html[data-style="neumorphism"] .bento-card,
+html[data-style="neumorphism"] .aesthetic-card,
+html[data-style="neumorphism"] .assay-card {
+  background: #212429;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 8px 8px 18px #131417, -8px -8px 18px #2f343b;
+}
+
+html[data-style="neumorphism"] input,
+html[data-style="neumorphism"] select,
+html[data-style="neumorphism"] .plate-canvas-viewport {
+  background: #1a1c20;
+  box-shadow: inset 4px 4px 8px #111215, inset -4px -4px 8px #25282f;
+  border: none;
+}
+
+html[data-style="neumorphism"] .btn-primary,
+html[data-style="neumorphism"] .btn-run {
+  background: #212429 !important;
+  color: #00e5ff !important;
+  border: 1px solid rgba(0, 229, 255, 0.3) !important;
+  box-shadow: 4px 4px 10px #131417, -4px -4px 10px #2f343b !important;
+}
+
+html[data-style="neumorphism"] .btn-primary:active,
+html[data-style="neumorphism"] .btn-run:active {
+  box-shadow: inset 3px 3px 6px #131417, inset -3px -3px 6px #2f343b !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. ART NOUVEAU
+   Whiplash curves, organic sinuous tendrils, antique absinthe & terracotta
+   -------------------------------------------------------------------------- */
+html[data-style="art-nouveau"] {
+  --ink: #141612;
+  --bg-page: #181c15;
+  --surface-1: #1e241b;
+  --surface-2: #242c20;
+  --surface-3: #2d3728;
+  --surface-hover: #354130;
+  --border-hairline: #42523b;
+  --border-strong: #c29d53;
+  --text-primary: #f5eedc;
+  --text-secondary: #c5bca9;
+  --text-muted: #8f8674;
+  --accent-amber: #c9a859;
+  --accent-amber-hover: #dfc179;
+  --accent-amber-pressed: #a58237;
+  --radius-sm: 8px 2px 8px 2px;
+  --radius-md: 20px 4px 20px 4px;
+  --radius-card: 20px 4px 20px 4px;
+}
+
+html[data-style="art-nouveau"] .card,
+html[data-style="art-nouveau"] .bento-card,
+html[data-style="art-nouveau"] .aesthetic-card {
+  border: 1px solid #c9a859;
+  border-radius: 20px 4px 20px 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+html[data-style="art-nouveau"] h1,
+html[data-style="art-nouveau"] h2,
+html[data-style="art-nouveau"] .hero-title {
+  font-family: "Georgia", "Times New Roman", serif;
+  letter-spacing: 0.02em;
+  color: #f7edd4;
+}
+
+html[data-style="art-nouveau"] .btn-primary,
+html[data-style="art-nouveau"] .btn-run {
+  background: #c9a859 !important;
+  color: #181c15 !important;
+  border-radius: 14px 2px 14px 2px !important;
+  font-family: "Georgia", serif !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. LIQUID CHROME
+   Molten mercury reflections, specular mirror gradients, iridescent prism
+   -------------------------------------------------------------------------- */
+html[data-style="liquid-chrome"] {
+  --ink: #050608;
+  --bg-page: #08090d;
+  --surface-1: #101218;
+  --surface-2: #161a22;
+  --surface-3: #1f2430;
+  --surface-hover: #282f3f;
+  --border-hairline: rgba(226, 232, 240, 0.16);
+  --border-strong: rgba(226, 232, 240, 0.35);
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent-amber: #e2e8f0;
+  --accent-amber-hover: #ffffff;
+  --accent-amber-pressed: #94a3b8;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-card: 14px;
+}
+
+html[data-style="liquid-chrome"] .card,
+html[data-style="liquid-chrome"] .bento-card,
+html[data-style="liquid-chrome"] .aesthetic-card {
+  background: linear-gradient(135deg, rgba(30, 35, 48, 0.9) 0%, rgba(15, 18, 25, 0.95) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+html[data-style="liquid-chrome"] .btn-primary,
+html[data-style="liquid-chrome"] .btn-run {
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%) !important;
+  color: #050608 !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: 0 0 12px rgba(226, 232, 240, 0.4) !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. DE STIJL
+   Piet Mondrian: strict orthogonal black grids, primary red, blue & yellow
+   -------------------------------------------------------------------------- */
+html[data-style="de-stijl"] {
+  --ink: #000000;
+  --bg-page: #f4f4f4;
+  --surface-1: #ffffff;
+  --surface-2: #eeeeee;
+  --surface-3: #e0e0e0;
+  --surface-hover: #d5d5d5;
+  --border-hairline: #000000;
+  --border-strong: #000000;
+  --text-primary: #000000;
+  --text-secondary: #222222;
+  --text-muted: #555555;
+  --accent-amber: #e63946;
+  --accent-amber-hover: #ff4d5a;
+  --accent-amber-pressed: #b81d29;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-card: 0px;
+}
+
+html[data-style="de-stijl"] .card,
+html[data-style="de-stijl"] .bento-card,
+html[data-style="de-stijl"] .aesthetic-card,
+html[data-style="de-stijl"] .btn,
+html[data-style="de-stijl"] input,
+html[data-style="de-stijl"] select {
+  border: 3px solid #000000 !important;
+  border-radius: 0px !important;
+  box-shadow: none !important;
+}
+
+html[data-style="de-stijl"] .btn-primary,
+html[data-style="de-stijl"] .btn-run {
+  background: #e63946 !important;
+  color: #ffffff !important;
+}
+
+html[data-style="de-stijl"] .bento-card:nth-child(2) {
+  border-left: 8px solid #1d3557 !important;
+}
+
+html[data-style="de-stijl"] .bento-card:nth-child(3) {
+  border-left: 8px solid #ffb703 !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. MEMPHIS
+   80s postmodern: pastel pink, electric cyan, lemon yellow, squiggles
+   -------------------------------------------------------------------------- */
+html[data-style="memphis"] {
+  --ink: #1a162b;
+  --bg-page: #231e3d;
+  --surface-1: #2c264d;
+  --surface-2: #342e5c;
+  --surface-3: #3f386e;
+  --surface-hover: #4b4382;
+  --border-hairline: #ff70a6;
+  --border-strong: #70d6ff;
+  --text-primary: #ffffff;
+  --text-secondary: #ffd670;
+  --text-muted: #e0b0ff;
+  --accent-amber: #ffd670;
+  --accent-amber-hover: #ffe499;
+  --accent-amber-pressed: #e6be50;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-card: 12px;
+}
+
+html[data-style="memphis"] .card,
+html[data-style="memphis"] .bento-card,
+html[data-style="memphis"] .aesthetic-card {
+  border: 2px solid #000000;
+  box-shadow: 5px 5px 0px #ff70a6;
+}
+
+html[data-style="memphis"] .btn-primary,
+html[data-style="memphis"] .btn-run {
+  background: #ffd670 !important;
+  color: #1a162b !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #70d6ff !important;
+  font-weight: 800 !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. PSYCHEDELIC
+   60s counter-culture: hypnotic chromatic waves, melted saturated spectrum
+   -------------------------------------------------------------------------- */
+html[data-style="psychedelic"] {
+  --ink: #120524;
+  --bg-page: #1a0833;
+  --surface-1: #240b47;
+  --surface-2: #2f0f5c;
+  --surface-3: #3c1475;
+  --surface-hover: #4a1990;
+  --border-hairline: #f72585;
+  --border-strong: #4cc9f0;
+  --text-primary: #fff0f5;
+  --text-secondary: #ffb3c6;
+  --text-muted: #c77dff;
+  --accent-amber: #ff6b35;
+  --accent-amber-hover: #ff8555;
+  --accent-amber-pressed: #e0531f;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-card: 18px;
+}
+
+html[data-style="psychedelic"] .card,
+html[data-style="psychedelic"] .bento-card,
+html[data-style="psychedelic"] .aesthetic-card {
+  border: 2px solid;
+  border-image: linear-gradient(45deg, #f72585, #7209b7, #4cc9f0, #ff6b35) 1;
+  box-shadow: 0 4px 20px rgba(247, 37, 133, 0.25);
+}
+
+html[data-style="psychedelic"] .btn-primary,
+html[data-style="psychedelic"] .btn-run {
+  background: linear-gradient(90deg, #ff6b35 0%, #f72585 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(247, 37, 133, 0.4) !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. VAPORWAVE
+   80s retro-futurist cyberspace, neon cyan & magenta, sunset horizon wireframe
+   -------------------------------------------------------------------------- */
+html[data-style="vaporwave"] {
+  --ink: #090214;
+  --bg-page: #100424;
+  --surface-1: #190838;
+  --surface-2: #220c4c;
+  --surface-3: #2d1163;
+  --surface-hover: #38157a;
+  --border-hairline: rgba(0, 240, 255, 0.3);
+  --border-strong: #ff007f;
+  --text-primary: #00f0ff;
+  --text-secondary: #ff77c6;
+  --text-muted: #b97eff;
+  --accent-amber: #ff007f;
+  --accent-amber-hover: #ff3399;
+  --accent-amber-pressed: #cc0066;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-card: 8px;
+}
+
+html[data-style="vaporwave"] .card,
+html[data-style="vaporwave"] .bento-card,
+html[data-style="vaporwave"] .aesthetic-card {
+  border: 1px solid #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(255, 0, 127, 0.15);
+}
+
+html[data-style="vaporwave"] .btn-primary,
+html[data-style="vaporwave"] .btn-run {
+  background: #ff007f !important;
+  color: #ffffff !important;
+  border: 1px solid #00f0ff !important;
+  box-shadow: 0 0 12px rgba(255, 0, 127, 0.6) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* --------------------------------------------------------------------------
+   9. STEAMPUNK
+   Victorian industrial brass, riveted copper, cast bronze, parchment dials
+   -------------------------------------------------------------------------- */
+html[data-style="steampunk"] {
+  --ink: #1a140f;
+  --bg-page: #221a14;
+  --surface-1: #2a2019;
+  --surface-2: #34281f;
+  --surface-3: #3f3127;
+  --surface-hover: #4b3b2f;
+  --border-hairline: #c99738;
+  --border-strong: #d8ab52;
+  --text-primary: #f4ecd8;
+  --text-secondary: #d1c1a5;
+  --text-muted: #9c8a70;
+  --accent-amber: #c99738;
+  --accent-amber-hover: #dfad4d;
+  --accent-amber-pressed: #a57825;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-card: 6px;
+}
+
+html[data-style="steampunk"] .card,
+html[data-style="steampunk"] .bento-card,
+html[data-style="steampunk"] .aesthetic-card {
+  border: 2px double #c99738;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 0 8px rgba(201, 151, 56, 0.15);
+}
+
+html[data-style="steampunk"] .btn-primary,
+html[data-style="steampunk"] .btn-run {
+  background: linear-gradient(180deg, #dfad4d 0%, #a57825 100%) !important;
+  color: #1a140f !important;
+  border: 1px solid #ffd37a !important;
+  font-family: "Georgia", serif !important;
+  font-weight: 700 !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. GRUNGE
+   90s alternative, distressed halftone, industrial noise, typewriter mono
+   -------------------------------------------------------------------------- */
+html[data-style="grunge"] {
+  --ink: #111111;
+  --bg-page: #191919;
+  --surface-1: #212121;
+  --surface-2: #282828;
+  --surface-3: #323232;
+  --surface-hover: #3c3c3c;
+  --border-hairline: #555555;
+  --border-strong: #c84b31;
+  --text-primary: #e6e6e6;
+  --text-secondary: #b0b0b0;
+  --text-muted: #7f7f7f;
+  --accent-amber: #c84b31;
+  --accent-amber-hover: #df583c;
+  --accent-amber-pressed: #a83a22;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-card: 4px;
+}
+
+html[data-style="grunge"] .card,
+html[data-style="grunge"] .bento-card,
+html[data-style="grunge"] .aesthetic-card {
+  border: 2px dashed #555555;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+html[data-style="grunge"] .btn-primary,
+html[data-style="grunge"] .btn-run {
+  background: #c84b31 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 0px !important;
+  font-family: ui-monospace, monospace !important;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   11. PAPER CUTOUT
+   Multi-layered physical cardstock sheets, tactile shadows, clean origami
+   -------------------------------------------------------------------------- */
+html[data-style="paper-cutout"] {
+  --ink: #14171d;
+  --bg-page: #1a1e26;
+  --surface-1: #212631;
+  --surface-2: #282f3d;
+  --surface-3: #31394a;
+  --surface-hover: #3a4457;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text-primary: #f2f5fa;
+  --text-secondary: #b4bfd2;
+  --text-muted: #808eab;
+  --accent-amber: #e0a96d;
+  --accent-amber-hover: #ebb982;
+  --accent-amber-pressed: #c79055;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-card: 10px;
+}
+
+html[data-style="paper-cutout"] .card,
+html[data-style="paper-cutout"] .bento-card,
+html[data-style="paper-cutout"] .aesthetic-card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+html[data-style="paper-cutout"] .btn-primary,
+html[data-style="paper-cutout"] .btn-run {
+  background: #e0a96d !important;
+  color: #14171d !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* --------------------------------------------------------------------------
+   12. GLITCH
+   Digital signal corruption, RGB chromatic aberration split, CRT phosphor
+   -------------------------------------------------------------------------- */
+html[data-style="glitch"] {
+  --ink: #050608;
+  --bg-page: #080a0f;
+  --surface-1: #0e121a;
+  --surface-2: #141a26;
+  --surface-3: #1a2233;
+  --surface-hover: #222c42;
+  --border-hairline: #00ff66;
+  --border-strong: #ff003c;
+  --text-primary: #00ff66;
+  --text-secondary: #00f3ff;
+  --text-muted: #66ff99;
+  --accent-amber: #00ff66;
+  --accent-amber-hover: #33ff85;
+  --accent-amber-pressed: #00cc52;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-card: 0px;
+}
+
+html[data-style="glitch"] .card,
+html[data-style="glitch"] .bento-card,
+html[data-style="glitch"] .aesthetic-card {
+  border: 1px solid #00ff66;
+  box-shadow: -2px 0 #ff003c, 2px 0 #00f3ff;
+}
+
+html[data-style="glitch"] .btn-primary,
+html[data-style="glitch"] .btn-run {
+  background: #00ff66 !important;
+  color: #050608 !important;
+  font-family: ui-monospace, monospace !important;
+  font-weight: 700;
+  box-shadow: -3px 0 #ff003c, 3px 0 #00f3ff !important;
+}
+
+/* --------------------------------------------------------------------------
+   13. ANTI-DESIGN
+   Raw subversion, brutalism rebellion, uncurated neon, clashing angles
+   -------------------------------------------------------------------------- */
+html[data-style="anti-design"] {
+  --ink: #000000;
+  --bg-page: #ffff00;
+  --surface-1: #ffffff;
+  --surface-2: #000000;
+  --surface-3: #ff00ff;
+  --surface-hover: #00ffff;
+  --border-hairline: #000000;
+  --border-strong: #000000;
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #333333;
+  --accent-amber: #ff00ff;
+  --accent-amber-hover: #ff33ff;
+  --accent-amber-pressed: #cc00cc;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-card: 0px;
+}
+
+html[data-style="anti-design"] .card,
+html[data-style="anti-design"] .bento-card,
+html[data-style="anti-design"] .aesthetic-card {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 6px 6px 0px #000000 !important;
+}
+
+html[data-style="anti-design"] .btn-primary,
+html[data-style="anti-design"] .btn-run {
+  background: #ff00ff !important;
+  color: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+/* --------------------------------------------------------------------------
+   14. 3D-INFLATED
+   Claymorphism / puffy balloon 3D, bulbous glossy corners, squishy depth
+   -------------------------------------------------------------------------- */
+html[data-style="3d-inflated"] {
+  --ink: #181124;
+  --bg-page: #231835;
+  --surface-1: #2f2047;
+  --surface-2: #3a2858;
+  --surface-3: #47326c;
+  --surface-hover: #553c80;
+  --border-hairline: rgba(255, 255, 255, 0.15);
+  --border-strong: #ff4d8d;
+  --text-primary: #ffffff;
+  --text-secondary: #e2d1f9;
+  --text-muted: #b99fe0;
+  --accent-amber: #ff4d8d;
+  --accent-amber-hover: #ff70a5;
+  --accent-amber-pressed: #d9326f;
+  --radius-sm: 16px;
+  --radius-md: 24px;
+  --radius-card: 24px;
+}
+
+html[data-style="3d-inflated"] .card,
+html[data-style="3d-inflated"] .bento-card,
+html[data-style="3d-inflated"] .aesthetic-card {
+  border-radius: 24px;
+  box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.25), inset 0 -4px 8px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+html[data-style="3d-inflated"] .btn-primary,
+html[data-style="3d-inflated"] .btn-run {
+  background: #ff4d8d !important;
+  color: #ffffff !important;
+  border-radius: 20px !important;
+  box-shadow: inset 0 3px 6px rgba(255, 255, 255, 0.4), 0 6px 14px rgba(255, 77, 141, 0.4) !important;
+}
+
+/* --------------------------------------------------------------------------
+   15. ISOMETRIC
+   Axonometric 30-degree drafting projection, blueprint CAD lines
+   -------------------------------------------------------------------------- */
+html[data-style="isometric"] {
+  --ink: #070e1c;
+  --bg-page: #0c172e;
+  --surface-1: #112040;
+  --surface-2: #162a54;
+  --surface-3: #1c3569;
+  --surface-hover: #234180;
+  --border-hairline: #00b4d8;
+  --border-strong: #48cae4;
+  --text-primary: #e0e1dd;
+  --text-secondary: #90e0ef;
+  --text-muted: #5390d9;
+  --accent-amber: #00b4d8;
+  --accent-amber-hover: #33c7e3;
+  --accent-amber-pressed: #0091ad;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-card: 4px;
+}
+
+html[data-style="isometric"] .card,
+html[data-style="isometric"] .bento-card,
+html[data-style="isometric"] .aesthetic-card {
+  border: 1px solid #00b4d8;
+  background-image: linear-gradient(0deg, rgba(0, 180, 216, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 180, 216, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+html[data-style="isometric"] .btn-primary,
+html[data-style="isometric"] .btn-run {
+  background: #00b4d8 !important;
+  color: #070e1c !important;
+  font-family: ui-monospace, monospace !important;
+  border-radius: 2px !important;
+}
+
+/* --------------------------------------------------------------------------
+   16. UKIYO-E
+   Edo woodblock print, Prussian blue Great Wave ripples, washi paper, vermillion
+   -------------------------------------------------------------------------- */
+html[data-style="ukiyo-e"] {
+  --ink: #111a24;
+  --bg-page: #172432;
+  --surface-1: #1e3042;
+  --surface-2: #263c52;
+  --surface-3: #2f4863;
+  --surface-hover: #385575;
+  --border-hairline: #3d5a7a;
+  --border-strong: #c73e1d;
+  --text-primary: #f2eee6;
+  --text-secondary: #cbd3dc;
+  --text-muted: #8b9cae;
+  --accent-amber: #c73e1d;
+  --accent-amber-hover: #dc4f2c;
+  --accent-amber-pressed: #a53015;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-card: 8px;
+}
+
+html[data-style="ukiyo-e"] .card,
+html[data-style="ukiyo-e"] .bento-card,
+html[data-style="ukiyo-e"] .aesthetic-card {
+  border: 1px solid #3d5a7a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+html[data-style="ukiyo-e"] .btn-primary,
+html[data-style="ukiyo-e"] .btn-run {
+  background: #c73e1d !important;
+  color: #f2eee6 !important;
+  border: 1px solid #e06345 !important;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.4) !important;
+}
+
+/* --------------------------------------------------------------------------
+   17. BRUTALISM
+   Raw stark high contrast, hard 3px black offset shadows, zero radius
+   -------------------------------------------------------------------------- */
+html[data-style="brutalism"] {
+  --ink: #000000;
+  --bg-page: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #f0f0f0;
+  --surface-3: #e4e4e4;
+  --surface-hover: #d8d8d8;
+  --border-hairline: #000000;
+  --border-strong: #000000;
+  --text-primary: #000000;
+  --text-secondary: #111111;
+  --text-muted: #444444;
+  --accent-amber: #ff5500;
+  --accent-amber-hover: #ff6f26;
+  --accent-amber-pressed: #cc4400;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-card: 0px;
+}
+
+html[data-style="brutalism"] .card,
+html[data-style="brutalism"] .bento-card,
+html[data-style="brutalism"] .aesthetic-card,
+html[data-style="brutalism"] .btn,
+html[data-style="brutalism"] input,
+html[data-style="brutalism"] select {
+  border: 3px solid #000000 !important;
+  border-radius: 0px !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+html[data-style="brutalism"] .btn-primary,
+html[data-style="brutalism"] .btn-run {
+  background: #ff5500 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+}
+
+/* --------------------------------------------------------------------------
+   18. BAUHAUS
+   1919 Weimar manifesto: circle, triangle, square, primary red/blue/yellow
+   -------------------------------------------------------------------------- */
+html[data-style="bauhaus"] {
+  --ink: #151515;
+  --bg-page: #1f1f21;
+  --surface-1: #29292c;
+  --surface-2: #333338;
+  --surface-3: #3f3f46;
+  --surface-hover: #4b4b54;
+  --border-hairline: #ffffff;
+  --border-strong: #d90429;
+  --text-primary: #ffffff;
+  --text-secondary: #e2e2e5;
+  --text-muted: #a1a1aa;
+  --accent-amber: #ffc300;
+  --accent-amber-hover: #ffd133;
+  --accent-amber-pressed: #cca300;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-card: 0px;
+}
+
+html[data-style="bauhaus"] .card,
+html[data-style="bauhaus"] .bento-card,
+html[data-style="bauhaus"] .aesthetic-card {
+  border: 2px solid #ffffff;
+  border-radius: 0px;
+}
+
+html[data-style="bauhaus"] .btn-primary,
+html[data-style="bauhaus"] .btn-run {
+  background: #d90429 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 0px !important;
+}
+
+/* --------------------------------------------------------------------------
+   19. MID-CENTURY MODERN
+   1950s/60s Eames atomic era: walnut warmth, mustard gold, avocado & burnt orange
+   -------------------------------------------------------------------------- */
+html[data-style="mid-century-modern"] {
+  --ink: #1f1610;
+  --bg-page: #281d15;
+  --surface-1: #33261c;
+  --surface-2: #3e2f23;
+  --surface-3: #4b392b;
+  --surface-hover: #584433;
+  --border-hairline: #6b533f;
+  --border-strong: #c85a17;
+  --text-primary: #faf6ee;
+  --text-secondary: #dfd4c0;
+  --text-muted: #a39580;
+  --accent-amber: #c58940;
+  --accent-amber-hover: #d69b52;
+  --accent-amber-pressed: #a56f2e;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-card: 16px;
+}
+
+html[data-style="mid-century-modern"] .card,
+html[data-style="mid-century-modern"] .bento-card,
+html[data-style="mid-century-modern"] .aesthetic-card {
+  border: 1px solid #c58940;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+html[data-style="mid-century-modern"] .btn-primary,
+html[data-style="mid-century-modern"] .btn-run {
+  background: #c85a17 !important;
+  color: #faf6ee !important;
+  border-radius: 12px !important;
+  border: 1px solid #e06e28 !important;
+}

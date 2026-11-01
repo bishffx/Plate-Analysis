@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/aesthetics.css">
 </head>
 <body>
   <!-- Ambient Aurora Canvas Background -->
@@ -64,6 +65,7 @@
         <a href="#analyzer" class="nav-link">Analyzer</a>
         <a href="#how-it-works" class="nav-link">How it works</a>
         <a href="#assays" class="nav-link">Assays</a>
+        <a href="#aesthetics-lab" class="nav-link">Aesthetics</a>
         <a href="#batch-mode" class="nav-link">Batch mode</a>
       <a href="#faq" class="nav-link">FAQ</a>
       </nav>
@@ -72,6 +74,19 @@
       <div class="header-actions">
         <!-- Theme Switcher (Light / Dark / System) -->
         <!-- Command Palette Trigger Button -->
+        <!-- Design Aesthetics Selector (19 Eras) -->
+        <div class="header-style-dropdown-wrap">
+          <button type="button" class="btn-style-selector" id="btn-toggle-style-menu" aria-expanded="false" aria-haspopup="true" title="Switch Design Aesthetic (19 Eras)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2v20M2 12h20"></path>
+            </svg>
+            <span id="header-current-style-label">Style: Precision</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="style-dropdown-menu" id="header-style-menu" role="menu"></div>
+        </div>
+
         <button type="button" class="btn-palette-trigger" id="command-palette-trigger" data-open-palette title="Search commands & actions (Ctrl+K)" aria-label="Search commands (Ctrl+K)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="8"></circle>
@@ -153,6 +168,7 @@
       <a href="#analyzer" class="nav-link">Analyzer</a>
       <a href="#how-it-works" class="nav-link">How it works</a>
       <a href="#assays" class="nav-link">Assays</a>
+        <a href="#aesthetics-lab" class="nav-link">Aesthetics</a>
       <a href="#batch-mode" class="nav-link">Batch mode</a>
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
@@ -224,7 +240,7 @@
         <div class="hero-left-col">
           <div class="hero-badge">
             <span class="badge-dot"></span>
-            <span>01 / High-Throughput Photometry</span>
+            <span>High-Throughput Photometry</span>
           </div>
 
           <h1 id="hero-heading" class="hero-title">
@@ -392,7 +408,6 @@
     <!-- BENTO FEATURE GRID (Moodboard Dashboard Style) -->
     <section id="features" class="info-section bento-section reveal" aria-labelledby="features-heading">
       <div class="section-header-block">
-        <span class="section-eyebrow">02 / System Architecture</span>
         <h2 id="features-heading" class="info-section-title">Engineered for Quantitative Rigor</h2>
         <p class="info-section-desc">A complete microplate photometry instrument operating entirely inside your browser with zero server dependencies, sub-pixel grid precision, and publication-ready validation.</p>
       </div>
@@ -401,7 +416,6 @@
         <!-- Tile 1: Perspective-correct grid (Wide 2-col) -->
         <div class="bento-card bento-wide glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">01</span>
             <span class="bento-tag">Computer Vision</span>
           </div>
           <div class="bento-body">
@@ -434,7 +448,6 @@
         <!-- Tile 2: Linearised OD -->
         <div class="bento-card glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">02</span>
             <span class="bento-tag">Optics</span>
           </div>
           <div class="bento-body">
@@ -455,7 +468,6 @@
         <!-- Tile 3: Blank-referenced -->
         <div class="bento-card glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">03</span>
             <span class="bento-tag">Baselines</span>
           </div>
           <div class="bento-body">
@@ -476,7 +488,6 @@
         <!-- Tile 4: Built-in QC -->
         <div class="bento-card glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">04</span>
             <span class="bento-tag">Quality Control</span>
           </div>
           <div class="bento-body">
@@ -494,7 +505,6 @@
         <!-- Tile 5: SPCE and DIVA presets (Wide 2-col) -->
         <div class="bento-card bento-wide glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">05</span>
             <span class="bento-tag">Standard Protocols</span>
           </div>
           <div class="bento-body">
@@ -520,7 +530,6 @@
         <!-- Tile 6: Plate-reader calibration -->
         <div class="bento-card glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">06</span>
             <span class="bento-tag">Metrology</span>
           </div>
           <div class="bento-body">
@@ -545,7 +554,6 @@
         <!-- Tile 7: High-density Heatmaps -->
         <div class="bento-card glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">07</span>
             <span class="bento-tag">Diagnostics</span>
           </div>
           <div class="bento-body">
@@ -564,7 +572,6 @@
         <!-- Tile 8: CSV and print reports -->
         <div class="bento-card glass-card spotlight-card">
           <div class="bento-header">
-            <span class="bento-num-badge">08</span>
             <span class="bento-tag">Export</span>
           </div>
           <div class="bento-body">
@@ -915,7 +922,7 @@
           <div class="card grid-card">
             <div class="grid-card-header">
               <div class="grid-header-left">
-                <h2>1 · Place the grid</h2>
+                <h2>Place the grid</h2>
                 <p class="hint" style="margin: 0 0 4px;">Drag the four corner handles onto corner wells (A1, A12, H12, H1). Click a handle to nudge with arrow keys (Shift for 10px).</p>
               </div>
 
@@ -1139,7 +1146,7 @@
                     <span class="ghost-status-dot"></span>
                     <span>Ready for analysis</span>
                   </div>
-                  <h3 class="ghost-results-title">2 · Expected Photometric Results</h3>
+                  <h3 class="ghost-results-title">Expected Photometric Results</h3>
                 </div>
                 <button type="button" class="btn btn-secondary btn-xs ghost-demo-btn" id="btn-sample-empty-state">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"></path></svg>
@@ -1244,7 +1251,7 @@
           <div class="card results-dashboard-card" id="results" hidden>
             <div class="results-header-row">
               <div class="results-header-left">
-                <h2 class="results-title">2 · Results</h2>
+                <h2 class="results-title">Results</h2>
                 <div class="qc-status-pill qc-pass" id="qc-pill">
                   <span class="qc-dot"></span>
                   <span id="qc-pill-text">PASS</span>
@@ -1481,7 +1488,6 @@
         <!-- Left Column: Narrative steps that swap with crossfade on scroll -->
         <div class="story-narrative-col" id="story-narrative-col">
           <div class="story-step-card active" data-step="1" id="story-step-1">
-            <div class="story-step-badge">Step 01</div>
             <h3 class="story-step-title">Photograph</h3>
             <p class="story-step-desc">Capture a clean, overhead photo of your stopped microtitre plate under diffuse illumination. The browser client automatically downscales high-resolution files to 2400px before uploading.</p>
             <div class="story-step-tags">
@@ -1492,7 +1498,6 @@
           </div>
 
           <div class="story-step-card" data-step="2" id="story-step-2">
-            <div class="story-step-badge">Step 02</div>
             <h3 class="story-step-title">Place grid</h3>
             <p class="story-step-desc">One click on Auto-detect finds circular well edges with HoughCircles and fits a regular perspective grid using RANSAC. Adjust corner handles A1, A12, H12, and H1 with live 4× loupe guidance.</p>
             <div class="story-step-tags">
@@ -1503,7 +1508,6 @@
           </div>
 
           <div class="story-step-card" data-step="3" id="story-step-3">
-            <div class="story-step-badge">Step 03</div>
             <h3 class="story-step-title">Set controls</h3>
             <p class="story-step-desc">Select an assay preset (SPCE or DIVA) or customize well roles. Antigen/positive, negative, and substrate blank wells anchor optical density calculations and verify dynamic range integrity.</p>
             <div class="story-step-tags">
@@ -1514,7 +1518,6 @@
           </div>
 
           <div class="story-step-card" data-step="4" id="story-step-4">
-            <div class="story-step-badge">Step 04</div>
             <h3 class="story-step-title">Read results</h3>
             <p class="story-step-desc">Instantly inspect calibrated optical density heatmaps, sample inhibition or positivity ratios, polynomial flat-field illumination correction, and export comprehensive CSV laboratory reports.</p>
             <div class="story-step-tags">
@@ -1533,7 +1536,7 @@
             </div>
             <div class="story-status-indicator" id="story-status-indicator">
               <span class="story-status-dot"></span>
-              <span id="story-status-label">Stage 1: Photographing Plate</span>
+              <span id="story-status-label">Photographing Plate</span>
             </div>
           </div>
         </div>
@@ -1657,9 +1660,772 @@
 
     <!-- 5. PHOTO TIPS SECTION (Interactive Carousel) -->
         <div class="section-glow-divider" aria-hidden="true"><span class="divider-orb"></span></div>
+        <!-- DESIGN AESTHETICS LABORATORY (19 Iconic Design Movements) -->
+    <section id="aesthetics-lab" class="aesthetics-section reveal" aria-labelledby="aesthetics-lab-heading">
+      <div class="aesthetics-container">
+        <div class="aesthetics-header">
+          <span class="section-eyebrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/></svg>
+            Aesthetic Metrology · 19 Design Movements
+          </span>
+          <h2 id="aesthetics-lab-heading">The Microplate Through 19 Design Eras</h2>
+          <p>Explore 19 iconic historical, digital, and artistic design movements reimagined specifically for PlateOD microplate photometry. Click any aesthetic to transform the entire workstation in real time.</p>
+        </div>
+
+        <!-- Controls & Filter Bar -->
+        <div class="aesthetics-controls-bar">
+          <div class="current-aesthetic-badge">
+            <span class="aesthetic-indicator-dot"></span>
+            <span>Current Style: <strong id="current-aesthetic-name">Precision Instrument</strong></span>
+          </div>
+          <div class="aesthetics-filter-group" role="tablist" aria-label="Filter aesthetics by category">
+            <button type="button" class="filter-btn active" data-filter="all">All 19 Eras</button>
+            <button type="button" class="filter-btn" data-filter="Historical">Historical</button>
+            <button type="button" class="filter-btn" data-filter="Modernist">Modernist</button>
+            <button type="button" class="filter-btn" data-filter="Digital">Digital</button>
+            <button type="button" class="filter-btn" data-filter="Tactile">Tactile</button>
+            <button type="button" class="filter-btn" data-filter="Fine Art">Fine Art</button>
+            <button type="button" class="filter-btn" data-filter="Retro">Retro</button>
+          </div>
+        </div>
+
+        <!-- 19-Card Aesthetics Grid -->
+        <div class="aesthetics-grid" id="aesthetics-grid">
+          <!-- Card 01: Skeuomorphism -->
+          <div class="aesthetic-card" data-style-id="skeuomorphism" data-category="Historical">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Skeuomorphism</h3>
+                <span class="aesthetic-era">1980s – 2010s Physical UI</span>
+              </div>
+              <span class="aesthetic-num-badge">01</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="skChas" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a4048"/><stop offset="100%" stop-color="#181b1e"/></linearGradient>
+        <linearGradient id="skWell" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#111"/><stop offset="100%" stop-color="#2a2e33"/></linearGradient>
+      </defs>
+      <rect x="10" y="8" width="180" height="74" rx="8" fill="url(#skChas)" stroke="#555f69" stroke-width="1.5"/>
+      <rect x="11" y="9" width="178" height="72" rx="7" fill="none" stroke="#222" stroke-width="1"/>
+      <!-- Screws -->
+      <circle cx="18" cy="16" r="2.5" fill="#444" stroke="#888" stroke-width="0.5"/><line x1="16" y1="16" x2="20" y2="16" stroke="#222"/>
+      <circle cx="182" cy="16" r="2.5" fill="#444" stroke="#888" stroke-width="0.5"/><line x1="180" y1="16" x2="184" y2="16" stroke="#222"/>
+      <!-- Analog Meter -->
+      <rect x="26" y="16" width="60" height="32" rx="4" fill="#fdfbf7" stroke="#222"/>
+      <path d="M30 42 A 28 28 0 0 1 82 42" stroke="#666" stroke-width="1" fill="none"/>
+      <line x1="56" y1="44" x2="68" y2="24" stroke="#d9381e" stroke-width="1.5"/>
+      <circle cx="56" cy="44" r="3" fill="#111"/>
+      <!-- Physical Wells -->
+      <g transform="translate(96, 15)">
+        <circle cx="10" cy="10" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="10" cy="10" r="5" fill="#ff9e1b" opacity="0.9"/>
+        <circle cx="28" cy="10" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="28" cy="10" r="5" fill="#ff9e1b" opacity="0.6"/>
+        <circle cx="46" cy="10" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="46" cy="10" r="5" fill="#ff9e1b" opacity="0.3"/>
+        <circle cx="64" cy="10" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="64" cy="10" r="5" fill="#ff9e1b" opacity="0.1"/>
+        <circle cx="10" cy="30" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="10" cy="30" r="5" fill="#ff9e1b" opacity="0.85"/>
+        <circle cx="28" cy="30" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="28" cy="30" r="5" fill="#ff9e1b" opacity="0.5"/>
+        <circle cx="46" cy="30" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="46" cy="30" r="5" fill="#ff9e1b" opacity="0.25"/>
+        <circle cx="64" cy="30" r="8" fill="url(#skWell)" stroke="#444" stroke-width="1"/>
+        <circle cx="64" cy="30" r="5" fill="#ff9e1b" opacity="0.05"/>
+      </g>
+      <!-- Rocker switch -->
+      <rect x="28" y="56" width="30" height="16" rx="2" fill="#1a1a1a" stroke="#444"/>
+      <rect x="29" y="57" width="14" height="14" rx="1" fill="#ff9e1b"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Brushed aluminum chassis, tactile rocker switches, beveled glass wells, analog needle meter, and incandescent amber indicators.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#101214;" title="#101214"></span><span class="swatch" style="background:#24292e;" title="#24292e"></span><span class="swatch" style="background:#ff9e1b;" title="#ff9e1b"></span><span class="swatch" style="background:#f0f3f6;" title="#f0f3f6"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Skeuomorphism Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 02: Neumorphism -->
+          <div class="aesthetic-card" data-style-id="neumorphism" data-category="Digital">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Neumorphism</h3>
+                <span class="aesthetic-era">Soft UI · 2020</span>
+              </div>
+              <span class="aesthetic-num-badge">02</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <defs>
+        <filter id="nmDrop" x="-10%" y="-10%" width="130%" height="130%">
+          <feDropShadow dx="4" dy="4" stdDeviation="4" flood-color="#121316"/>
+          <feDropShadow dx="-4" dy="-4" stdDeviation="4" flood-color="#2c3038"/>
+        </filter>
+      </defs>
+      <rect x="16" y="10" width="168" height="70" rx="12" fill="#212429" filter="url(#nmDrop)"/>
+      <!-- Debossed Wells -->
+      <circle cx="45" cy="32" r="10" fill="#1c1e22" stroke="#16181b" stroke-width="1"/>
+      <circle cx="45" cy="32" r="7" fill="#00e5ff" opacity="0.85"/>
+      <circle cx="75" cy="32" r="10" fill="#1c1e22" stroke="#16181b" stroke-width="1"/>
+      <circle cx="75" cy="32" r="7" fill="#00e5ff" opacity="0.6"/>
+      <circle cx="105" cy="32" r="10" fill="#1c1e22" stroke="#16181b" stroke-width="1"/>
+      <circle cx="105" cy="32" r="7" fill="#00e5ff" opacity="0.35"/>
+      <circle cx="135" cy="32" r="10" fill="#1c1e22" stroke="#16181b" stroke-width="1"/>
+      <circle cx="135" cy="32" r="7" fill="#00e5ff" opacity="0.15"/>
+      <circle cx="165" cy="32" r="10" fill="#1c1e22" stroke="#16181b" stroke-width="1"/>
+      <circle cx="165" cy="32" r="7" fill="#00e5ff" opacity="0.05"/>
+      <!-- Soft Pill Button -->
+      <rect x="55" y="54" width="90" height="16" rx="8" fill="#212429" stroke="rgba(255,255,255,0.06)"/>
+      <circle cx="70" cy="62" r="3" fill="#00e5ff"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Soft continuous extruded charcoal surfaces, dual ambient cast shadows, and debossed photometric wells with soft cyan luminescence.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#1e2025;" title="#1e2025"></span><span class="swatch" style="background:#212429;" title="#212429"></span><span class="swatch" style="background:#00e5ff;" title="#00e5ff"></span><span class="swatch" style="background:#e6e8ee;" title="#e6e8ee"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Neumorphism Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 03: Art Nouveau -->
+          <div class="aesthetic-card" data-style-id="art-nouveau" data-category="Fine Art">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Art Nouveau</h3>
+                <span class="aesthetic-era">1890 – 1910 Paris & Vienna</span>
+              </div>
+              <span class="aesthetic-num-badge">03</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" rx="16" fill="#1f261b" stroke="#c9a859" stroke-width="1.5"/>
+      <!-- Sinuous whiplash tendrils -->
+      <path d="M18 45 Q 35 15, 60 25 T 100 15 T 140 25 Q 165 15, 182 45" stroke="#c9a859" stroke-width="1.2" fill="none" opacity="0.6"/>
+      <path d="M18 45 Q 35 75, 60 65 T 100 75 T 140 65 Q 165 75, 182 45" stroke="#c9a859" stroke-width="1.2" fill="none" opacity="0.6"/>
+      <!-- Wells in Organic Frames -->
+      <ellipse cx="50" cy="45" rx="10" ry="14" fill="#293325" stroke="#c9a859" stroke-width="1"/>
+      <circle cx="50" cy="45" r="7" fill="#c9a859" opacity="0.9"/>
+      <ellipse cx="80" cy="45" rx="10" ry="14" fill="#293325" stroke="#c9a859" stroke-width="1"/>
+      <circle cx="80" cy="45" r="7" fill="#c9a859" opacity="0.65"/>
+      <ellipse cx="110" cy="45" rx="10" ry="14" fill="#293325" stroke="#c9a859" stroke-width="1"/>
+      <circle cx="110" cy="45" r="7" fill="#c9a859" opacity="0.4"/>
+      <ellipse cx="140" cy="45" rx="10" ry="14" fill="#293325" stroke="#c9a859" stroke-width="1"/>
+      <circle cx="140" cy="45" r="7" fill="#c9a859" opacity="0.2"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Whiplash curves, sinuous organic tendrils, muted absinthe & terracotta, botanical framing, and gilded gold cartouches.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#181c15;" title="#181c15"></span><span class="swatch" style="background:#242c20;" title="#242c20"></span><span class="swatch" style="background:#c9a859;" title="#c9a859"></span><span class="swatch" style="background:#f5eedc;" title="#f5eedc"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Art Nouveau Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 04: Liquid Chrome -->
+          <div class="aesthetic-card" data-style-id="liquid-chrome" data-category="Futuristic">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Liquid Chrome</h3>
+                <span class="aesthetic-era">Post-Digital Specular</span>
+              </div>
+              <span class="aesthetic-num-badge">04</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="lqCr" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#fff"/><stop offset="25%" stop-color="#94a3b8"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="75%" stop-color="#e2e8f0"/><stop offset="100%" stop-color="#1e293b"/>
+        </linearGradient>
+      </defs>
+      <rect x="12" y="8" width="176" height="74" rx="12" fill="#0d1117" stroke="url(#lqCr)" stroke-width="1.5"/>
+      <path d="M20 40 Q 60 10, 100 45 T 180 35" stroke="url(#lqCr)" stroke-width="2.5" fill="none" opacity="0.7"/>
+      <!-- Chrome Wells -->
+      <g transform="translate(18, 14)">
+        <circle cx="30" cy="30" r="14" fill="#111" stroke="url(#lqCr)" stroke-width="2"/>
+        <circle cx="30" cy="30" r="9" fill="url(#lqCr)"/>
+        <circle cx="70" cy="30" r="14" fill="#111" stroke="url(#lqCr)" stroke-width="2"/>
+        <circle cx="70" cy="30" r="9" fill="url(#lqCr)" opacity="0.75"/>
+        <circle cx="110" cy="30" r="14" fill="#111" stroke="url(#lqCr)" stroke-width="2"/>
+        <circle cx="110" cy="30" r="9" fill="url(#lqCr)" opacity="0.5"/>
+        <circle cx="150" cy="30" r="14" fill="#111" stroke="url(#lqCr)" stroke-width="2"/>
+        <circle cx="150" cy="30" r="9" fill="url(#lqCr)" opacity="0.25"/>
+      </g>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Fluid mercury metallic sheen, ultra-high specular mirror highlights, iridescent refractions, and liquid chrome droplets.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#050608;" title="#050608"></span><span class="swatch" style="background:#161a22;" title="#161a22"></span><span class="swatch" style="background:#e2e8f0;" title="#e2e8f0"></span><span class="swatch" style="background:#a78bfa;" title="#a78bfa"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Liquid Chrome Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 05: De Stijl -->
+          <div class="aesthetic-card" data-style-id="de-stijl" data-category="Modernist">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">De Stijl</h3>
+                <span class="aesthetic-era">1917 – 1931 Piet Mondrian</span>
+              </div>
+              <span class="aesthetic-num-badge">05</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="15" y="8" width="170" height="74" fill="#f4f4f4" stroke="#000" stroke-width="3"/>
+      <!-- Asymmetric Primary Blocks -->
+      <rect x="15" y="8" width="45" height="35" fill="#e63946" stroke="#000" stroke-width="3"/>
+      <rect x="60" y="43" width="75" height="39" fill="#1d3557" stroke="#000" stroke-width="3"/>
+      <rect x="135" y="8" width="50" height="50" fill="#ffb703" stroke="#000" stroke-width="3"/>
+      <!-- Grid lines -->
+      <line x1="60" y1="8" x2="60" y2="82" stroke="#000" stroke-width="3"/>
+      <line x1="135" y1="8" x2="135" y2="82" stroke="#000" stroke-width="3"/>
+      <line x1="15" y1="43" x2="135" y2="43" stroke="#000" stroke-width="3"/>
+      <line x1="135" y1="58" x2="185" y2="58" stroke="#000" stroke-width="3"/>
+      <!-- Square wells -->
+      <rect x="25" y="52" width="18" height="18" fill="#000"/>
+      <rect x="75" y="16" width="18" height="18" fill="#000"/>
+      <rect x="102" y="16" width="18" height="18" fill="#000"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Orthogonal bounding grid with thick black hairlines and asymmetric primary blocks of cadmium red, cobalt blue, and yellow.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#000000;" title="#000000"></span><span class="swatch" style="background:#ffffff;" title="#ffffff"></span><span class="swatch" style="background:#e63946;" title="#e63946"></span><span class="swatch" style="background:#1d3557;" title="#1d3557"></span><span class="swatch" style="background:#ffb703;" title="#ffb703"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply De Stijl Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 06: Memphis -->
+          <div class="aesthetic-card" data-style-id="memphis" data-category="Retro">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Memphis</h3>
+                <span class="aesthetic-era">1981 Milan Postmodernism</span>
+              </div>
+              <span class="aesthetic-num-badge">06</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="16" y="10" width="168" height="70" rx="8" fill="#2c264d" stroke="#000" stroke-width="2.5"/>
+      <!-- Squiggle -->
+      <path d="M25 22 Q 32 14, 40 22 T 55 22 T 70 22" stroke="#ff70a6" stroke-width="3" fill="none"/>
+      <!-- Confetti dots and triangles -->
+      <circle cx="160" cy="24" r="3" fill="#ffd670"/>
+      <circle cx="170" cy="34" r="2.5" fill="#70d6ff"/>
+      <polygon points="145,18 152,30 138,30" fill="#ff70a6"/>
+      <!-- Tilted wells with hard drop shadow -->
+      <g transform="translate(30, 36)">
+        <circle cx="18" cy="18" r="12" fill="#000"/>
+        <circle cx="16" cy="16" r="12" fill="#ff70a6" stroke="#000" stroke-width="2"/>
+        <circle cx="54" cy="18" r="12" fill="#000"/>
+        <circle cx="52" cy="16" r="12" fill="#70d6ff" stroke="#000" stroke-width="2"/>
+        <circle cx="90" cy="18" r="12" fill="#000"/>
+        <circle cx="88" cy="16" r="12" fill="#ffd670" stroke="#000" stroke-width="2"/>
+        <circle cx="126" cy="18" r="12" fill="#000"/>
+        <circle cx="124" cy="16" r="12" fill="#ffffff" stroke="#000" stroke-width="2"/>
+      </g>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Radical Ettore Sottsass design, playful geometric confetti, squiggles, pastel pink, and electric cyan clashes.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#231e3d;" title="#231e3d"></span><span class="swatch" style="background:#ff70a6;" title="#ff70a6"></span><span class="swatch" style="background:#70d6ff;" title="#70d6ff"></span><span class="swatch" style="background:#ffd670;" title="#ffd670"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Memphis Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 07: Psychedelic -->
+          <div class="aesthetic-card" data-style-id="psychedelic" data-category="Fine Art">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Psychedelic</h3>
+                <span class="aesthetic-era">1960s Counter-Culture</span>
+              </div>
+              <span class="aesthetic-num-badge">07</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="12" y="8" width="176" height="74" rx="16" fill="#1b0833" stroke="#f72585" stroke-width="2"/>
+      <!-- Concentric trippy waves -->
+      <circle cx="100" cy="45" r="40" stroke="#7209b7" stroke-width="2" opacity="0.6"/>
+      <circle cx="100" cy="45" r="30" stroke="#f72585" stroke-width="2" opacity="0.7"/>
+      <circle cx="100" cy="45" r="20" stroke="#ff6b35" stroke-width="2" opacity="0.8"/>
+      <circle cx="100" cy="45" r="10" fill="#4cc9f0"/>
+      <!-- Satellite warped wells -->
+      <circle cx="45" cy="45" r="12" fill="#f72585" stroke="#ff6b35" stroke-width="2"/>
+      <circle cx="45" cy="45" r="6" fill="#ffd166"/>
+      <circle cx="155" cy="45" r="12" fill="#4cc9f0" stroke="#7209b7" stroke-width="2"/>
+      <circle cx="155" cy="45" r="6" fill="#f72585"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Hypnotic concentric waves, trippy chromatic shifts, melted organic contours, and saturated psychedelic spectrums.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#1a0833;" title="#1a0833"></span><span class="swatch" style="background:#f72585;" title="#f72585"></span><span class="swatch" style="background:#7209b7;" title="#7209b7"></span><span class="swatch" style="background:#ff6b35;" title="#ff6b35"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Psychedelic Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 08: Vaporwave -->
+          <div class="aesthetic-card" data-style-id="vaporwave" data-category="Digital">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Vaporwave</h3>
+                <span class="aesthetic-era">1980s Retro Cyberspace</span>
+              </div>
+              <span class="aesthetic-num-badge">08</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" rx="6" fill="#120529" stroke="#00f0ff" stroke-width="1.5"/>
+      <!-- Wireframe Horizon -->
+      <line x1="14" y1="48" x2="186" y2="48" stroke="#ff007f" stroke-width="1.5"/>
+      <!-- Sun -->
+      <circle cx="100" cy="48" r="22" fill="#ff007f" opacity="0.8"/>
+      <rect x="76" y="38" width="48" height="2" fill="#120529"/>
+      <rect x="76" y="42" width="48" height="3" fill="#120529"/>
+      <!-- Perspective Grid Lines -->
+      <line x1="100" y1="48" x2="30" y2="82" stroke="#00f0ff" stroke-width="1"/>
+      <line x1="100" y1="48" x2="65" y2="82" stroke="#00f0ff" stroke-width="1"/>
+      <line x1="100" y1="48" x2="100" y2="82" stroke="#00f0ff" stroke-width="1"/>
+      <line x1="100" y1="48" x2="135" y2="82" stroke="#00f0ff" stroke-width="1"/>
+      <line x1="100" y1="48" x2="170" y2="82" stroke="#00f0ff" stroke-width="1"/>
+      <line x1="24" y1="62" x2="176" y2="62" stroke="#00f0ff" stroke-width="1" opacity="0.6"/>
+      <line x1="18" y1="74" x2="182" y2="74" stroke="#00f0ff" stroke-width="1" opacity="0.8"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Synthwave neon magenta and cyan wireframes, retro-futurist cyberspace, CRT scanlines, and sunset gradients.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#100424;" title="#100424"></span><span class="swatch" style="background:#ff007f;" title="#ff007f"></span><span class="swatch" style="background:#00f0ff;" title="#00f0ff"></span><span class="swatch" style="background:#ff77c6;" title="#ff77c6"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Vaporwave Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 09: Steampunk -->
+          <div class="aesthetic-card" data-style-id="steampunk" data-category="Historical">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Steampunk</h3>
+                <span class="aesthetic-era">Victorian Industrial Steam</span>
+              </div>
+              <span class="aesthetic-num-badge">09</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" rx="4" fill="#2b2017" stroke="#c99738" stroke-width="2"/>
+      <rect x="17" y="11" width="166" height="68" rx="2" fill="none" stroke="#8d6724" stroke-width="1"/>
+      <!-- Rivets -->
+      <circle cx="20" cy="14" r="1.5" fill="#c99738"/><circle cx="180" cy="14" r="1.5" fill="#c99738"/>
+      <circle cx="20" cy="76" r="1.5" fill="#c99738"/><circle cx="180" cy="76" r="1.5" fill="#c99738"/>
+      <!-- Gear -->
+      <g transform="translate(50, 45)">
+        <circle cx="0" cy="0" r="16" fill="none" stroke="#c99738" stroke-width="3"/>
+        <circle cx="0" cy="0" r="8" fill="#1e150f" stroke="#c99738" stroke-width="1.5"/>
+        <rect x="-2" y="-20" width="4" height="40" fill="#c99738"/>
+        <rect x="-20" y="-2" width="40" height="4" fill="#c99738"/>
+      </g>
+      <!-- Brass wells with screw rings -->
+      <g transform="translate(95, 20)">
+        <circle cx="15" cy="15" r="10" fill="#1a120b" stroke="#c99738" stroke-width="1.5"/>
+        <circle cx="15" cy="15" r="6" fill="#c99738" opacity="0.8"/>
+        <circle cx="45" cy="15" r="10" fill="#1a120b" stroke="#c99738" stroke-width="1.5"/>
+        <circle cx="45" cy="15" r="6" fill="#c99738" opacity="0.5"/>
+        <circle cx="75" cy="15" r="10" fill="#1a120b" stroke="#c99738" stroke-width="1.5"/>
+        <circle cx="75" cy="15" r="6" fill="#c99738" opacity="0.2"/>
+        <circle cx="15" cy="38" r="10" fill="#1a120b" stroke="#c99738" stroke-width="1.5"/>
+        <circle cx="15" cy="38" r="6" fill="#c99738" opacity="0.9"/>
+        <circle cx="45" cy="38" r="10" fill="#1a120b" stroke="#c99738" stroke-width="1.5"/>
+        <circle cx="45" cy="38" r="6" fill="#c99738" opacity="0.6"/>
+        <circle cx="75" cy="38" r="10" fill="#1a120b" stroke="#c99738" stroke-width="1.5"/>
+        <circle cx="75" cy="38" r="6" fill="#c99738" opacity="0.1"/>
+      </g>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Weathered brass fittings, hand-riveted copper plating, exposed escapement gearworks, and aged parchment dials.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#221a14;" title="#221a14"></span><span class="swatch" style="background:#34281f;" title="#34281f"></span><span class="swatch" style="background:#c99738;" title="#c99738"></span><span class="swatch" style="background:#f4ecd8;" title="#f4ecd8"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Steampunk Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 10: Grunge -->
+          <div class="aesthetic-card" data-style-id="grunge" data-category="Alternative">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Grunge</h3>
+                <span class="aesthetic-era">1990s Underground Zines</span>
+              </div>
+              <span class="aesthetic-num-badge">10</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" fill="#1e1e1e" stroke="#555" stroke-width="2" stroke-dasharray="6 3"/>
+      <!-- Distress bar -->
+      <rect x="22" y="16" width="70" height="18" fill="#c84b31" transform="rotate(-2 22 16)"/>
+      <text x="26" y="29" fill="#fff" font-family="monospace" font-size="10" font-weight="bold" transform="rotate(-2 22 16)">QC: REJECT</text>
+      <!-- Rough Wells -->
+      <g transform="translate(100, 20)">
+        <circle cx="15" cy="15" r="9" fill="#333" stroke="#888" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <circle cx="15" cy="15" r="5" fill="#c84b31"/>
+        <circle cx="42" cy="15" r="9" fill="#333" stroke="#888" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <circle cx="42" cy="15" r="5" fill="#d9ad26"/>
+        <circle cx="69" cy="15" r="9" fill="#333" stroke="#888" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <circle cx="69" cy="15" r="5" fill="#555"/>
+        <circle cx="15" cy="38" r="9" fill="#333" stroke="#888" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <circle cx="15" cy="38" r="5" fill="#c84b31" opacity="0.5"/>
+        <circle cx="42" cy="38" r="9" fill="#333" stroke="#888" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <circle cx="42" cy="38" r="5" fill="#d9ad26" opacity="0.5"/>
+        <circle cx="69" cy="38" r="9" fill="#333" stroke="#888" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <circle cx="69" cy="38" r="5" fill="#555" opacity="0.3"/>
+      </g>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Distressed photocopier halftone noise, oxidized rust, typewriter monospace, ripped paper, and stamped industrial badges.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#191919;" title="#191919"></span><span class="swatch" style="background:#282828;" title="#282828"></span><span class="swatch" style="background:#c84b31;" title="#c84b31"></span><span class="swatch" style="background:#d9ad26;" title="#d9ad26"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Grunge Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 11: Paper Cutout -->
+          <div class="aesthetic-card" data-style-id="paper-cutout" data-category="Tactile">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Paper Cutout</h3>
+                <span class="aesthetic-era">Tactile Papercraft</span>
+              </div>
+              <span class="aesthetic-num-badge">11</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <defs>
+        <filter id="pcSh" x="-10%" y="-10%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#090b0e" flood-opacity="0.6"/>
+        </filter>
+      </defs>
+      <!-- Base Layer -->
+      <rect x="14" y="8" width="172" height="74" rx="8" fill="#1c212b" filter="url(#pcSh)"/>
+      <!-- Middle Sheet -->
+      <rect x="22" y="14" width="156" height="62" rx="6" fill="#262d3a" filter="url(#pcSh)"/>
+      <!-- Top Cutout Sheet -->
+      <rect x="30" y="20" width="140" height="50" rx="4" fill="#323b4c" filter="url(#pcSh)"/>
+      <!-- Wells as cut holes -->
+      <circle cx="55" cy="45" r="12" fill="#1c212b"/>
+      <circle cx="55" cy="45" r="8" fill="#e0a96d" opacity="0.9"/>
+      <circle cx="85" cy="45" r="12" fill="#1c212b"/>
+      <circle cx="85" cy="45" r="8" fill="#e0a96d" opacity="0.65"/>
+      <circle cx="115" cy="45" r="12" fill="#1c212b"/>
+      <circle cx="115" cy="45" r="8" fill="#e0a96d" opacity="0.4"/>
+      <circle cx="145" cy="45" r="12" fill="#1c212b"/>
+      <circle cx="145" cy="45" r="8" fill="#e0a96d" opacity="0.15"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Stacked cardstock sheets with multi-tiered cast shadows, clean guillotine folds, and origami well depths.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#1a1e26;" title="#1a1e26"></span><span class="swatch" style="background:#282f3d;" title="#282f3d"></span><span class="swatch" style="background:#e0a96d;" title="#e0a96d"></span><span class="swatch" style="background:#f2f5fa;" title="#f2f5fa"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Paper Cutout Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 12: Glitch -->
+          <div class="aesthetic-card" data-style-id="glitch" data-category="Digital">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Glitch</h3>
+                <span class="aesthetic-era">Cyberpunk Digital Decay</span>
+              </div>
+              <span class="aesthetic-num-badge">12</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" fill="#080a0f" stroke="#00ff66" stroke-width="1.5"/>
+      <!-- Chromatic aberration offset lines -->
+      <line x1="20" y1="28" x2="180" y2="28" stroke="#ff003c" stroke-width="1" opacity="0.7"/>
+      <line x1="22" y1="29" x2="182" y2="29" stroke="#00f3ff" stroke-width="1" opacity="0.7"/>
+      <!-- Scanlines -->
+      <line x1="14" y1="18" x2="186" y2="18" stroke="#00ff66" stroke-width="0.5" opacity="0.3"/>
+      <line x1="14" y1="38" x2="186" y2="38" stroke="#00ff66" stroke-width="0.5" opacity="0.3"/>
+      <line x1="14" y1="58" x2="186" y2="58" stroke="#00ff66" stroke-width="0.5" opacity="0.3"/>
+      <line x1="14" y1="78" x2="186" y2="78" stroke="#00ff66" stroke-width="0.5" opacity="0.3"/>
+      <!-- Glitched Wells -->
+      <rect x="35" y="38" width="20" height="16" fill="#ff003c" opacity="0.7"/>
+      <rect x="37" y="36" width="20" height="16" fill="#00f3ff" opacity="0.7"/>
+      <rect x="36" y="37" width="20" height="16" fill="#00ff66"/>
+      <rect x="75" y="37" width="20" height="16" fill="#00ff66" opacity="0.6"/>
+      <rect x="115" y="35" width="24" height="20" fill="#00ff66" opacity="0.4"/>
+      <rect x="155" y="37" width="18" height="16" fill="#00ff66" opacity="0.2"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Terminal signal corruption, RGB chromatic aberration split, CRT phosphor scanline trace, and jittered calibration readouts.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#080a0f;" title="#080a0f"></span><span class="swatch" style="background:#00ff66;" title="#00ff66"></span><span class="swatch" style="background:#ff003c;" title="#ff003c"></span><span class="swatch" style="background:#00f3ff;" title="#00f3ff"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Glitch Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 13: Anti-Design -->
+          <div class="aesthetic-card" data-style-id="anti-design" data-category="Experimental">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Anti-Design</h3>
+                <span class="aesthetic-era">Neo-Dadaist Subversion</span>
+              </div>
+              <span class="aesthetic-num-badge">13</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="12" y="8" width="176" height="74" fill="#ffff00" stroke="#000" stroke-width="3"/>
+      <!-- Hazard stripes -->
+      <polygon points="12,8 24,8 12,20" fill="#000"/>
+      <polygon points="34,8 46,8 12,42 12,30" fill="#000"/>
+      <polygon points="56,8 68,8 12,64 12,52" fill="#000"/>
+      <!-- Chaotic tilted sticker -->
+      <rect x="40" y="24" width="120" height="42" fill="#ff00ff" stroke="#000" stroke-width="3" transform="rotate(3 100 45)"/>
+      <text x="52" y="48" fill="#fff" font-family="sans-serif" font-weight="900" font-size="14" transform="rotate(3 100 45)">OD != RULES</text>
+      <circle cx="165" cy="22" r="10" fill="#000"/>
+      <circle cx="165" cy="22" r="7" fill="#ffff00"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Raw Dadaist rebellion: clashing hazard stripes, unaligned uncurated grids, brutal typography, and neon yellow saturation.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#ffff00;" title="#ffff00"></span><span class="swatch" style="background:#000000;" title="#000000"></span><span class="swatch" style="background:#ff00ff;" title="#ff00ff"></span><span class="swatch" style="background:#ffffff;" title="#ffffff"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Anti-Design Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 14: 3D-Inflated -->
+          <div class="aesthetic-card" data-style-id="3d-inflated" data-category="Tactile">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">3D-Inflated</h3>
+                <span class="aesthetic-era">Glossy Claymorphism</span>
+              </div>
+              <span class="aesthetic-num-badge">14</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <defs>
+        <radialGradient id="infPuff" cx="30%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#ff7eb0"/><stop offset="60%" stop-color="#ff4d8d"/><stop offset="100%" stop-color="#b81d58"/>
+        </radialGradient>
+      </defs>
+      <rect x="14" y="8" width="172" height="74" rx="26" fill="#32224c" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+      <!-- Puffy Inflated Wells -->
+      <circle cx="45" cy="45" r="16" fill="url(#infPuff)"/>
+      <ellipse cx="40" cy="38" rx="5" ry="3" fill="#fff" opacity="0.6"/>
+      <circle cx="82" cy="45" r="16" fill="url(#infPuff)" opacity="0.75"/>
+      <ellipse cx="77" cy="38" rx="5" ry="3" fill="#fff" opacity="0.6"/>
+      <circle cx="119" cy="45" r="16" fill="url(#infPuff)" opacity="0.5"/>
+      <ellipse cx="114" cy="38" rx="5" ry="3" fill="#fff" opacity="0.6"/>
+      <circle cx="156" cy="45" r="16" fill="url(#infPuff)" opacity="0.25"/>
+      <ellipse cx="151" cy="38" rx="5" ry="3" fill="#fff" opacity="0.6"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Squishy 3D pill shapes, bulbous inflated balloon corners, bouncy specular reflections, and soft gummy tactile depth.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#231835;" title="#231835"></span><span class="swatch" style="background:#3a2858;" title="#3a2858"></span><span class="swatch" style="background:#ff4d8d;" title="#ff4d8d"></span><span class="swatch" style="background:#e2d1f9;" title="#e2d1f9"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply 3D-Inflated Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 15: Isometric -->
+          <div class="aesthetic-card" data-style-id="isometric" data-category="Technical">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Isometric</h3>
+                <span class="aesthetic-era">Architectural Axonometry</span>
+              </div>
+              <span class="aesthetic-num-badge">15</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" rx="2" fill="#0f1f3d" stroke="#00b4d8" stroke-width="1"/>
+      <!-- Isometric CAD Grid Lines -->
+      <g stroke="#00b4d8" stroke-width="0.8" opacity="0.3">
+        <line x1="14" y1="30" x2="100" y2="82"/><line x1="50" y1="8" x2="186" y2="82"/>
+        <line x1="186" y1="30" x2="100" y2="82"/><line x1="150" y1="8" x2="14" y2="82"/>
+      </g>
+      <!-- Isometric Microplate Slab -->
+      <polygon points="100,20 160,45 100,70 40,45" fill="#162c56" stroke="#00b4d8" stroke-width="1.5"/>
+      <polygon points="40,45 100,70 100,78 40,53" fill="#0d1b36" stroke="#00b4d8" stroke-width="1.5"/>
+      <polygon points="100,70 160,45 160,53 100,78" fill="#102346" stroke="#00b4d8" stroke-width="1.5"/>
+      <!-- Isometric Wells -->
+      <ellipse cx="100" cy="45" rx="8" ry="4" fill="#00b4d8"/>
+      <ellipse cx="80" cy="36" rx="6" ry="3" fill="#00b4d8" opacity="0.75"/>
+      <ellipse cx="120" cy="36" rx="6" ry="3" fill="#00b4d8" opacity="0.5"/>
+      <ellipse cx="100" cy="30" rx="5" ry="2.5" fill="#00b4d8" opacity="0.25"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Precision 30-degree orthographic drafting projection, blueprint CAD schematics, and isometric volumetric microplates.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#0c172e;" title="#0c172e"></span><span class="swatch" style="background:#162a54;" title="#162a54"></span><span class="swatch" style="background:#00b4d8;" title="#00b4d8"></span><span class="swatch" style="background:#e0e1dd;" title="#e0e1dd"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Isometric Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 16: Ukiyo-e -->
+          <div class="aesthetic-card" data-style-id="ukiyo-e" data-category="Fine Art">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Ukiyo-e</h3>
+                <span class="aesthetic-era">17th – 19th C. Edo Japan</span>
+              </div>
+              <span class="aesthetic-num-badge">16</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" rx="4" fill="#1b2a3a" stroke="#486581" stroke-width="1.5"/>
+      <!-- Great Wave crests -->
+      <path d="M14 65 Q 40 45, 60 55 T 110 40 T 160 50 Q 175 40, 186 60 L 186 82 L 14 82 Z" fill="#243b53"/>
+      <path d="M14 72 Q 45 58, 75 66 T 135 55 T 186 70 L 186 82 L 14 82 Z" fill="#334e68"/>
+      <!-- Foam sprays -->
+      <circle cx="62" cy="53" r="1.5" fill="#f2eee6"/><circle cx="112" cy="38" r="1.5" fill="#f2eee6"/>
+      <!-- Hanko Seal (Vermillion Stamp) -->
+      <rect x="24" y="16" width="16" height="20" rx="1" fill="#c73e1d"/>
+      <rect x="26" y="18" width="12" height="16" rx="1" fill="none" stroke="#f2eee6" stroke-width="1"/>
+      <line x1="32" y1="20" x2="32" y2="32" stroke="#f2eee6" stroke-width="1"/>
+      <!-- Indigo Wells -->
+      <g transform="translate(60, 18)">
+        <circle cx="20" cy="15" r="9" fill="#101a24" stroke="#486581" stroke-width="1.5"/>
+        <circle cx="20" cy="15" r="5" fill="#c73e1d"/>
+        <circle cx="48" cy="15" r="9" fill="#101a24" stroke="#486581" stroke-width="1.5"/>
+        <circle cx="48" cy="15" r="5" fill="#c73e1d" opacity="0.65"/>
+        <circle cx="76" cy="15" r="9" fill="#101a24" stroke="#486581" stroke-width="1.5"/>
+        <circle cx="76" cy="15" r="5" fill="#c73e1d" opacity="0.3"/>
+      </g>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Traditional Japanese woodblock prints: Prussian indigo Great Wave ripples, washi paper grain, and vermillion hanko seals.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#172432;" title="#172432"></span><span class="swatch" style="background:#263c52;" title="#263c52"></span><span class="swatch" style="background:#c73e1d;" title="#c73e1d"></span><span class="swatch" style="background:#f2eee6;" title="#f2eee6"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Ukiyo-e Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 17: Brutalism -->
+          <div class="aesthetic-card" data-style-id="brutalism" data-category="Modernist">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Brutalism</h3>
+                <span class="aesthetic-era">Raw Monolithic Architecture</span>
+              </div>
+              <span class="aesthetic-num-badge">17</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <!-- Hard 4px shadow -->
+      <rect x="18" y="12" width="168" height="70" fill="#000"/>
+      <!-- White card -->
+      <rect x="14" y="8" width="168" height="70" fill="#fff" stroke="#000" stroke-width="3"/>
+      <!-- Bold Header Strip -->
+      <rect x="14" y="8" width="168" height="22" fill="#000"/>
+      <text x="22" y="24" fill="#fff" font-family="monospace" font-weight="900" font-size="11">BRUTAL_PHOTOMETRY</text>
+      <!-- Stark Wells -->
+      <circle cx="45" cy="52" r="10" fill="#ff5500" stroke="#000" stroke-width="2.5"/>
+      <circle cx="75" cy="52" r="10" fill="#000"/>
+      <circle cx="105" cy="52" r="10" fill="#fff" stroke="#000" stroke-width="2.5"/>
+      <circle cx="135" cy="52" r="10" fill="#e5e5e5" stroke="#000" stroke-width="2.5"/>
+      <circle cx="165" cy="52" r="10" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Stark black & white contrast, heavy 3px solid black borders, 4px solid black block shadows, zero radius, and raw monospace.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#000000;" title="#000000"></span><span class="swatch" style="background:#ffffff;" title="#ffffff"></span><span class="swatch" style="background:#ff5500;" title="#ff5500"></span><span class="swatch" style="background:#e5e5e5;" title="#e5e5e5"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Brutalism Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 18: Bauhaus -->
+          <div class="aesthetic-card" data-style-id="bauhaus" data-category="Modernist">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Bauhaus</h3>
+                <span class="aesthetic-era">1919 Weimar Modernism</span>
+              </div>
+              <span class="aesthetic-num-badge">18</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" fill="#222225" stroke="#fff" stroke-width="2"/>
+      <!-- Circle, Triangle, Square (Bauhaus Trinity) -->
+      <circle cx="45" cy="45" r="18" fill="#d90429"/>
+      <polygon points="100,26 118,62 82,62" fill="#ffc300"/>
+      <rect x="135" y="27" width="36" height="36" fill="#004b87"/>
+      <!-- Grid crosshairs -->
+      <line x1="45" y1="20" x2="45" y2="70" stroke="#fff" stroke-width="1" stroke-dasharray="2 2"/>
+      <line x1="100" y1="20" x2="100" y2="70" stroke="#fff" stroke-width="1" stroke-dasharray="2 2"/>
+      <line x1="153" y1="20" x2="153" y2="70" stroke="#fff" stroke-width="1" stroke-dasharray="2 2"/>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Elemental geometry: circle, triangle, and square. Strict functionalism, primary Bauhaus red, cobalt blue, and cadmium yellow.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#1f1f21;" title="#1f1f21"></span><span class="swatch" style="background:#ffffff;" title="#ffffff"></span><span class="swatch" style="background:#d90429;" title="#d90429"></span><span class="swatch" style="background:#ffc300;" title="#ffc300"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Bauhaus Style">Apply Style</button>
+            </div>
+          </div>
+          <!-- Card 19: Mid-Century Modern -->
+          <div class="aesthetic-card" data-style-id="mid-century-modern" data-category="Retro">
+            <div class="aesthetic-card-top">
+              <div>
+                <h3 class="aesthetic-title">Mid-Century Modern</h3>
+                <span class="aesthetic-era">1950s Atomic & Eames Era</span>
+              </div>
+              <span class="aesthetic-num-badge">19</span>
+            </div>
+            <div class="aesthetic-preview-box">
+              <svg width="200" height="90" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <rect x="14" y="8" width="172" height="74" rx="14" fill="#38291e" stroke="#c58940" stroke-width="1.5"/>
+      <!-- Boomerang Shape -->
+      <path d="M30 65 Q 60 25, 110 35 Q 80 50, 70 70 Z" fill="#c85a17" opacity="0.85"/>
+      <!-- Atomic starburst -->
+      <g transform="translate(160, 28)">
+        <line x1="-8" y1="0" x2="8" y2="0" stroke="#c58940" stroke-width="1.5"/>
+        <line x1="0" y1="-8" x2="0" y2="8" stroke="#c58940" stroke-width="1.5"/>
+        <line x1="-5" y1="-5" x2="5" y2="5" stroke="#c58940" stroke-width="1"/>
+        <line x1="-5" y1="5" x2="5" y2="-5" stroke="#c58940" stroke-width="1"/>
+        <circle cx="0" cy="0" r="2" fill="#c58940"/>
+      </g>
+      <!-- Organic Wells -->
+      <g transform="translate(85, 30)">
+        <circle cx="15" cy="18" r="10" fill="#20150d" stroke="#c58940" stroke-width="1"/>
+        <circle cx="15" cy="18" r="6" fill="#c58940"/>
+        <circle cx="42" cy="18" r="10" fill="#20150d" stroke="#c58940" stroke-width="1"/>
+        <circle cx="42" cy="18" r="6" fill="#556b2f"/>
+        <circle cx="69" cy="18" r="10" fill="#20150d" stroke="#c58940" stroke-width="1"/>
+        <circle cx="69" cy="18" r="6" fill="#c85a17"/>
+      </g>
+    </svg>
+            </div>
+            <p class="aesthetic-desc">Warm walnut wood warmth, atomic boomerang geometry, mustard gold, avocado green, and burnt atomic orange accents.</p>
+            <div class="aesthetic-card-actions">
+              <div class="aesthetic-palette-row">
+                <span class="swatch" style="background:#281d15;" title="#281d15"></span><span class="swatch" style="background:#3e2f23;" title="#3e2f23"></span><span class="swatch" style="background:#c58940;" title="#c58940"></span><span class="swatch" style="background:#c85a17;" title="#c85a17"></span>
+              </div>
+              <button type="button" class="btn btn-sm btn-apply-aesthetic" aria-label="Apply Mid-Century Modern Style">Apply Style</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="photo-tips" class="info-section reveal" aria-labelledby="tips-heading">
       <div class="section-header-block">
-        <span class="section-eyebrow">04 / Laboratory Standards</span>
+        <span class="section-eyebrow">Laboratory Standards</span>
         <h2 id="tips-heading" class="info-section-title">Principles of Optical Capture</h2>
         <p class="info-section-desc">Smartphone camera sensors deliver analytical accuracy within 2% of spectrophotometers when following these physical capture principles.</p>
       </div>
@@ -1672,12 +2438,10 @@
           <!-- Left Satellite Cards -->
           <div class="principles-col col-left">
             <div class="principle-card glass-card spotlight-card">
-              <div class="principle-num">01</div>
               <h4>Straight-down (90°)</h4>
               <p>Position camera lens perpendicular to the plate deck. Prevents perspective parallax and optical sidewall shadowing.</p>
             </div>
             <div class="principle-card glass-card spotlight-card">
-              <div class="principle-num">02</div>
               <h4>Even diffuse lighting</h4>
               <p>Use a white light box or indirect ambient daylight. Avoid harsh single-point ceiling spotlights that create specular glints on menisci.</p>
             </div>
@@ -1705,12 +2469,10 @@
           <!-- Right Satellite Cards -->
           <div class="principles-col col-right">
             <div class="principle-card glass-card spotlight-card">
-              <div class="principle-num">03</div>
               <h4>Locked exposure &amp; WB</h4>
               <p>Lock exposure (AE/AF lock) and turn off computational multi-frame HDR to avoid inconsistent per-well tone-mapping.</p>
             </div>
             <div class="principle-card glass-card spotlight-card">
-              <div class="principle-num">04</div>
               <h4>Lossless PNG format</h4>
               <p>Upload original camera captures. Avoid messaging apps that recompress images and introduce 8×8 DCT block artifacts.</p>
             </div>
@@ -1719,7 +2481,7 @@
 
         <!-- Bottom 5th Satellite Card -->
         <div class="principle-card-bottom glass-card spotlight-card">
-          <div class="principle-num">05</div>
+          
           <div class="principle-bottom-content">
             <h4>Substrate blanks in identical illumination</h4>
             <p>Always keep clear substrate/stop buffer reference wells in frame to compute exact transmittance baseline T = I_sample / I_blank.</p>

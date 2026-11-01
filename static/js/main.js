@@ -30,6 +30,7 @@ import { initToastSystem } from "./toast-system.js";
 import { initMicroInteractions } from "./interactions.js";
 import { initTour } from "./tour.js";
 import { initStatusBar } from "./status-bar.js";
+import { initAesthetics } from "./aesthetics.js";
 
 // Expose state globally for browser console debugging and testing
 if (typeof window !== "undefined") {
@@ -87,6 +88,7 @@ function bootstrap() {
   initMicroInteractions();
   initTour();
   initStatusBar();
+  initAesthetics();
 
   console.log("%c[PlateOD]%c Initialized modular frontend (ES modules). Ready.", "color: #F5A524; font-weight: bold;", "color: inherit;");
 }
