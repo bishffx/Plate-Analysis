@@ -205,12 +205,7 @@ function initDemoMeter() {
     if (elQC) {
       countUp(elQC, 6, 700, (n) => String(Math.round(n)));
     }
-    if (elTime) {
-      countUp(elTime, 1.2, 800, (n) => `< ${n.toFixed(1)}s`);
-    }
-    if (elRes) {
-      countUp(elRes, 0.001, 800, (n) => n.toFixed(3));
-    }
+
   };
 
   if ("IntersectionObserver" in window) {

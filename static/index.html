@@ -354,8 +354,8 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           </div>
           <div class="stat-metric-content">
-            <div class="stat-metric-val" id="stat-time" data-target="1.2">&lt; 1.2s</div>
-            <div class="stat-metric-lbl">Average result turnaround</div>
+            <div class="stat-metric-val" id="stat-time">Instant</div>
+            <div class="stat-metric-lbl">Local browser analysis</div>
           </div>
         </div>
 
@@ -364,8 +364,8 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
           </div>
           <div class="stat-metric-content">
-            <div class="stat-metric-val" id="stat-res" data-target="0.001">0.001</div>
-            <div class="stat-metric-lbl">Absorbance resolution (OD)</div>
+            <div class="stat-metric-val" id="stat-res">Calibrated</div>
+            <div class="stat-metric-lbl">Curve fitting with reader ODs</div>
           </div>
         </div>
       </div>
@@ -509,13 +509,14 @@
           </div>
           <div class="bento-body">
             <h3 class="bento-title">SPCE &amp; DIVA assay presets</h3>
-            <p class="bento-desc">One-click presets for Solid Phase Competition (% PI) and Differential Positivity (% PP) with pre-mapped control locations and validated diagnostic cutoff thresholds.</p>
+            <p class="bento-desc">One-click presets for Solid Phase Competition (% PI) and Differential Positivity (% PP) with pre-mapped control wells and an editable cutoff.</p>
           </div>
           <div class="bento-illust-wrap">
             <svg class="bento-svg-curves" viewBox="0 0 280 110" fill="none" aria-hidden="true">
               <!-- Threshold cutoff line -->
               <line x1="20" y1="55" x2="260" y2="55" stroke="rgba(244, 114, 182, 0.6)" stroke-width="1.5" stroke-dasharray="4 4"/>
-              <text x="210" y="50" fill="#F472B6" font-size="10">Cutoff (65%)</text>
+              <text x="210" y="44" fill="#F472B6" font-size="9">Cutoff (65%)</text>
+              <text x="210" y="55" fill="rgba(244, 114, 182, 0.8)" font-size="6">default, confirm against your kit insert</text>
               <!-- SPCE sigmoidal curve -->
               <path d="M25 20 Q100 25 140 55 T255 95" stroke="#22D3EE" stroke-width="2.5" fill="none"/>
               <text x="35" y="28" fill="#22D3EE" font-size="10">Inhibition %</text>
@@ -534,7 +535,7 @@
           </div>
           <div class="bento-body">
             <h3 class="bento-title">Plate-reader calibration</h3>
-            <p class="bento-desc">Fit linear or quadratic regression against benchtop spectrophotometer ODs for 100% paper concordance.</p>
+            <p class="bento-desc">Fit linear or quadratic regression against benchtop spectrophotometer ODs and check agreement with your reader (R² and RMSE are shown).</p>
           </div>
           <div class="bento-illust-wrap">
             <svg class="bento-svg-scatter" viewBox="0 0 160 90" fill="none" aria-hidden="true">
@@ -546,7 +547,7 @@
               <circle cx="92" cy="40" r="3" fill="#A78BFA"/>
               <circle cx="118" cy="31" r="3" fill="#A78BFA"/>
               <circle cx="135" cy="22" r="3" fill="#A78BFA"/>
-              <text x="80" y="70" fill="#38BDF8" font-size="9" font-family="monospace">R² = 0.998</text>
+              <text x="50" y="70" fill="#38BDF8" font-size="8.5" font-family="monospace">R² shown after fitting</text>
             </svg>
           </div>
         </div>
@@ -838,12 +839,12 @@
                       <label for="channel">Channel</label>
                       <select id="channel">
                         <option value="AUTO" selected>Auto (recommended)</option>
-                        <option value="B">B (492 nm)</option>
+                        <option value="B">B (blue)</option>
                         <option value="G">G (broad range)</option>
                         <option value="GRAY">GRAY (luminance)</option>
                         <option value="R">R (red channel)</option>
                       </select>
-                      <span class="field-hint">Absorbance wavelength (492 nm filter)</span>
+                      
                     </div>
                     <div class="form-group">
                       <label for="dark">Dark level (0–100)</label>
@@ -888,7 +889,7 @@
                       </div>
                       <input id="cutoff" type="number" step="any" value="40" class="is-locked" readonly>
                       <div class="field-error" id="cutoff-err" hidden></div>
-                      <span class="field-hint">Diagnostic threshold</span>
+                      <span class="field-hint">Diagnostic threshold (SPCE Cutoff 65%: default, confirm against your kit insert)</span>
                     </div>
                   </div>
 
@@ -995,7 +996,7 @@
                     <input id="chk-use-reader" type="checkbox">
                     Direct Reader/Paper Mode
                   </label>
-                  <span class="field-hint">Quantify directly from reader ODs with 100% paper fidelity</span>
+                  <span class="field-hint">Quantify directly from reader ODs and check agreement with your reader (R² and RMSE are shown)</span>
                   <p class="hint" id="fitnote"></p>
                   <div id="cal-alert" class="msg warn" style="margin-top:6px; display:none;" role="alert"></div>
                   <canvas id="cal-scatter-cv" width="340" height="200" style="display:none; width:100%; border-radius:6px; margin-top:8px; background:var(--input-bg); border:1px solid var(--border-color);"></canvas>
@@ -1687,7 +1688,7 @@
           <ul class="pricing-specs-list">
             <li><span class="spec-check">✓</span> <span><strong>Antigen Wells:</strong> A1–D1 (Max Signal)</span></li>
             <li><span class="spec-check">✓</span> <span><strong>Substrate Blanks:</strong> E1–F1 (Baseline)</span></li>
-            <li><span class="spec-check">✓</span> <span><strong>Diagnostic Cutoff:</strong> &ge; 65.0% Positive</span></li>
+            <li><span class="spec-check">✓</span> <span><strong>Cutoff (65%):</strong> default, confirm against your kit insert</span></li>
             <li><span class="spec-check">✓</span> <span>Automated Range &amp; CV Integrity QC</span></li>
           </ul>
 
@@ -2538,7 +2539,7 @@
       <div class="section-header-block">
         <span class="section-eyebrow">Laboratory Standards</span>
         <h2 id="tips-heading" class="info-section-title">Principles of Optical Capture</h2>
-        <p class="info-section-desc">Smartphone camera sensors deliver analytical accuracy within 2% of spectrophotometers when following these physical capture principles.</p>
+        <p class="info-section-desc">Good capture technique reduces error. Always calibrate against your plate reader.</p>
       </div>
 
       <div class="principles-panel glass-card">
@@ -2570,10 +2571,7 @@
               <span class="center-eyebrow">OPTICAL INTEGRITY</span>
               <h3 class="center-title">Optimal Imaging Environment</h3>
               <p class="center-desc">Eliminates geometric distortion, meniscus reflection, and tonal compression before computational homography.</p>
-              <div class="center-meter-pill">
-                <span class="center-dot"></span>
-                <span>Photometric Fidelity &ge; 98.4%</span>
-              </div>
+
             </div>
           </div>
 
