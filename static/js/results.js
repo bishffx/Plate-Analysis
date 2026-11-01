@@ -1085,6 +1085,9 @@ export function renderResults(r) {
   }
 
   renderPrintBundle(r);
+  if (typeof window !== "undefined" && window.updateWorkspaceScroll) {
+    window.updateWorkspaceScroll();
+  }
 }
 
 // -----------------------------------------------------------------------------

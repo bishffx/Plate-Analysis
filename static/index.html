@@ -592,7 +592,8 @@
     <div id="analyzer" class="analyzer-section">
       <main>
         <!-- LEFT PANEL: Sticky Numbered Stepper Workspace -->
-                <aside class="stepper-aside" aria-label="Analysis Configuration Accordion">
+        <div class="workspace-panel-col" id="col-settings">
+          <aside class="stepper-aside" tabindex="0" role="region" aria-label="Analysis settings">
           <div class="accordion-top-bar">
             <div class="accordion-title-wrap">
               <h2 class="accordion-main-title">Analysis Parameters</h2>
@@ -1019,9 +1020,13 @@
             </button>
           </div>
         </aside>
+        <div class="panel-scroll-shadow shadow-top" aria-hidden="true"></div>
+        <div class="panel-scroll-shadow shadow-bottom" aria-hidden="true"></div>
+      </div>
 
         <!-- RIGHT PANEL: Image Dropzone & Interactive Grid Canvas -->
-        <section class="workbench-main">
+        <div class="workspace-panel-col" id="col-workbench">
+          <section class="workbench-main" tabindex="0" role="region" aria-label="Image and results">
           <div class="card grid-card">
             <div class="grid-card-header">
               <div class="grid-header-left">
@@ -1489,6 +1494,9 @@
             </aside>
           </div>
         </section>
+        <div class="panel-scroll-shadow shadow-top" aria-hidden="true"></div>
+        <div class="panel-scroll-shadow shadow-bottom" aria-hidden="true"></div>
+      </div>
       </main>
     </div>
 

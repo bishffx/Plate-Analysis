@@ -6539,3 +6539,119 @@ textarea.is-locked {
   padding: 8px 10px;
   margin-top: 4px;
 }
+
+
+/* ==========================================================================
+   Dual-Column Workspace Scrollbars (Dark-Violet Theme)
+   ========================================================================== */
+
+/* Firefox rules */
+aside.stepper-aside,
+section.workbench-main {
+  scrollbar-width: thin;
+  scrollbar-color: #8B5CF6 rgba(124, 58, 237, 0.08);
+}
+
+/* Chromium, Edge & Safari rules: 10px wide, rounded thumb with brand gradient, translucent track, brighter on hover, always visible */
+aside.stepper-aside::-webkit-scrollbar,
+section.workbench-main::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background-color: transparent;
+}
+
+aside.stepper-aside::-webkit-scrollbar-track,
+section.workbench-main::-webkit-scrollbar-track {
+  background: rgba(124, 58, 237, 0.08);
+  border-radius: 9999px;
+  margin: 6px 0;
+  border: 1px solid rgba(167, 139, 250, 0.08);
+}
+
+aside.stepper-aside::-webkit-scrollbar-thumb,
+section.workbench-main::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 50%, #D946EF 100%);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.15);
+  min-height: 40px;
+}
+
+aside.stepper-aside::-webkit-scrollbar-thumb:hover,
+section.workbench-main::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #E879F9 100%);
+  background-clip: padding-box;
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.35), 0 0 10px rgba(139, 92, 246, 0.45);
+}
+
+/* Accessible focus ring for keyboard scrolling */
+aside.stepper-aside:focus-visible,
+section.workbench-main:focus-visible {
+  outline: 2px solid var(--color-primary, #8B5CF6);
+  outline-offset: -2px;
+  border-radius: var(--radius-md, 12px);
+}
+
+aside.stepper-aside:focus:not(:focus-visible),
+section.workbench-main:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Soft Fade Shadows at Top and Bottom */
+.panel-scroll-shadow {
+  position: absolute;
+  left: 0;
+  right: 14px; /* Leaves 10px scrollbar clear */
+  height: 32px;
+  pointer-events: none;
+  z-index: 25;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.panel-scroll-shadow.shadow-top {
+  top: 0;
+  background: linear-gradient(180deg, rgba(5, 3, 11, 0.96) 0%, rgba(124, 58, 237, 0.15) 40%, rgba(5, 3, 11, 0) 100%);
+  border-top-left-radius: var(--radius-md, 12px);
+  border-top-right-radius: var(--radius-md, 12px);
+}
+
+.panel-scroll-shadow.shadow-bottom {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(5, 3, 11, 0.96) 0%, rgba(124, 58, 237, 0.15) 40%, rgba(5, 3, 11, 0) 100%);
+  border-bottom-left-radius: var(--radius-md, 12px);
+  border-bottom-right-radius: var(--radius-md, 12px);
+}
+
+#col-settings .shadow-bottom {
+  bottom: var(--run-bar-height, 62px);
+}
+
+.workspace-panel-col.has-scroll-top .shadow-top {
+  opacity: 1;
+}
+
+.workspace-panel-col.has-scroll-bottom .shadow-bottom {
+  opacity: 1;
+}
+
+/* Light Theme overrides for scrollbars and shadows */
+[data-theme="light"] aside.stepper-aside,
+[data-theme="light"] section.workbench-main {
+  scrollbar-color: #7C3AED rgba(124, 58, 237, 0.06);
+}
+
+[data-theme="light"] aside.stepper-aside::-webkit-scrollbar-track,
+[data-theme="light"] section.workbench-main::-webkit-scrollbar-track {
+  background: rgba(124, 58, 237, 0.05);
+  border-color: rgba(124, 58, 237, 0.1);
+}
+
+[data-theme="light"] .panel-scroll-shadow.shadow-top {
+  background: linear-gradient(180deg, rgba(250, 248, 255, 0.96) 0%, rgba(124, 58, 237, 0.10) 40%, rgba(250, 248, 255, 0) 100%);
+}
+
+[data-theme="light"] .panel-scroll-shadow.shadow-bottom {
+  background: linear-gradient(0deg, rgba(250, 248, 255, 0.96) 0%, rgba(124, 58, 237, 0.10) 40%, rgba(250, 248, 255, 0) 100%);
+}

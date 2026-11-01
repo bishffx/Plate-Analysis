@@ -150,6 +150,9 @@ export function openSection(cardEl) {
     panel.removeAttribute("inert");
   }
   updateToggleAllButtonText();
+  if (typeof window !== "undefined" && window.updateWorkspaceScroll) {
+    window.updateWorkspaceScroll();
+  }
 }
 
 export function closeSection(cardEl) {
@@ -164,6 +167,9 @@ export function closeSection(cardEl) {
     panel.setAttribute("inert", "");
   }
   updateToggleAllButtonText();
+  if (typeof window !== "undefined" && window.updateWorkspaceScroll) {
+    window.updateWorkspaceScroll();
+  }
 }
 
 export function toggleSection(cardEl, singleMode = true) {

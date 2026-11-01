@@ -555,6 +555,19 @@ export function initCanvasEvents() {
   cv.addEventListener("pointerup", endDrag);
   cv.addEventListener("pointercancel", endDrag);
 
+  // Wheel scrolling: natural scroll over canvas scrolls workbench panel,
+  // unless Ctrl key is held for precision zoom centered at mouse position.
+  cv.addEventListener("wheel", (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.15 : 0.85;
+      const rect = cv.getBoundingClientRect();
+      const originX = (e.clientX - rect.left) * (cv.width / rect.width);
+      const originY = (e.clientY - rect.top) * (cv.height / rect.height);
+      setCanvasZoom(zoomScale * factor, originX, originY);
+    }
+  }, { passive: false });
+
   window.addEventListener("resize", () => {
     if (S.img) {
       sizeCanvas();
