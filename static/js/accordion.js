@@ -60,9 +60,9 @@ export function updateAccordionStatusChips() {
   // 1. Assay type chip
   const chipAssay = $("chip-status-assay");
   if (chipAssay) {
-    const isCustom = $("badge-customised") && !$("badge-customised").hidden;
-    const assayName = S.selectedAssay || "SPCE";
-    chipAssay.textContent = isCustom ? `${assayName} (Custom)` : assayName;
+    const isCustom = S.isCustomised || (S.selectedAssay === "Custom");
+    const assayName = S.selectedAssay || "DIVA";
+    chipAssay.textContent = isCustom ? (S.selectedAssay === "Custom" ? "Custom" : `${assayName} (Custom)`) : assayName;
     chipAssay.classList.toggle("is-active", Boolean(S.selectedAssay));
   }
 
@@ -298,6 +298,7 @@ export function initAccordion() {
   // Also hook preset selection buttons to refresh status chips
   $("btn-assay-spce")?.addEventListener("click", () => setTimeout(updateAccordionStatusChips, 20));
   $("btn-assay-diva")?.addEventListener("click", () => setTimeout(updateAccordionStatusChips, 20));
+  $("btn-assay-custom")?.addEventListener("click", () => setTimeout(updateAccordionStatusChips, 20));
   $("btn-cal-linear")?.addEventListener("click", () => setTimeout(updateAccordionStatusChips, 20));
   $("btn-cal-quad")?.addEventListener("click", () => setTimeout(updateAccordionStatusChips, 20));
 

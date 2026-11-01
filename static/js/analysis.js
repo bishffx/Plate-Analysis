@@ -14,7 +14,7 @@ import { uploadImage, analyzePlate } from "./api.js";
 import { isConvexQuad } from "./grid.js";
 import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout, startAnalysisScan, finishAnalysisScan } from "./plate-canvas.js";
 import { selectAssay } from "./presets.js";
-import { updateStepperValidation, validateWellField } from "./validation.js";
+import { updateStepperValidation, validateWellField, parseAndValidateWells } from "./validation.js";
 import { ensureSectionOpenForElement, updateAccordionStatusChips, updateRunSummaryLine } from "./accordion.js";
 import { renderResults } from "./results.js";
 import { updateProblemsCard } from "./toast-system.js";
@@ -89,7 +89,7 @@ export function cfg() {
     cal_a: val("cal-a", 0),
     cal_b: val("cal-b", 1),
     cal_c: val("cal-c", 0),
-    assay: S.selectedAssay,
+    assay: S.selectedAssay === "Custom" ? "" : (S.selectedAssay || "DIVA"),
     blank_correction: $("blank-correction") ? $("blank-correction").checked : true,
     use_reader: useReader,
     reader: $("reader") ? $("reader").value : ""
@@ -308,11 +308,35 @@ export async function run() {
     return;
   }
 
+  // Check well role mutual exclusion
+  const maxRows = +($("rows")?.value) || 8;
+  const maxCols = +($("cols")?.value) || 12;
+  const pSet = parseAndValidateWells(posEl?.value, maxRows, maxCols).wells;
+  const nSet = parseAndValidateWells(negEl?.value, maxRows, maxCols).wells;
+  const bSet = parseAndValidateWells(blankEl?.value, maxRows, maxCols).wells;
+  const overlap = [...pSet].filter((w) => nSet.has(w) || bSet.has(w)).concat([...nSet].filter((w) => bSet.has(w)));
+  if (overlap.length > 0) {
+    ensureSectionOpenForElement(negEl || posEl);
+    showToast(`Well ${overlap.join(", ")} assigned to multiple roles`, "error");
+    return;
+  }
+
   const cutoffEl = $("cutoff");
   if (cutoffEl && (isNaN(parseFloat(cutoffEl.value)) || parseFloat(cutoffEl.value) <= 0)) {
     ensureSectionOpenForElement(cutoffEl);
     showToast("Invalid Cutoff percentage threshold", "error");
     return;
+  }
+
+  const cutlowEl = $("cutlow");
+  if (cutlowEl && cutlowEl.value.trim() !== "") {
+    const val = parseFloat(cutlowEl.value);
+    const cutVal = parseFloat(cutoffEl?.value);
+    if (isNaN(val) || (!isNaN(cutVal) && val >= cutVal)) {
+      ensureSectionOpenForElement(cutlowEl);
+      showToast("Doubtful lower cutoff must be below cutoff", "error");
+      return;
+    }
   }
 
   const slopeEl = $("slope");

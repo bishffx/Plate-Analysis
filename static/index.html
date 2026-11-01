@@ -631,15 +631,28 @@
               </button>
               <div class="accordion-panel" id="panel-assay" role="region" aria-labelledby="btn-accordion-assay">
                 <div class="accordion-panel-inner">
-                  <div class="assay-header-row" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="field-hint" style="margin:0;">Select standard protocol or customize:</span>
+                  <div class="assay-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span class="field-hint" style="margin:0;">Protocol preset:</span>
+                    <span id="badge-assay-status" class="badge-assay-status badge-default">Default</span>
                     <span id="badge-customised" class="badge-customised" hidden>Customised</span>
                   </div>
                   <div class="segmented-control" id="assay-selector" role="radiogroup" aria-label="Assay type selection">
-                    <button type="button" class="seg-btn active" id="btn-assay-spce" role="radio" aria-checked="true">SPCE</button>
-                    <button type="button" class="seg-btn" id="btn-assay-diva" role="radio" aria-checked="false">DIVA</button>
+                    <button type="button" class="seg-btn" id="btn-assay-spce" role="radio" aria-checked="false">SPCE</button>
+                    <button type="button" class="seg-btn active" id="btn-assay-diva" role="radio" aria-checked="true">DIVA</button>
+                    <button type="button" class="seg-btn" id="btn-assay-custom" role="radio" aria-checked="false">Custom</button>
                   </div>
-                  <div id="assay-info" class="assay-info"></div>
+                  <div class="assay-controls-row">
+                    <label class="toggle-switch-wrap" for="chk-edit-values">
+                      <input type="checkbox" id="chk-edit-values" class="toggle-switch-input" role="switch" aria-checked="false">
+                      <span class="toggle-switch-track"><span class="toggle-switch-thumb"></span></span>
+                      <span class="toggle-switch-label">Edit values</span>
+                    </label>
+                    <button type="button" class="sec btn-xs btn-reset-defaults" id="btn-reset-assay-defaults" title="Reset this assay to default preset values">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                      <span>Reset to defaults</span>
+                    </button>
+                  </div>
+                  <div id="assay-info" class="assay-info" aria-live="polite"></div>
                 </div>
               </div>
             </div>
@@ -751,24 +764,48 @@
                   </div>
 
                   <div class="form-group" id="pos-wrap">
-                    <label for="pos">Positive control wells</label>
-                    <input id="pos" value="" placeholder="e.g. A1-B1">
-                    <div class="field-error" id="pos-err" hidden>Invalid well format (e.g. A1, A1-B2)</div>
-                    <span class="field-hint">High OD reference wells (PP mode) · Click to edit manually</span>
+                    <div class="field-label-row">
+                      <label for="pos">Positive control wells</label>
+                      <span class="field-modified-marker" id="mod-pos" hidden>
+                        <span class="amber-dot"></span> Modified
+                        <button type="button" class="btn-field-reset" id="reset-field-pos" title="Reset positive control wells to default" aria-label="Reset positive control wells to default">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                      </span>
+                    </div>
+                    <input id="pos" value="H7-H8" placeholder="e.g. H7-H8" class="is-locked" readonly>
+                    <div class="field-error" id="pos-err" hidden></div>
+                    <span class="field-hint">High OD reference wells (PP mode) · Optional for SPCE</span>
                   </div>
 
                   <div class="form-group" id="neg-wrap">
-                    <label for="neg">Negative control wells</label>
-                    <input id="neg" value="C1-D1" placeholder="e.g. C1-D1">
-                    <div class="field-error" id="neg-err" hidden>Invalid well format (e.g. C1-D1)</div>
-                    <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA · Click to edit</span>
+                    <div class="field-label-row">
+                      <label for="neg">Negative control wells</label>
+                      <span class="field-modified-marker" id="mod-neg" hidden>
+                        <span class="amber-dot"></span> Modified
+                        <button type="button" class="btn-field-reset" id="reset-field-neg" title="Reset negative control wells to default" aria-label="Reset negative control wells to default">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                      </span>
+                    </div>
+                    <input id="neg" value="H9-H10" placeholder="e.g. H9-H10" class="is-locked" readonly>
+                    <div class="field-error" id="neg-err" hidden></div>
+                    <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA</span>
                   </div>
 
                   <div class="form-group" id="blank-wrap">
-                    <label for="blank">Blank wells (substrate only / empty)</label>
-                    <input id="blank" value="E1-H1" placeholder="e.g. E1-H1">
-                    <div class="field-error" id="blank-err" hidden>Invalid well format (e.g. E1-H1)</div>
-                    <span class="field-hint">Substrate reference wells for optical baseline · Click to edit</span>
+                    <div class="field-label-row">
+                      <label for="blank">Blank wells (substrate only / empty)</label>
+                      <span class="field-modified-marker" id="mod-blank" hidden>
+                        <span class="amber-dot"></span> Modified
+                        <button type="button" class="btn-field-reset" id="reset-field-blank" title="Reset blank wells to default" aria-label="Reset blank wells to default">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                      </span>
+                    </div>
+                    <input id="blank" value="H11-H12" placeholder="e.g. H11-H12" class="is-locked" readonly>
+                    <div class="field-error" id="blank-err" hidden></div>
+                    <span class="field-hint">Substrate reference wells for optical baseline</span>
                   </div>
                 </div>
               </div>
@@ -832,23 +869,41 @@
                   <div class="form-row-2col">
                     <div class="form-group">
                       <label for="mode">Assay mode</label>
-                      <select id="mode">
+                      <select id="mode" class="is-locked" disabled>
                         <option value="PP">PP – indirect</option>
                         <option value="PI">PI – competitive</option>
                       </select>
-                      <span class="field-hint">Diagnostic calculation</span>
+                      <span class="field-hint">Diagnostic calculation (locked for preset)</span>
                     </div>
-                    <div class="form-group">
-                      <label for="cutoff">Cutoff (%)</label>
-                      <input id="cutoff" type="number" step="any" value="40">
+                    <div class="form-group" id="cutoff-wrap">
+                      <div class="field-label-row">
+                        <label for="cutoff">Cutoff (%)</label>
+                        <span class="field-modified-marker" id="mod-cutoff" hidden>
+                          <span class="amber-dot"></span> Modified
+                          <button type="button" class="btn-field-reset" id="reset-field-cutoff" title="Reset cutoff to default" aria-label="Reset cutoff to default">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                          </button>
+                        </span>
+                      </div>
+                      <input id="cutoff" type="number" step="any" value="40" class="is-locked" readonly>
+                      <div class="field-error" id="cutoff-err" hidden></div>
                       <span class="field-hint">Diagnostic threshold</span>
                     </div>
                   </div>
 
-                  <div class="form-group">
-                    <label for="cutlow">Doubtful lower cutoff (optional)</label>
-                    <input id="cutlow" type="number" step="any" placeholder="none">
-                    <span class="field-hint">Borderline gray-zone limit</span>
+                  <div class="form-group" id="cutlow-wrap">
+                    <div class="field-label-row">
+                      <label for="cutlow">Doubtful lower cutoff (optional)</label>
+                      <span class="field-modified-marker" id="mod-cutlow" hidden>
+                        <span class="amber-dot"></span> Modified
+                        <button type="button" class="btn-field-reset" id="reset-field-cutlow" title="Reset doubtful cutoff to default" aria-label="Reset doubtful cutoff to default">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                      </span>
+                    </div>
+                    <input id="cutlow" type="number" step="any" placeholder="none" class="is-locked" readonly>
+                    <div class="field-error" id="cutlow-err" hidden></div>
+                    <span class="field-hint">Borderline gray-zone limit (strictly below cutoff)</span>
                   </div>
 
                   <div class="form-group">

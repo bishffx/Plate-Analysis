@@ -11,6 +11,7 @@
 import { $, $$ } from "./dom.js";
 import { S } from "./state.js";
 import { updateStepperValidation } from "./validation.js";
+import { setEditValues } from "./presets.js";
 
 let activeRole = "pos"; // 'pos' | 'neg' | 'blank' | 'sample'
 let isPointerDown = false;
@@ -93,6 +94,7 @@ function initPaletteButtons() {
   const clearAllBtn = $("btn-clear-all-roles");
   if (clearAllBtn) {
     clearAllBtn.addEventListener("click", () => {
+      if (!S.isEditingValues) setEditValues(true);
       wellRoles.clear();
       $$(".painter-well").forEach((w) => {
         w.setAttribute("data-role", "sample");
@@ -106,6 +108,7 @@ function initPaletteButtons() {
 function initGridPointerEvents(gridEl) {
   const paintWell = (wellEl) => {
     if (!wellEl || !wellEl.hasAttribute("data-well")) return;
+    if (!S.isEditingValues) setEditValues(true);
     const wellId = wellEl.getAttribute("data-well");
     wellRoles.set(wellId, activeRole);
 

@@ -3,8 +3,9 @@
 /**
  * PlateOD Presets Module (presets.js)
  * 
- * Manages assay presets (DIVA, SPCE, Custom), form binding,
- * and informational section quick-select buttons.
+ * Manages assay presets (SPCE, DIVA, Custom), manual edit mode ("Edit values" switch),
+ * persistent storage of edits per assay in localStorage, per-field reset buttons,
+ * dynamic description lines, and status badges.
  */
 
 import { S, setState } from "./state.js";
@@ -12,79 +13,336 @@ import { $ } from "./dom.js";
 import { fetchPresets } from "./api.js";
 import { updateStepperValidation } from "./validation.js";
 import { syncPainterFromInputs } from "./painter.js";
+import { updateAccordionStatusChips } from "./accordion.js";
 
-export function selectAssay(name) {
-  if (!S.presets || !S.presets[name]) return;
-  setState("selectedAssay", name);
-  S.isCustomised = false;
-  const p = S.presets[name];
+export const DEFAULT_PRESETS = {
+  SPCE: {
+    name: "SPCE",
+    description: "Solid Phase Competition ELISA (PI mode)",
+    mode: "PI",
+    cutoff: 65.0,
+    pos: "",
+    neg: "A1-D1",
+    blank: "E1-F1",
+    cutlow: ""
+  },
+  DIVA: {
+    name: "DIVA",
+    description: "Differentiating Infected from Vaccinated Animals (PP mode)",
+    mode: "PP",
+    cutoff: 40.0,
+    pos: "H7-H8",
+    neg: "H9-H10",
+    blank: "H11-H12",
+    cutlow: ""
+  }
+};
 
-  const btnSpce = $("btn-assay-spce");
-  const btnDiva = $("btn-assay-diva");
-  if (name === "SPCE") {
-    btnSpce?.classList.add("active");
-    btnSpce?.setAttribute("aria-checked", "true");
-    btnDiva?.classList.remove("active");
-    btnDiva?.setAttribute("aria-checked", "false");
-  } else {
-    btnDiva?.classList.add("active");
-    btnDiva?.setAttribute("aria-checked", "true");
-    btnSpce?.classList.remove("active");
-    btnSpce?.setAttribute("aria-checked", "false");
+/**
+ * Reads saved edits for an assay from localStorage.
+ */
+export function getStoredEdits(assay) {
+  if (!assay) return null;
+  try {
+    const key = `plateod_assay_edits_${assay.toLowerCase()}`;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Writes or removes saved edits for an assay in localStorage and S.assayEdits.
+ */
+export function setStoredEdits(assay, edits) {
+  if (!assay) return;
+  try {
+    const key = `plateod_assay_edits_${assay.toLowerCase()}`;
+    if (edits) {
+      localStorage.setItem(key, JSON.stringify(edits));
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch (e) {}
+
+  if (!S.assayEdits) S.assayEdits = {};
+  S.assayEdits[assay] = edits;
+}
+
+/**
+ * Compares current field value with default preset value.
+ */
+export function checkFieldModified(field) {
+  const assay = S.selectedAssay;
+  if (!assay || assay === "Custom") return true;
+  const defs = DEFAULT_PRESETS[assay];
+  if (!defs) return false;
+
+  const currentVal = $(field)?.value.trim() || "";
+  const defaultVal = String(defs[field] !== undefined ? defs[field] : "").trim();
+  return currentVal !== defaultVal;
+}
+
+/**
+ * Updates small "modified" markers and per-field reset buttons.
+ */
+export function updateModifiedMarkers() {
+  const fields = ["pos", "neg", "blank", "cutoff", "cutlow"];
+  let anyModified = false;
+
+  fields.forEach((field) => {
+    const modEl = $(`mod-${field}`);
+    if (!modEl) return;
+    const isMod = checkFieldModified(field);
+    modEl.hidden = !isMod;
+    if (isMod) anyModified = true;
+  });
+
+  updateAssayBadge(anyModified);
+}
+
+/**
+ * Updates the assay status badge: "Default" or "Customised" (with amber dot).
+ */
+export function updateAssayBadge(anyModified = null) {
+  const badge = $("badge-assay-status");
+  const legacyBadge = $("badge-customised");
+
+  if (anyModified === null) {
+    anyModified = ["pos", "neg", "blank", "cutoff", "cutlow"].some((f) => checkFieldModified(f));
   }
 
-  const customBadge = $("badge-customised");
-  if (customBadge) customBadge.hidden = true;
-  const customCheck = $("customise-wells");
-  if (customCheck) customCheck.checked = false;
+  const isCustom = S.selectedAssay === "Custom";
+  const isModified = anyModified || isCustom;
+  S.isCustomised = isModified;
+
+  if (badge) {
+    if (isModified) {
+      badge.className = "badge-assay-status badge-customised";
+      badge.innerHTML = `<span class="amber-dot"></span> Customised`;
+    } else {
+      badge.className = "badge-assay-status badge-default";
+      badge.textContent = "Default";
+    }
+  }
+
+  if (legacyBadge) {
+    legacyBadge.hidden = !isModified;
+  }
+
+  updateAccordionStatusChips();
+}
+
+/**
+ * Dynamically builds description line under the segmented control
+ * from CURRENT field values.
+ */
+export function updateAssayDescription() {
+  const info = $("assay-info");
+  if (!info) return;
+
+  const assay = S.selectedAssay || "DIVA";
+  const pos = $("pos")?.value.trim() || "";
+  const neg = $("neg")?.value.trim() || "";
+  const blk = $("blank")?.value.trim() || "";
+  const mode = $("mode")?.value || (assay === "SPCE" ? "PI" : "PP");
+
+  const posPart = pos ? `${pos} = positive control, ` : "";
+
+  if (assay === "DIVA" || (assay !== "SPCE" && mode === "PP")) {
+    info.textContent = `${posPart}${neg} = negative control, ${blk} = blank. Result is percentage positivity (PP).`;
+  } else if (assay === "SPCE" || mode === "PI") {
+    info.textContent = `${posPart}${neg} = antigen (max-signal) control, ${blk} = blank. Result is % inhibition (PI).`;
+  } else {
+    info.textContent = `${posPart}${neg} = control, ${blk} = blank.`;
+  }
+}
+
+/**
+ * Sets the "Edit values" switch state and locks/unlocks fields accordingly.
+ */
+export function setEditValues(enabled) {
+  S.isEditingValues = enabled;
+  const chk = $("chk-edit-values");
+  if (chk) chk.checked = enabled;
+
+  const fields = ["pos", "neg", "blank", "cutoff", "cutlow"];
+  fields.forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    el.readOnly = !enabled;
+    el.classList.toggle("is-locked", !enabled);
+  });
+
+  const modeEl = $("mode");
+  if (modeEl) {
+    if (S.selectedAssay === "Custom" && enabled) {
+      modeEl.disabled = false;
+      modeEl.classList.remove("is-locked");
+    } else {
+      modeEl.disabled = true;
+      modeEl.classList.add("is-locked");
+    }
+  }
+
+  const posWrap = $("pos-wrap");
+  if (posWrap) {
+    if (S.selectedAssay === "SPCE") {
+      posWrap.hidden = !enabled && !$("pos")?.value.trim();
+    } else {
+      posWrap.hidden = false;
+    }
+  }
+}
+
+/**
+ * Resets the active assay to its default preset values and clears saved edits.
+ */
+export function resetAssayToDefaults() {
+  const assay = S.selectedAssay || "DIVA";
+  setStoredEdits(assay, null);
+  selectAssay(assay, true);
+}
+
+/**
+ * Resets a single field to its default value for the active assay.
+ */
+export function resetFieldToDefault(field) {
+  const assay = S.selectedAssay || "DIVA";
+  const defs = DEFAULT_PRESETS[assay];
+  if (!defs) return;
+
+  const input = $(field);
+  if (input) {
+    input.value = defs[field] !== undefined ? defs[field] : "";
+    onFieldEdited(field);
+    syncPainterFromInputs();
+  }
+}
+
+/**
+ * Selects an assay (SPCE, DIVA, Custom), loading saved edits or defaults.
+ */
+export function selectAssay(name, forceDefault = false) {
+  setState("selectedAssay", name);
+
+  // Update segmented control buttons
+  ["spce", "diva", "custom"].forEach((opt) => {
+    const btn = $(`btn-assay-${opt}`);
+    const active = opt.toUpperCase() === name.toUpperCase();
+    btn?.classList.toggle("active", active);
+    btn?.setAttribute("aria-checked", active ? "true" : "false");
+  });
 
   const posEl = $("pos");
   const negEl = $("neg");
   const blkEl = $("blank");
   const modeEl = $("mode");
   const cutoffEl = $("cutoff");
-  const posWrap = $("pos-wrap");
+  const cutlowEl = $("cutlow");
 
-  if (posEl) posEl.value = p.pos || "";
-  if (negEl) negEl.value = p.neg || "";
-  if (blkEl) blkEl.value = p.blank || "";
+  let valuesToApply = null;
+
+  if (!forceDefault) {
+    valuesToApply = getStoredEdits(name);
+  }
+
+  if (!valuesToApply) {
+    if (name === "SPCE") {
+      valuesToApply = { ...DEFAULT_PRESETS.SPCE };
+    } else if (name === "DIVA") {
+      valuesToApply = { ...DEFAULT_PRESETS.DIVA };
+    } else {
+      // Custom defaults to current values or DIVA base
+      valuesToApply = {
+        pos: posEl?.value || "H7-H8",
+        neg: negEl?.value || "H9-H10",
+        blank: blkEl?.value || "H11-H12",
+        mode: modeEl?.value || "PP",
+        cutoff: cutoffEl?.value || 40,
+        cutlow: cutlowEl?.value || ""
+      };
+    }
+  }
+
+  if (posEl) posEl.value = valuesToApply.pos !== undefined ? valuesToApply.pos : "";
+  if (negEl) negEl.value = valuesToApply.neg !== undefined ? valuesToApply.neg : "";
+  if (blkEl) blkEl.value = valuesToApply.blank !== undefined ? valuesToApply.blank : "";
+  if (cutoffEl) cutoffEl.value = valuesToApply.cutoff !== undefined ? valuesToApply.cutoff : "";
+  if (cutlowEl) cutlowEl.value = valuesToApply.cutlow !== undefined ? valuesToApply.cutlow : "";
+
   if (modeEl) {
-    modeEl.value = p.mode;
-    modeEl.disabled = true;
-  }
-  if (cutoffEl) cutoffEl.value = p.cutoff;
-
-  if (posWrap) {
-    posWrap.hidden = (name === "SPCE");
-  }
-
-  const info = $("assay-info");
-  if (info) {
-    info.hidden = false;
-    info.textContent = name === "SPCE"
-      ? `${p.neg} = antigen (max-signal) wells, ${p.blank} = blank. Competitive assay, result is % inhibition (PI).`
-      : `${p.pos} = positive control, ${p.neg} = negative control, ${p.blank} = blank. Result is percentage positivity (PP).`;
+    if (name === "SPCE") {
+      modeEl.value = "PI";
+      modeEl.disabled = true;
+      modeEl.classList.add("is-locked");
+    } else if (name === "DIVA") {
+      modeEl.value = "PP";
+      modeEl.disabled = true;
+      modeEl.classList.add("is-locked");
+    } else {
+      modeEl.value = valuesToApply.mode || "PP";
+      modeEl.disabled = false;
+      modeEl.classList.remove("is-locked");
+    }
   }
 
-  const runBtn = $("run");
-  if (runBtn && S.img) runBtn.disabled = false;
+  if (name === "Custom") {
+    setEditValues(true);
+  } else {
+    setEditValues(Boolean(S.isEditingValues));
+  }
+
+  updateAssayDescription();
+  updateModifiedMarkers();
   syncPainterFromInputs();
   updateStepperValidation();
 }
 
-export function onWellEdit() {
-  S.isCustomised = true;
-  const customBadge = $("badge-customised");
-  if (customBadge) customBadge.hidden = false;
-  const customCheck = $("customise-wells");
-  if (customCheck) customCheck.checked = true;
+/**
+ * Called whenever a field is edited by the user (typing or painting).
+ */
+export function onFieldEdited(field) {
+  const assay = S.selectedAssay || "DIVA";
 
-  const posEl = $("pos");
-  const posWrap = $("pos-wrap");
-  if (posEl && posWrap && posEl.value.trim() && S.selectedAssay === "SPCE") {
-    posWrap.hidden = false;
+  const currentValues = {
+    pos: $("pos")?.value.trim() || "",
+    neg: $("neg")?.value.trim() || "",
+    blank: $("blank")?.value.trim() || "",
+    cutoff: $("cutoff")?.value.trim() || "",
+    cutlow: $("cutlow")?.value.trim() || "",
+    mode: $("mode")?.value || "PP"
+  };
+
+  // Check if all values match defaults
+  const defs = DEFAULT_PRESETS[assay];
+  let matchesDefaults = false;
+  if (defs && assay !== "Custom") {
+    matchesDefaults =
+      currentValues.pos === String(defs.pos || "") &&
+      currentValues.neg === String(defs.neg || "") &&
+      currentValues.blank === String(defs.blank || "") &&
+      currentValues.cutoff === String(defs.cutoff || "") &&
+      currentValues.cutlow === String(defs.cutlow || "");
   }
+
+  if (matchesDefaults) {
+    setStoredEdits(assay, null);
+  } else {
+    setStoredEdits(assay, currentValues);
+  }
+
+  updateModifiedMarkers();
+  updateAssayDescription();
   updateStepperValidation();
+}
+
+/**
+ * Legacy well edit trigger for backward compatibility with painter.js.
+ */
+export function onWellEdit() {
+  onFieldEdited("painter");
 }
 
 export async function initPresets() {
@@ -94,32 +352,38 @@ export async function initPresets() {
   const btnDiva = $("btn-assay-diva");
   if (btnDiva) btnDiva.onclick = () => selectAssay("DIVA");
 
-  const customCheck = $("customise-wells");
-  if (customCheck) {
-    customCheck.onchange = (e) => {
-      const on = e.target.checked;
-      S.isCustomised = on;
-      const customBadge = $("badge-customised");
-      if (customBadge) customBadge.hidden = !on;
-      const posWrap = $("pos-wrap");
-      if (on) {
-        if (posWrap) posWrap.hidden = false;
-      } else if (S.selectedAssay && S.presets && S.presets[S.selectedAssay]) {
-        const p = S.presets[S.selectedAssay];
-        if ($("pos")) $("pos").value = p.pos || "";
-        if ($("neg")) $("neg").value = p.neg || "";
-        if ($("blank")) $("blank").value = p.blank || "";
-        if (posWrap && S.selectedAssay === "SPCE") posWrap.hidden = true;
-        updateStepperValidation();
-      }
+  const btnCustom = $("btn-assay-custom");
+  if (btnCustom) btnCustom.onclick = () => selectAssay("Custom");
+
+  const chkEdit = $("chk-edit-values");
+  if (chkEdit) {
+    chkEdit.onchange = (e) => {
+      setEditValues(e.target.checked);
     };
   }
 
-  ["pos", "neg", "blank"].forEach((id) => {
-    const elInput = $(id);
-    if (elInput) {
-      elInput.readOnly = false;
-      elInput.addEventListener("input", onWellEdit);
+  const btnReset = $("btn-reset-assay-defaults");
+  if (btnReset) {
+    btnReset.onclick = () => resetAssayToDefaults();
+  }
+
+  // Per-field reset buttons
+  ["pos", "neg", "blank", "cutoff", "cutlow"].forEach((field) => {
+    const btn = $(`reset-field-${field}`);
+    if (btn) {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        resetFieldToDefault(field);
+      };
+    }
+  });
+
+  // Track edits on inputs
+  ["pos", "neg", "blank", "cutoff", "cutlow", "mode"].forEach((id) => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener("input", () => onFieldEdited(id));
+      el.addEventListener("change", () => onFieldEdited(id));
     }
   });
 
@@ -150,13 +414,16 @@ export async function initPresets() {
 
   try {
     const data = await fetchPresets();
-    S.presets = data;
-    if (window.pendingAssay && S.presets[window.pendingAssay]) {
-      selectAssay(window.pendingAssay);
-    } else {
-      selectAssay("DIVA");
+    if (data && typeof data === "object") {
+      S.presets = data;
+      // Sync default presets if backend provided them
+      if (data.SPCE) DEFAULT_PRESETS.SPCE = { ...DEFAULT_PRESETS.SPCE, ...data.SPCE };
+      if (data.DIVA) DEFAULT_PRESETS.DIVA = { ...DEFAULT_PRESETS.DIVA, ...data.DIVA };
     }
+    const initialAssay = window.pendingAssay || "DIVA";
+    selectAssay(initialAssay);
   } catch (err) {
-    console.error("Failed to load assay presets:", err);
+    console.warn("Could not fetch presets from API, using defaults:", err);
+    selectAssay("DIVA");
   }
 }
