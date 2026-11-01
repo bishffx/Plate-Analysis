@@ -231,11 +231,11 @@ export function updateStepperValidation() {
   if (!isNaN(icptVal)) s4Score += 50;
   updateProgressRing(4, s4Score);
 
-  // Enable/disable Run button
+  // Enable/disable Run button - keep clickable when image loaded to trigger validation auto-expand
   const allValid = s1Score >= 100 && s2Score >= 100 && s3Score >= 100 && s4Score >= 100;
   const runBtn = $("run");
   if (runBtn) {
-    runBtn.disabled = !allValid || !S.img;
+    runBtn.disabled = !S.img;
   }
 
   // Trigger debounced live preview

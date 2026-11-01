@@ -14,7 +14,8 @@ import { uploadImage, analyzePlate } from "./api.js";
 import { isConvexQuad } from "./grid.js";
 import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout, startAnalysisScan, finishAnalysisScan } from "./plate-canvas.js";
 import { selectAssay } from "./presets.js";
-import { updateStepperValidation } from "./validation.js";
+import { updateStepperValidation, validateWellField } from "./validation.js";
+import { ensureSectionOpenForElement, updateAccordionStatusChips, updateRunSummaryLine } from "./accordion.js";
 import { renderResults } from "./results.js";
 import { updateProblemsCard } from "./toast-system.js";
 
@@ -257,6 +258,7 @@ export async function handleFileUpload(file) {
         window.pendingAssay = null;
       }
       updateStepperValidation();
+      updateAccordionStatusChips();
         resolve();
       };
       img.onerror = () => reject(new Error("Failed to load image element"));
@@ -268,12 +270,61 @@ export async function handleFileUpload(file) {
 }
 
 export async function run() {
-  if (!S.dataUrl && !S.imageId) return;
+  if (!S.dataUrl && !S.imageId) {
+    const fileInp = $("file") || $("stage");
+    if (fileInp) ensureSectionOpenForElement(fileInp);
+    showToast("Please upload a plate photo before running analysis.", "warning");
+    return;
+  }
 
   // Geometry validation: check crossed or degenerate corners
   if (S.corners && !isConvexQuad(S.corners)) {
+    const cardPlate = $("step-card-1");
+    if (cardPlate) ensureSectionOpenForElement(cardPlate);
     showToast("Grid corners are crossed or invalid. Please adjust the orange handles.", "error");
     showMsgs(["Grid corners are self-intersecting or degenerate. Please position A1, A12, H12, H1 onto the well corners."], []);
+    return;
+  }
+
+  // Field validation with auto-expansion for collapsed accordion sections
+  const posEl = $("pos");
+  const negEl = $("neg");
+  const blankEl = $("blank");
+  const isSpce = (S.selectedAssay === "SPCE" && !posEl?.value.trim());
+
+  if (posEl && !validateWellField(posEl, $("pos-err"), isSpce)) {
+    ensureSectionOpenForElement(posEl);
+    showToast("Invalid Positive control well address (e.g. A1, A1-B2)", "error");
+    return;
+  }
+  if (negEl && !validateWellField(negEl, $("neg-err"), false)) {
+    ensureSectionOpenForElement(negEl);
+    showToast("Invalid Negative control well address (e.g. C1-D1)", "error");
+    return;
+  }
+  if (blankEl && !validateWellField(blankEl, $("blank-err"), false)) {
+    ensureSectionOpenForElement(blankEl);
+    showToast("Invalid Blank reference well address (e.g. E1-H1)", "error");
+    return;
+  }
+
+  const cutoffEl = $("cutoff");
+  if (cutoffEl && (isNaN(parseFloat(cutoffEl.value)) || parseFloat(cutoffEl.value) <= 0)) {
+    ensureSectionOpenForElement(cutoffEl);
+    showToast("Invalid Cutoff percentage threshold", "error");
+    return;
+  }
+
+  const slopeEl = $("slope");
+  const icptEl = $("icpt");
+  if (slopeEl && isNaN(parseFloat(slopeEl.value))) {
+    ensureSectionOpenForElement(slopeEl);
+    showToast("Invalid Calibration slope value", "error");
+    return;
+  }
+  if (icptEl && isNaN(parseFloat(icptEl.value))) {
+    ensureSectionOpenForElement(icptEl);
+    showToast("Invalid Calibration intercept value", "error");
     return;
   }
 

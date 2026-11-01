@@ -592,329 +592,377 @@
     <div id="analyzer" class="analyzer-section">
       <main>
         <!-- LEFT PANEL: Sticky Numbered Stepper Workspace -->
-                <aside class="stepper-aside" aria-label="Analysis Configuration Stepper">
-          <div class="config-actions-strip" style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
-            <button type="button" class="sec btn-xs" id="btn-save-cfg" title="Export settings to JSON">💾 Save config</button>
-            <button type="button" class="sec btn-xs" id="btn-load-cfg" title="Import settings from JSON">📂 Load config</button>
-            <input type="file" id="cfg-file-input" accept=".json" hidden>
-          </div>
-          <h2 class="sr-only">Analysis Parameters</h2>
-          <!-- Step 1: Plate and image -->
-          <details open class="card step-card" id="step-card-1">
-            <summary class="step-summary">
-              <div class="step-header-left">
-                <span class="step-badge step-progress-badge" id="step-badge-1" aria-label="Step 1">
-                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
-                    <circle class="ring-track" cx="16" cy="16" r="13" />
-                    <circle class="ring-fill" id="ring-fill-1" cx="16" cy="16" r="13" />
-                  </svg>
-                  <span class="step-num-text" id="step-num-1">1</span>
-                  <svg class="step-check-icon" id="step-check-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </span>
-                <span class="step-title">Plate and image</span>
-              </div>
-              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </summary>
-            <div class="step-body">
-              <div class="form-group">
-                <label for="file">Plate photo</label>
-                <input id="file" type="file" accept="image/*">
-                <span class="field-hint">Select stopped ELISA photograph</span>
-              </div>
-
-              <div class="row">
-                <div class="form-group">
-                  <label for="rows">Rows</label>
-                  <input id="rows" type="number" min="2" max="16" value="8">
-                  <span class="field-hint">Standard: 8 (A–H)</span>
-                </div>
-                <div class="form-group">
-                  <label for="cols">Columns</label>
-                  <input id="cols" type="number" min="2" max="24" value="12">
-                  <span class="field-hint">Standard: 12 (1–12)</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <div class="slider-label-row">
-                  <label for="radius">ROI radius (× well pitch)</label>
-                  <b id="rv" class="slider-bubble">0.28</b>
-                </div>
-                <input id="radius" type="range" min="0.1" max="0.45" step="0.01" value="0.28">
-                <span class="field-hint">Well sampling radius (default: 0.28)</span>
-              </div>
+                <aside class="stepper-aside" aria-label="Analysis Configuration Accordion">
+          <div class="accordion-top-bar">
+            <div class="accordion-title-wrap">
+              <h2 class="accordion-main-title">Analysis Parameters</h2>
             </div>
-          </details>
-
-          <!-- Assay Protocol Card -->
-          <div class="card assay-picker-card" id="card-assay" hidden>
-            <div class="assay-card-header">
-              <div class="assay-card-title">
-                <span class="step-badge star-badge">★</span>
-                <h3>Assay type</h3>
-              </div>
-              <span id="badge-customised" class="badge-customised" hidden>Customised</span>
-            </div>
-            <p class="field-hint" style="margin: 4px 0 10px;">Select protocol to populate control wells and diagnostic threshold.</p>
-            <div class="segmented-control" id="assay-selector" role="radiogroup" aria-label="Assay type selection">
-              <button type="button" class="seg-btn" id="btn-assay-spce" role="radio" aria-checked="false">SPCE</button>
-              <button type="button" class="seg-btn" id="btn-assay-diva" role="radio" aria-checked="false">DIVA</button>
-            </div>
-            <div id="assay-info" class="assay-info" hidden></div>
-          </div>
-
-          <!-- Step 2: Well roles -->
-          <details open class="card step-card" id="step-roles">
-            <summary class="step-summary">
-              <div class="step-header-left">
-                <span class="step-badge step-progress-badge" id="step-badge-2" aria-label="Step 2">
-                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
-                    <circle class="ring-track" cx="16" cy="16" r="13" />
-                    <circle class="ring-fill" id="ring-fill-2" cx="16" cy="16" r="13" />
-                  </svg>
-                  <span class="step-num-text" id="step-num-2">2</span>
-                  <svg class="step-check-icon" id="step-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </span>
-                <span class="step-title">Well roles</span>
-              </div>
-              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </summary>
-            <div class="step-body">
-              <div class="roles-subbar">
-                <span class="field-hint" style="margin:0">Ranges: <code>E1-H1</code>, <code>A1,A2</code></span>
-                <label class="check-label" for="customise-wells" style="margin:0; font-size:12px; font-weight:600">
-                  <input type="checkbox" id="customise-wells"> Customise wells
-                </label>
-              </div>
-
-              <!-- Interactive 8x12 Well-Role Painter -->
-              <div class="well-painter-widget" id="well-painter-widget">
-                <div class="painter-toolbar">
-                  <span class="painter-label">Palette:</span>
-                  <div class="painter-palette" role="radiogroup" aria-label="Well role painting palette">
-                    <button type="button" class="palette-btn active" data-role="pos" id="paint-btn-pos" role="radio" aria-checked="true" title="Paint Positive control wells">
-                      <span class="palette-swatch swatch-pos"></span> Pos
-                    </button>
-                    <button type="button" class="palette-btn" data-role="neg" id="paint-btn-neg" role="radio" aria-checked="false" title="Paint Negative control wells">
-                      <span class="palette-swatch swatch-neg"></span> Neg
-                    </button>
-                    <button type="button" class="palette-btn" data-role="blank" id="paint-btn-blank" role="radio" aria-checked="false" title="Paint Blank reference wells">
-                      <span class="palette-swatch swatch-blank"></span> Blank
-                    </button>
-                    <button type="button" class="palette-btn" data-role="sample" id="paint-btn-clear" role="radio" aria-checked="false" title="Clear role / sample well">
-                      <span class="palette-swatch swatch-clear"></span> Clear
-                    </button>
-                  </div>
-                  <button type="button" class="sec btn-xs" id="btn-clear-all-roles" style="margin-left:auto;" title="Clear all assigned roles">Reset</button>
-                </div>
-
-                <div class="painter-plate-container">
-                  <div class="painter-grid" id="painter-grid" role="grid" aria-label="8 by 12 well role grid">
-                    <!-- Populated dynamically via JS -->
-                  </div>
-                </div>
-                <div class="painter-hint">Click or drag across wells to paint. Automatically syncs with text fields below.</div>
-              </div>
-
-              <div class="form-group" id="pos-wrap">
-                <label for="pos">Positive control wells</label>
-                <input id="pos" value="A1-B1" placeholder="e.g. A1-B1">
-                <div class="field-error" id="pos-err" hidden>Invalid well format (e.g. A1, A1-B2)</div>
-                <span class="field-hint">High OD reference wells (PP mode) · Click to edit manually</span>
-              </div>
-
-              <div class="form-group" id="neg-wrap">
-                <label for="neg">Negative control wells</label>
-                <input id="neg" value="C1-D1" placeholder="e.g. C1-D1">
-                <div class="field-error" id="neg-err" hidden>Invalid well format (e.g. C1-D1)</div>
-                <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA · Click to edit</span>
-              </div>
-
-              <div class="form-group" id="blank-wrap">
-                <label for="blank">Blank wells (substrate only / empty)</label>
-                <input id="blank" value="E1-H1" placeholder="e.g. E1-H1">
-                <div class="field-error" id="blank-err" hidden>Invalid well format (e.g. E1-H1)</div>
-                <span class="field-hint">Substrate reference wells for optical baseline · Click to edit</span>
-              </div>
-            </div>
-          </details>
-
-          <!-- Step 3: Measurement -->
-          <details open class="card step-card" id="step-card-3">
-            <summary class="step-summary">
-              <div class="step-header-left">
-                <span class="step-badge step-progress-badge" id="step-badge-3" aria-label="Step 3">
-                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
-                    <circle class="ring-track" cx="16" cy="16" r="13" />
-                    <circle class="ring-fill" id="ring-fill-3" cx="16" cy="16" r="13" />
-                  </svg>
-                  <span class="step-num-text" id="step-num-3">3</span>
-                  <svg class="step-check-icon" id="step-check-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </span>
-                <span class="step-title">Measurement</span>
-              </div>
-              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </summary>
-            <div class="step-body">
-              <div class="row">
-                <div class="form-group">
-                  <label for="channel">Channel</label>
-                  <select id="channel">
-                    <option value="AUTO" selected>Auto (recommended)</option>
-                    <option value="B">B (492 nm)</option>
-                    <option value="G">G (broad range)</option>
-                    <option value="GRAY">GRAY (luminance)</option>
-                    <option value="R">R (red channel)</option>
-                  </select>
-                  <span class="field-hint">Absorbance wavelength (492 nm filter)</span>
-                </div>
-                <div class="form-group">
-                  <label for="dark">Dark level (0–100)</label>
-                  <input id="dark" type="number" min="0" max="100" value="0">
-                  <span class="field-hint">Sensor dark baseline</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="check-label" for="lin">
-                  <input id="lin" type="checkbox" checked>
-                  Linearise sRGB (recommended)
-                </label>
-              </div>
-
-              <div class="form-group">
-                <label class="check-label" for="chk-flat-field" style="font-weight: 600;">
-                  <input id="chk-flat-field" type="checkbox" checked>
-                  Flat-field correction (recommended)
-                </label>
-                <span class="field-hint">Compensates for uneven illumination across plate</span>
-              </div>
-
-              <div class="row">
-                <div class="form-group">
-                  <label for="mode">Assay mode</label>
-                  <select id="mode">
-                    <option value="PP">PP – indirect</option>
-                    <option value="PI">PI – competitive</option>
-                  </select>
-                  <span class="field-hint">Diagnostic calculation</span>
-                </div>
-                <div class="form-group">
-                  <label for="cutoff">Cutoff (%)</label>
-                  <input id="cutoff" type="number" step="any" value="40">
-                  <span class="field-hint">Diagnostic threshold</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="cutlow">Doubtful lower cutoff (optional)</label>
-                <input id="cutlow" type="number" step="any" placeholder="none">
-                <span class="field-hint">Borderline gray-zone limit</span>
-              </div>
-
-              <div class="form-group" style="margin-top: 10px;">
-                <label class="check-label" for="blank-correction" style="font-weight: 600;">
-                  <input id="blank-correction" type="checkbox" checked>
-                  Subtract blank OD in formula (paper math match)
-                </label>
-                <span class="field-hint">Subtracts blank absorbance from sample and controls (OD − OD_blank)</span>
-              </div>
-            </div>
-          </details>
-
-          <!-- Step 4: Calibration -->
-          <details open class="card step-card" id="step-card-4">
-            <summary class="step-summary">
-              <div class="step-header-left">
-                <span class="step-badge step-progress-badge" id="step-badge-4" aria-label="Step 4">
-                  <svg class="step-progress-svg" viewBox="0 0 32 32" aria-hidden="true">
-                    <circle class="ring-track" cx="16" cy="16" r="13" />
-                    <circle class="ring-fill" id="ring-fill-4" cx="16" cy="16" r="13" />
-                  </svg>
-                  <span class="step-num-text" id="step-num-4">4</span>
-                  <svg class="step-check-icon" id="step-check-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </span>
-                <span class="step-title">Calibration</span>
-              </div>
-              <svg class="step-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </summary>
-            <div class="step-body">
-              <div class="form-group" style="margin-bottom:8px;">
-                <label for="cal-model" style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Model selector</label>
-                <select id="cal-model" style="margin-bottom:8px;">
-                  <option value="linear">Linear (y = m·x + c)</option>
-                  <option value="quadratic">Quadratic (y = a·x² + b·x + c)</option>
-                </select>
-                <div class="segmented-control" role="radiogroup" aria-label="Calibration model">
-                  <button type="button" class="seg-btn active" id="btn-cal-linear" role="radio" aria-checked="true">Linear</button>
-                  <button type="button" class="seg-btn" id="btn-cal-quad" role="radio" aria-checked="false">Quadratic</button>
-                </div>
-              </div>
-
-              <div id="linear-params" class="row">
-                <div class="form-group">
-                  <label for="slope">Slope</label>
-                  <input id="slope" type="number" step="any" value="1">
-                  <span class="field-hint">Scale factor (m)</span>
-                </div>
-                <div class="form-group">
-                  <label for="icpt">Intercept</label>
-                  <input id="icpt" type="number" step="any" value="0">
-                  <span class="field-hint">Offset constant (c)</span>
-                </div>
-              </div>
-
-              <div id="quad-params" class="row" hidden>
-                <div class="form-group">
-                  <label for="cal-a">a (x²)</label>
-                  <input id="cal-a" type="number" step="any" value="0">
-                </div>
-                <div class="form-group">
-                  <label for="cal-b">b (x)</label>
-                  <input id="cal-b" type="number" step="any" value="1">
-                </div>
-                <div class="form-group">
-                  <label for="cal-c">c</label>
-                  <input id="cal-c" type="number" step="any" value="0">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="reader">Plate-reader ODs (A1,0.123 per line, or a rows×cols grid)</label>
-                <textarea id="reader" placeholder="A1, 0.123&#10;A2, 0.456"></textarea>
-                <span class="field-hint">Reference spectrophotometer values</span>
-              </div>
-
-              <button type="button" class="sec" id="fit" style="width:100%; margin-top:4px">Fit slope from reader</button>
-              <button type="button" class="btn-calc-reader" id="btn-use-reader" title="Calculate results directly using plate reader values">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 8h10M7 12h10M7 16h10"></path></svg>
-                <span>Evaluate with Reader / Paper ODs</span>
+            <div class="accordion-actions-wrap">
+              <button type="button" class="btn-accordion-toggle-all" id="btn-accordion-toggle-all" aria-label="Expand all sections">
+                <svg class="toggle-all-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="7 13 12 18 17 13"></polyline><polyline points="7 6 12 11 17 6"></polyline></svg>
+                <span id="txt-accordion-toggle-all">Expand all</span>
               </button>
-              <label class="check-label" for="chk-use-reader" style="margin-top: 8px; font-size: 12.5px; font-weight: 600;">
-                <input id="chk-use-reader" type="checkbox">
-                Direct Reader/Paper Mode
-              </label>
-              <span class="field-hint">Quantify directly from reader ODs with 100% paper fidelity</span>
-              <p class="hint" id="fitnote"></p>
-              <div id="cal-alert" class="msg warn" style="margin-top:6px; display:none;" role="alert"></div>
-              <canvas id="cal-scatter-cv" width="340" height="200" style="display:none; width:100%; border-radius:6px; margin-top:8px; background:var(--input-bg); border:1px solid var(--border-color);"></canvas>
-              <div id="cal-stats" style="display:none; font-size:11.5px; color:var(--text-muted); margin-top:6px; line-height:1.4;"></div>
+              <div class="config-actions-strip">
+                <button type="button" class="sec btn-xs" id="btn-save-cfg" title="Export settings to JSON">💾 Save</button>
+                <button type="button" class="sec btn-xs" id="btn-load-cfg" title="Import settings from JSON">📂 Load</button>
+                <input type="file" id="cfg-file-input" accept=".json" hidden>
+              </div>
             </div>
-          </details>
+          </div>
 
-          <!-- Full-width gradient Run button with spinner support -->
-          <button id="run" class="btn-run-full" disabled>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            <span>Run analysis</span>
-          </button>
+          <div class="accordion-container" id="accordion-container">
+            <!-- 1. Assay type -->
+            <div class="card accordion-card" id="card-assay" hidden>
+              <button type="button" class="accordion-trigger" id="btn-accordion-assay" aria-expanded="false" aria-controls="panel-assay">
+                <span class="acc-trigger-left">
+                  <span class="acc-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"></path>
+                    </svg>
+                  </span>
+                  <span class="acc-title">Assay type</span>
+                </span>
+                <span class="acc-trigger-right">
+                  <span class="acc-status-chip" id="chip-status-assay">SPCE</span>
+                  <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              <div class="accordion-panel" id="panel-assay" role="region" aria-labelledby="btn-accordion-assay">
+                <div class="accordion-panel-inner">
+                  <div class="assay-header-row" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="field-hint" style="margin:0;">Select standard protocol or customize:</span>
+                    <span id="badge-customised" class="badge-customised" hidden>Customised</span>
+                  </div>
+                  <div class="segmented-control" id="assay-selector" role="radiogroup" aria-label="Assay type selection">
+                    <button type="button" class="seg-btn active" id="btn-assay-spce" role="radio" aria-checked="true">SPCE</button>
+                    <button type="button" class="seg-btn" id="btn-assay-diva" role="radio" aria-checked="false">DIVA</button>
+                  </div>
+                  <div id="assay-info" class="assay-info"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Plate and image (Starts open by default) -->
+            <div class="card accordion-card is-open" id="step-card-1">
+              <button type="button" class="accordion-trigger" id="btn-accordion-plate" aria-expanded="true" aria-controls="panel-plate">
+                <span class="acc-trigger-left">
+                  <span class="acc-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </span>
+                  <span class="acc-title">Plate and image</span>
+                </span>
+                <span class="acc-trigger-right">
+                  <span class="acc-status-chip" id="chip-status-plate">No photo</span>
+                  <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              <div class="accordion-panel is-open" id="panel-plate" role="region" aria-labelledby="btn-accordion-plate">
+                <div class="accordion-panel-inner">
+                  <div class="form-group">
+                    <label for="file">Plate photo</label>
+                    <input id="file" type="file" accept="image/*">
+                    <span class="field-hint">Select stopped ELISA photograph</span>
+                  </div>
+                  <div class="form-row-2col">
+                    <div class="form-group">
+                      <label for="rows">Rows</label>
+                      <input id="rows" type="number" min="2" max="16" value="8">
+                      <span class="field-hint">Standard: 8 (A–H)</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="cols">Columns</label>
+                      <input id="cols" type="number" min="2" max="24" value="12">
+                      <span class="field-hint">Standard: 12 (1–12)</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="slider-label-row">
+                      <label for="radius">ROI radius (&times; well pitch)</label>
+                      <b id="rv" class="slider-bubble">0.28</b>
+                    </div>
+                    <input id="radius" type="range" min="0.1" max="0.45" step="0.01" value="0.28">
+                    <span class="field-hint">Well sampling radius (default: 0.28)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Well roles -->
+            <div class="card accordion-card" id="step-roles">
+              <button type="button" class="accordion-trigger" id="btn-accordion-roles" aria-expanded="false" aria-controls="panel-roles">
+                <span class="acc-trigger-left">
+                  <span class="acc-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="6" cy="6" r="3"></circle>
+                      <circle cx="18" cy="6" r="3"></circle>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <circle cx="18" cy="18" r="3"></circle>
+                    </svg>
+                  </span>
+                  <span class="acc-title">Well roles</span>
+                </span>
+                <span class="acc-trigger-right">
+                  <span class="acc-status-chip" id="chip-status-roles">6 wells set</span>
+                  <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              <div class="accordion-panel" id="panel-roles" role="region" aria-labelledby="btn-accordion-roles">
+                <div class="accordion-panel-inner">
+                  <div class="roles-subbar" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="field-hint" style="margin:0">Ranges: <code>E1-H1</code>, <code>A1,A2</code></span>
+                    <label class="check-label" for="customise-wells" style="margin:0; font-size:12px; font-weight:600">
+                      <input type="checkbox" id="customise-wells"> Customise wells
+                    </label>
+                  </div>
+                  <!-- Interactive 8x12 Well-Role Painter -->
+                  <div class="well-painter-widget" id="well-painter-widget">
+                    <div class="painter-toolbar">
+                      <span class="painter-label">Palette:</span>
+                      <div class="painter-palette" role="radiogroup" aria-label="Well role painting palette">
+                        <button type="button" class="palette-btn active" data-role="pos" id="paint-btn-pos" role="radio" aria-checked="true" title="Paint Positive control wells">
+                          <span class="palette-swatch swatch-pos"></span> Pos
+                        </button>
+                        <button type="button" class="palette-btn" data-role="neg" id="paint-btn-neg" role="radio" aria-checked="false" title="Paint Negative control wells">
+                          <span class="palette-swatch swatch-neg"></span> Neg
+                        </button>
+                        <button type="button" class="palette-btn" data-role="blank" id="paint-btn-blank" role="radio" aria-checked="false" title="Paint Blank reference wells">
+                          <span class="palette-swatch swatch-blank"></span> Blank
+                        </button>
+                        <button type="button" class="palette-btn" data-role="sample" id="paint-btn-clear" role="radio" aria-checked="false" title="Clear role / sample well">
+                          <span class="palette-swatch swatch-clear"></span> Clear
+                        </button>
+                      </div>
+                      <button type="button" class="sec btn-xs" id="btn-clear-all-roles" style="margin-left:auto;" title="Clear all assigned roles">Reset</button>
+                    </div>
+                    <div class="painter-plate-container">
+                      <div class="painter-grid" id="painter-grid" role="grid" aria-label="8 by 12 well role grid"></div>
+                    </div>
+                    <div class="painter-hint">Click or drag across wells to paint. Automatically syncs with text fields below.</div>
+                  </div>
+
+                  <div class="form-group" id="pos-wrap">
+                    <label for="pos">Positive control wells</label>
+                    <input id="pos" value="" placeholder="e.g. A1-B1">
+                    <div class="field-error" id="pos-err" hidden>Invalid well format (e.g. A1, A1-B2)</div>
+                    <span class="field-hint">High OD reference wells (PP mode) · Click to edit manually</span>
+                  </div>
+
+                  <div class="form-group" id="neg-wrap">
+                    <label for="neg">Negative control wells</label>
+                    <input id="neg" value="C1-D1" placeholder="e.g. C1-D1">
+                    <div class="field-error" id="neg-err" hidden>Invalid well format (e.g. C1-D1)</div>
+                    <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA · Click to edit</span>
+                  </div>
+
+                  <div class="form-group" id="blank-wrap">
+                    <label for="blank">Blank wells (substrate only / empty)</label>
+                    <input id="blank" value="E1-H1" placeholder="e.g. E1-H1">
+                    <div class="field-error" id="blank-err" hidden>Invalid well format (e.g. E1-H1)</div>
+                    <span class="field-hint">Substrate reference wells for optical baseline · Click to edit</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Measurement -->
+            <div class="card accordion-card" id="step-card-3">
+              <button type="button" class="accordion-trigger" id="btn-accordion-measure" aria-expanded="false" aria-controls="panel-measure">
+                <span class="acc-trigger-left">
+                  <span class="acc-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M12 6v6l4 2"></path>
+                    </svg>
+                  </span>
+                  <span class="acc-title">Measurement</span>
+                </span>
+                <span class="acc-trigger-right">
+                  <span class="acc-status-chip" id="chip-status-measure">Auto channel</span>
+                  <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              <div class="accordion-panel" id="panel-measure" role="region" aria-labelledby="btn-accordion-measure">
+                <div class="accordion-panel-inner">
+                  <div class="form-row-2col">
+                    <div class="form-group">
+                      <label for="channel">Channel</label>
+                      <select id="channel">
+                        <option value="AUTO" selected>Auto (recommended)</option>
+                        <option value="B">B (492 nm)</option>
+                        <option value="G">G (broad range)</option>
+                        <option value="GRAY">GRAY (luminance)</option>
+                        <option value="R">R (red channel)</option>
+                      </select>
+                      <span class="field-hint">Absorbance wavelength (492 nm filter)</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="dark">Dark level (0–100)</label>
+                      <input id="dark" type="number" min="0" max="100" value="0">
+                      <span class="field-hint">Sensor dark baseline</span>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="check-label" for="lin">
+                      <input id="lin" type="checkbox" checked>
+                      Linearise sRGB (recommended)
+                    </label>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="check-label" for="chk-flat-field" style="font-weight: 600;">
+                      <input id="chk-flat-field" type="checkbox" checked>
+                      Flat-field correction (recommended)
+                    </label>
+                    <span class="field-hint">Compensates for uneven illumination across plate</span>
+                  </div>
+
+                  <div class="form-row-2col">
+                    <div class="form-group">
+                      <label for="mode">Assay mode</label>
+                      <select id="mode">
+                        <option value="PP">PP – indirect</option>
+                        <option value="PI">PI – competitive</option>
+                      </select>
+                      <span class="field-hint">Diagnostic calculation</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="cutoff">Cutoff (%)</label>
+                      <input id="cutoff" type="number" step="any" value="40">
+                      <span class="field-hint">Diagnostic threshold</span>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cutlow">Doubtful lower cutoff (optional)</label>
+                    <input id="cutlow" type="number" step="any" placeholder="none">
+                    <span class="field-hint">Borderline gray-zone limit</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="check-label" for="blank-correction" style="font-weight: 600;">
+                      <input id="blank-correction" type="checkbox" checked>
+                      Subtract blank OD in formula (paper math match)
+                    </label>
+                    <span class="field-hint">Subtracts blank absorbance from sample and controls (OD − OD_blank)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Calibration -->
+            <div class="card accordion-card" id="step-card-4">
+              <button type="button" class="accordion-trigger" id="btn-accordion-cal" aria-expanded="false" aria-controls="panel-cal">
+                <span class="acc-trigger-left">
+                  <span class="acc-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                  </span>
+                  <span class="acc-title">Calibration</span>
+                </span>
+                <span class="acc-trigger-right">
+                  <span class="acc-status-chip" id="chip-status-cal">Linear</span>
+                  <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              <div class="accordion-panel" id="panel-cal" role="region" aria-labelledby="btn-accordion-cal">
+                <div class="accordion-panel-inner">
+                  <div class="form-group" style="margin-bottom:8px;">
+                    <label for="cal-model" style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Model selector</label>
+                    <select id="cal-model" style="margin-bottom:8px;">
+                      <option value="linear">Linear (y = m·x + c)</option>
+                      <option value="quadratic">Quadratic (y = a·x² + b·x + c)</option>
+                    </select>
+                    <div class="segmented-control" role="radiogroup" aria-label="Calibration model">
+                      <button type="button" class="seg-btn active" id="btn-cal-linear" role="radio" aria-checked="true">Linear</button>
+                      <button type="button" class="seg-btn" id="btn-cal-quad" role="radio" aria-checked="false">Quadratic</button>
+                    </div>
+                  </div>
+
+                  <div id="linear-params" class="form-row-2col">
+                    <div class="form-group">
+                      <label for="slope">Slope</label>
+                      <input id="slope" type="number" step="any" value="1">
+                      <span class="field-hint">Scale factor (m)</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="icpt">Intercept</label>
+                      <input id="icpt" type="number" step="any" value="0">
+                      <span class="field-hint">Offset constant (c)</span>
+                    </div>
+                  </div>
+
+                  <div id="quad-params" class="form-row-3col" hidden>
+                    <div class="form-group">
+                      <label for="cal-a">a (x²)</label>
+                      <input id="cal-a" type="number" step="any" value="0">
+                    </div>
+                    <div class="form-group">
+                      <label for="cal-b">b (x)</label>
+                      <input id="cal-b" type="number" step="any" value="1">
+                    </div>
+                    <div class="form-group">
+                      <label for="cal-c">c</label>
+                      <input id="cal-c" type="number" step="any" value="0">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="reader">Plate-reader ODs (A1,0.123 per line, or a rows×cols grid)</label>
+                    <textarea id="reader" placeholder="A1, 0.123&#10;A2, 0.456"></textarea>
+                    <span class="field-hint">Reference spectrophotometer values</span>
+                  </div>
+
+                  <button type="button" class="sec" id="fit" style="width:100%; margin-top:4px">Fit slope from reader</button>
+                  <button type="button" class="btn-calc-reader" id="btn-use-reader" title="Calculate results directly using plate reader values">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 8h10M7 12h10M7 16h10"></path></svg>
+                    <span>Evaluate with Reader / Paper ODs</span>
+                  </button>
+                  <label class="check-label" for="chk-use-reader" style="margin-top: 8px; font-size: 12.5px; font-weight: 600;">
+                    <input id="chk-use-reader" type="checkbox">
+                    Direct Reader/Paper Mode
+                  </label>
+                  <span class="field-hint">Quantify directly from reader ODs with 100% paper fidelity</span>
+                  <p class="hint" id="fitnote"></p>
+                  <div id="cal-alert" class="msg warn" style="margin-top:6px; display:none;" role="alert"></div>
+                  <canvas id="cal-scatter-cv" width="340" height="200" style="display:none; width:100%; border-radius:6px; margin-top:8px; background:var(--input-bg); border:1px solid var(--border-color);"></canvas>
+                  <div id="cal-stats" style="display:none; font-size:11.5px; color:var(--text-muted); margin-top:6px; line-height:1.4;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sticky Bottom Run Bar (Always visible) -->
+          <div class="sticky-run-bar" id="sticky-run-bar">
+            <div class="run-summary-line" id="run-summary-line" aria-live="polite">
+              <span class="summary-item summary-assay" id="run-summary-assay">SPCE</span>
+              <span class="summary-dot" aria-hidden="true">•</span>
+              <span class="summary-item summary-channel" id="run-summary-channel">Auto channel</span>
+              <span class="summary-dot" aria-hidden="true">•</span>
+              <span class="summary-item summary-wells" id="run-summary-wells">6 wells set</span>
+            </div>
+            <button id="run" class="btn-run-full" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Run analysis</span>
+            </button>
+          </div>
         </aside>
 
         <!-- RIGHT PANEL: Image Dropzone & Interactive Grid Canvas -->

@@ -1,160 +1,229 @@
 /* ==========================================================================
    PlateOD · Design Tokens (tokens.css)
-   Precision Scientific Instrument System (Dark Only)
-   Editorial, Bold, Restrained: No Glass, No Glows, No Purple
+   Moodboard Restyle: Luminous Violet & Obsidian Glass
    ========================================================================== */
 
 :root {
   color-scheme: dark;
 
-  /* 1. Palette: Precision Instrument Tone */
-  --ink: #0A0A0B;
-  --bg-page: #0A0A0B;
-  --surface-1: #111113;
-  --surface-2: #17171A;
-  --surface-3: #1E1E22;
-  --surface-hover: #222227;
+  /* Near-Black Violet Backgrounds */
+  --bg-page: #05030B;
+  --bg-page-start: #05030B;
+  --bg-page-mid: #0A0718;
+  --bg-page-end: #120A2E;
+  --brand-navy: #05030B;
 
-  /* Hairline and Strong Borders (Separation by borders and tonal steps) */
-  --border-hairline: #2A2A2F;
-  --border-strong: #3A3A41;
-  --border-subtle: #2A2A2F;
-  --card-border: #2A2A2F;
-  --input-border: #2A2A2F;
-  --line: #2A2A2F;
+  /* Luminous Multi-Gradient Page Mesh */
+  --page-gradient:
+    radial-gradient(1200px 550px at 50% -80px, rgba(124, 58, 237, 0.25) 0%, transparent 70%),
+    radial-gradient(900px 500px at 85% 15%, rgba(217, 70, 239, 0.16) 0%, transparent 60%),
+    radial-gradient(850px 500px at 15% 42%, rgba(59, 130, 246, 0.14) 0%, transparent 60%),
+    radial-gradient(1100px 650px at 50% 88%, rgba(139, 92, 246, 0.18) 0%, transparent 70%),
+    linear-gradient(180deg, #05030B 0%, #0A0718 45%, #120A2E 100%);
 
-  /* Typography Colors (strictly >= 4.5:1 contrast on all surfaces) */
-  --text-primary: #F2F2EE;    /* Warm off-white */
-  --text-secondary: #A6A6A0;  /* Secondary technical text */
-  --text-muted: #8E8E88;      /* Captions, labels, units (passes 4.5:1) */
-  --text-subtle: #8E8E88;
-  --input-color: #F2F2EE;
-  --placeholder-color: #737370;
+  /* Dot Grid Overlay Texture */
+  --dot-grid-pattern: radial-gradient(rgba(167, 139, 250, 0.12) 1px, transparent 1px);
+  --dot-grid-size: 24px 24px;
 
-  /* ONE Accent Only: Signal Amber (Used sparingly) */
-  --accent-amber: #F2B01E;
-  --accent-amber-hover: #FFC53D;
-  --accent-amber-pressed: #D99A0F;
-  --amber-primary: #F2B01E;
-  --amber-hover: #FFC53D;
-  --amber-pressed: #D99A0F;
-  --amber-tint: rgba(242, 176, 30, 0.12);
-  --amber-border: rgba(242, 176, 30, 0.40);
+  /* Brand Gradient & Glows (#7C3AED to #4F46E5 to #D946EF) */
+  --brand-gradient: linear-gradient(135deg, #7C3AED 0%, #4F46E5 50%, #D946EF 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #E879F9 100%);
+  --gradient-accent: linear-gradient(135deg, #7C3AED 0%, #4F46E5 50%, #D946EF 100%);
+  --gradient-tmb: linear-gradient(135deg, #FFF3C4 0%, #F5A524 35%, #C2560C 70%, #5B1E08 100%);
+  --headline-gradient: linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 40%, #C084FC 72%, #F472B6 100%);
+  --horizon-glow: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.6) 25%, rgba(217, 70, 239, 0.8) 50%, rgba(59, 130, 246, 0.6) 75%, transparent 100%);
 
-  /* Flat Semantic Status Colors (Muted, no glow) */
-  --color-success: #4FB286;
-  --color-danger: #E5584B;
-  --color-warning: #E0A030;
-  --color-info: #7C93A8;
+  /* Key Glow Palette */
+  --glow-violet: #8B5CF6;
+  --glow-blue: #3B82F6;
+  --glow-magenta: #D946EF;
+  --glow-indigo: #4F46E5;
+  --accent-cyan: #22D3EE; /* Live/active indicators only */
 
-  --bg-success: rgba(79, 178, 134, 0.12);
-  --bg-danger: rgba(229, 88, 75, 0.12);
-  --bg-warning: rgba(224, 160, 48, 0.12);
-  --bg-info: rgba(124, 147, 168, 0.12);
-
-  --border-success: #4FB286;
-  --border-danger: #E5584B;
-  --border-warning: #E0A030;
-  --border-info: #7C93A8;
-
-  /* Assay Well Class Colors (Flat, distinct, muted) */
-  --col-pos: #E5584B;
-  --col-neg: #4FB286;
-  --col-dbt: #E0A030;
-  --col-ctl: #7C93A8;
-  --col-blk: #8A8A86;
-  --col-inv: #B07CA0;
-
-  /* Optical Density Heatmap: Amber TMB Ramp (Real assay color) */
+  /* Primary Accent & Amber TMB Core (preserves real scientific assay color) */
+  --amber-primary: #F5A524;
+  --amber-glow: rgba(245, 165, 36, 0.3);
   --od-tmb-1: #FFF3C4;
   --od-tmb-2: #F5A524;
   --od-tmb-3: #C2560C;
   --od-tmb-4: #5B1E08;
 
-  /* PI / PP Diverging Scale: Cool grey -> Near-white -> Amber -> Red */
-  --div-scale-1: #7C93A8;
-  --div-scale-2: #E8E8E4;
-  --div-scale-3: #F2B01E;
-  --div-scale-4: #E5584B;
+  /* Glass Surfaces (rgba(255,255,255,0.04) with blur 16px) */
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-backdrop: blur(16px);
+  --card-backdrop-filter: blur(16px);
+  --card-bg-solid: #0A0718;
+  --card-raised: rgba(255, 255, 255, 0.06);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(10, 7, 24, 0.75);
+  --header-bg: rgba(5, 3, 11, 0.85);
+  --footer-bg: #05030B;
+  --footer-border: rgba(167, 139, 250, 0.18);
+  --readout-bg: rgba(255, 255, 255, 0.04);
+  --table-stripe: rgba(255, 255, 255, 0.02);
+  --table-hover: rgba(167, 139, 250, 0.08);
+  --heat-container-bg: rgba(10, 7, 24, 0.88);
+  --heat-legend-bg: rgba(255, 255, 255, 0.04);
+  --stat-bg: rgba(255, 255, 255, 0.04);
 
-  /* Card and Control Geometry */
-  --radius-none: 0px;
-  --radius-xs: 4px;
-  --radius-sm: 6px;   /* 6px on controls */
-  --radius-md: 10px;  /* 10px on cards */
-  --radius-lg: 10px;
+  /* Thin 1px Glowing Borders on Rounded Glass */
+  --card-border: rgba(167, 139, 250, 0.18);
+  --border-subtle: rgba(167, 139, 250, 0.18);
+  --border-strong: rgba(167, 139, 250, 0.4);
+  --input-border: rgba(167, 139, 250, 0.22);
+  --line: rgba(167, 139, 250, 0.14);
+
+  /* Class Colours on Violet (Moodboard Tuned) */
+  --col-pos: #FF7A59;
+  --col-neg: #34D3BE;
+  --col-dbt: #F3CF6B;
+  --col-ctl: #7AA7FF;
+  --col-blk: #A8A3C0;
+  --col-inv: #E27BD0;
+
+  /* Typography / Moodboard High-Contrast (min 4.5:1 against violet) */
+  --text-primary: #F4F1FF;
+  --text-secondary: #B6AEDB;
+  --text-muted: #8279A8;
+  --text-subtle: #8279A8;
+  --input-color: #F4F1FF;
+  --placeholder-color: #8279A8;
+  --accent-text: #0A0718;
+
+  /* Semantic */
+  --color-success: #34D3BE;
+  --color-danger: #FF7A59;
+  --color-warning: #F3CF6B;
+  --color-info: #7AA7FF;
+  --bg-success: rgba(52, 211, 190, 0.12);
+  --bg-danger: rgba(255, 122, 89, 0.12);
+  --bg-warning: rgba(243, 207, 107, 0.12);
+  --bg-info: rgba(122, 167, 255, 0.12);
+  --border-success: rgba(52, 211, 190, 0.35);
+  --border-danger: rgba(255, 122, 89, 0.35);
+  --border-warning: rgba(243, 207, 107, 0.35);
+  --border-info: rgba(122, 167, 255, 0.35);
+
+  /* Motion Tokens (150/250/450/900 ms, cubic-bezier(.2,.8,.2,1)) */
+  --duration-instant: 150ms;
+  --duration-fast: 250ms;
+  --duration-normal: 450ms;
+  --duration-slow: 900ms;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Type Scale (Wide geometric feel, clamp 40-96px on headlines) */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-md: 18px;
+  --font-size-lg: 20px;
+  --font-size-xl: 28px;
+  --font-size-2xl: 40px;
+  --font-size-3xl: 56px;
+  --font-size-4xl: 72px;
+  --font-hero: clamp(40px, 6vw, 96px);
+
+  /* System Font Stack with wide geometric feel */
+  --font-family: "Inter", "Segoe UI Variable Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;
+
+  /* Radii (20-28px for rounded glass panels, pills for buttons) */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 20px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
-  /* Spacing Grid (8px baseline rhythm) */
+  /* Bento-Box & Glass Shadows with Inner Highlights */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 20px rgba(124, 58, 237, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 32px rgba(139, 92, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.4), 0 0 60px rgba(217, 70, 239, 0.25);
+  --card-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 0 1px rgba(167, 139, 250, 0.12);
+
+  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-8: 48px;
-  --space-10: 64px;
-  --space-12: 80px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
 
-  /* Technical Layout Dimensions */
-  --header-height: 56px;
   --max-width: 1440px;
-
-  /* STRICT BANS: Zero shadows, zero glow, zero blur */
-  --card-shadow: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-glow: none;
-  --card-backdrop: none;
-  --card-backdrop-filter: none;
-
-  /* Component Surface Assignments */
-  --card-bg: var(--surface-1);
-  --card-bg-solid: var(--surface-1);
-  --input-bg: var(--surface-2);
-  --header-bg: var(--ink);
-  --footer-bg: var(--ink);
-  --readout-bg: var(--surface-2);
-  --table-stripe: var(--surface-2);
-  --table-hover: #1F1F24;
-  --stat-bg: var(--surface-1);
-
-  /* Typography Stacks (Offline system stack only, tabular numerals) */
-  --font-family: "Inter Tight", "Helvetica Neue", Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-  font-variant-numeric: tabular-nums;
-
-  /* Font Scales */
-  --font-size-xs: 11px;
-  --font-size-sm: 13px;
-  --font-size-base: 15px;
-  --font-size-md: 17px;
-  --font-size-lg: 20px;
-  --font-size-xl: 24px;
-  --font-size-2xl: 36px;
-  --font-size-3xl: 48px;
-  --font-hero: clamp(48px, 6vw, 92px);
-
-  /* Motion: Restrained, Purposeful */
-  --duration-fast: 120ms;
-  --duration-normal: 250ms;
-  --duration-slow: 350ms;
-  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Ensure data-theme inherits dark precision system */
-[data-theme="dark"],
+/* Explicit Dark Theme */
+[data-theme="dark"] {
+  --bg-page: #05030B;
+  --bg-page-start: #05030B;
+  --bg-page-mid: #0A0718;
+  --bg-page-end: #120A2E;
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-bg-solid: #0A0718;
+  --card-raised: rgba(255, 255, 255, 0.06);
+  --input-bg: rgba(10, 7, 24, 0.75);
+  --header-bg: rgba(5, 3, 11, 0.85);
+  --footer-bg: #05030B;
+  --text-primary: #F4F1FF;
+  --text-secondary: #B6AEDB;
+  --text-muted: #8279A8;
+  --input-color: #F4F1FF;
+  --card-border: rgba(167, 139, 250, 0.18);
+  --border-subtle: rgba(167, 139, 250, 0.18);
+  --border-strong: rgba(167, 139, 250, 0.4);
+}
+
+/* Optional Light Theme (preserved) */
 [data-theme="light"] {
-  --ink: #0A0A0B;
-  --bg-page: #0A0A0B;
-  --surface-1: #111113;
-  --surface-2: #17171A;
-  --surface-3: #1E1E22;
-  --border-hairline: #2A2A2F;
-  --border-strong: #3A3A41;
-  --text-primary: #F2F2EE;
-  --text-secondary: #A6A6A0;
-  --text-muted: #8E8E88;
-  --accent-amber: #F2B01E;
+  --bg-page-start: #FAF8FF;
+  --bg-page-end: #F0EDF9;
+  --bg-page: #FAF8FF;
+  --page-gradient: radial-gradient(circle 900px at 50% 0%, rgba(139, 92, 246, 0.1), transparent 70%),
+                   linear-gradient(180deg, #FAF8FF 0%, #F0EDF9 100%);
+  --brand-navy: #1E1238;
+
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-backdrop: blur(16px);
+  --card-backdrop-filter: blur(16px);
+  --card-bg-solid: #FFFFFF;
+  --card-raised: #FFFFFF;
+  --surface-hover: #F5F2FC;
+  --input-bg: #FFFFFF;
+  --header-bg: rgba(250, 248, 255, 0.90);
+  --footer-bg: #F0EDF9;
+  --footer-border: rgba(124, 58, 237, 0.14);
+  --readout-bg: #F5F2FC;
+  --table-stripe: #FAF8FF;
+  --table-hover: #F2EEFB;
+  --heat-container-bg: #FAF8FF;
+  --heat-legend-bg: #FFFFFF;
+  --stat-bg: #FAF8FF;
+
+  --card-border: rgba(124, 58, 237, 0.14);
+  --border-subtle: rgba(124, 58, 237, 0.14);
+  --border-strong: rgba(124, 58, 237, 0.28);
+  --input-border: rgba(124, 58, 237, 0.22);
+  --line: rgba(124, 58, 237, 0.12);
+
+  --text-primary: #120A2E;
+  --text-secondary: #483A6B;
+  --text-muted: #5F5085;
+  --text-subtle: #5F5085;
+  --input-color: #120A2E;
+  --placeholder-color: #7B6D9E;
+
+  --shadow-sm: 0 1px 3px rgba(30, 18, 56, 0.08), 0 1px 2px rgba(30, 18, 56, 0.04);
+  --shadow-md: 0 4px 16px rgba(30, 18, 56, 0.08), 0 2px 4px rgba(30, 18, 56, 0.04);
+  --shadow-lg: 0 12px 32px rgba(30, 18, 56, 0.12), 0 4px 12px rgba(30, 18, 56, 0.06);
+  --card-shadow: 0 8px 30px rgba(30, 18, 56, 0.08), 0 1px 3px rgba(30, 18, 56, 0.04);
 }
