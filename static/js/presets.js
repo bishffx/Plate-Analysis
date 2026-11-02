@@ -24,7 +24,9 @@ export const DEFAULT_PRESETS = {
     pos: "",
     neg: "A1-D1",
     blank: "E1-F1",
-    cutlow: ""
+    cutlow: "",
+    wavelength: "492nm",
+    channel_param: "492nm"
   },
   DIVA: {
     name: "DIVA",
@@ -34,7 +36,9 @@ export const DEFAULT_PRESETS = {
     pos: "H7-H8",
     neg: "H9-H10",
     blank: "H11-H12",
-    cutlow: ""
+    cutlow: "",
+    wavelength: "492nm",
+    channel_param: "492nm"
   }
 };
 
@@ -275,6 +279,61 @@ export function selectAssay(name, forceDefault = false) {
     modeEl.classList.remove("is-locked");
   }
 
+  // Update Section 1 manual input controls and Section 2 labels
+  const spceBox = $("spce-controls-wrap");
+  const divaBox = $("diva-controls-wrap");
+  const lblPos = $("lbl-pos");
+  const hintPos = $("hint-pos");
+  const lblNeg = $("lbl-neg");
+  const hintNeg = $("hint-neg");
+  const lblBlank = $("lbl-blank");
+  const hintBlank = $("hint-blank");
+
+  if (name === "SPCE") {
+    if (spceBox) spceBox.hidden = false;
+    if (divaBox) divaBox.hidden = true;
+
+    // Populate Section 1 SPCE inputs
+    const spceAntigen = $("spce-antigen");
+    const spceBlank = $("spce-blank");
+    const spcePos = $("spce-pos");
+    const spceCutoff = $("spce-cutoff");
+    if (spceAntigen) spceAntigen.value = valuesToApply.neg !== undefined ? valuesToApply.neg : "A1-D1";
+    if (spceBlank) spceBlank.value = valuesToApply.blank !== undefined ? valuesToApply.blank : "E1-F1";
+    if (spcePos) spcePos.value = valuesToApply.pos !== undefined ? valuesToApply.pos : "";
+    if (spceCutoff) spceCutoff.value = valuesToApply.cutoff !== undefined ? valuesToApply.cutoff : 65.0;
+
+    // Update Section 2 labels
+    if (lblNeg) lblNeg.textContent = "Antigen (max-signal) control wells";
+    if (hintNeg) hintNeg.textContent = "Antigen (max-signal) wells in SPCE · Default: A1-D1";
+    if (lblPos) lblPos.textContent = "Positive control wells (optional)";
+    if (hintPos) hintPos.textContent = "Optional reference wells for SPCE (competitive assay)";
+    if (lblBlank) lblBlank.textContent = "Blank wells";
+    if (hintBlank) hintBlank.textContent = "Substrate blank wells · Default: E1-F1";
+  } else {
+    // DIVA or Custom
+    if (spceBox) spceBox.hidden = true;
+    if (divaBox) divaBox.hidden = false;
+
+    // Populate Section 1 DIVA inputs
+    const divaPos = $("diva-pos");
+    const divaNeg = $("diva-neg");
+    const divaBlank = $("diva-blank");
+    const divaCutoff = $("diva-cutoff");
+    if (divaPos) divaPos.value = valuesToApply.pos !== undefined ? valuesToApply.pos : "H7-H8";
+    if (divaNeg) divaNeg.value = valuesToApply.neg !== undefined ? valuesToApply.neg : "H9-H10";
+    if (divaBlank) divaBlank.value = valuesToApply.blank !== undefined ? valuesToApply.blank : "H11-H12";
+    if (divaCutoff) divaCutoff.value = valuesToApply.cutoff !== undefined ? valuesToApply.cutoff : 40.0;
+
+    // Update Section 2 labels
+    if (lblPos) lblPos.textContent = "Positive control wells";
+    if (hintPos) hintPos.textContent = "High OD reference wells (PP mode) · Default: H7-H8";
+    if (lblNeg) lblNeg.textContent = "Negative control wells";
+    if (hintNeg) hintNeg.textContent = "Negative serum in DIVA · Default: H9-H10";
+    if (lblBlank) lblBlank.textContent = "Blank wells (substrate only / empty)";
+    if (hintBlank) hintBlank.textContent = "Substrate reference wells for optical baseline · Default: H11-H12";
+  }
+
   setEditValues(true);
 
   updateAssayDescription();
@@ -289,13 +348,49 @@ export function selectAssay(name, forceDefault = false) {
 export function onFieldEdited(field) {
   const assay = S.selectedAssay || "DIVA";
 
+  // Two-way synchronization between Section 1 (Assay preset panel) and Section 2 (Well roles panel)
+  if (assay === "SPCE") {
+    if (field === "spce-antigen" && $("neg") && $("spce-antigen")) {
+      $("neg").value = $("spce-antigen").value;
+    } else if (field === "spce-blank" && $("blank") && $("spce-blank")) {
+      $("blank").value = $("spce-blank").value;
+    } else if (field === "spce-pos" && $("pos") && $("spce-pos")) {
+      $("pos").value = $("spce-pos").value;
+    } else if (field === "spce-cutoff" && $("cutoff") && $("spce-cutoff")) {
+      $("cutoff").value = $("spce-cutoff").value;
+    } else {
+      // Section 2 changed, sync back to Section 1 SPCE inputs
+      if ($("spce-antigen") && $("neg")) $("spce-antigen").value = $("neg").value;
+      if ($("spce-blank") && $("blank")) $("spce-blank").value = $("blank").value;
+      if ($("spce-pos") && $("pos")) $("spce-pos").value = $("pos").value;
+      if ($("spce-cutoff") && $("cutoff")) $("spce-cutoff").value = $("cutoff").value;
+    }
+  } else {
+    // DIVA or Custom
+    if (field === "diva-pos" && $("pos") && $("diva-pos")) {
+      $("pos").value = $("diva-pos").value;
+    } else if (field === "diva-neg" && $("neg") && $("diva-neg")) {
+      $("neg").value = $("diva-neg").value;
+    } else if (field === "diva-blank" && $("blank") && $("diva-blank")) {
+      $("blank").value = $("diva-blank").value;
+    } else if (field === "diva-cutoff" && $("cutoff") && $("diva-cutoff")) {
+      $("cutoff").value = $("diva-cutoff").value;
+    } else {
+      // Section 2 changed, sync back to Section 1 DIVA inputs
+      if ($("diva-pos") && $("pos")) $("diva-pos").value = $("pos").value;
+      if ($("diva-neg") && $("neg")) $("diva-neg").value = $("neg").value;
+      if ($("diva-blank") && $("blank")) $("diva-blank").value = $("blank").value;
+      if ($("diva-cutoff") && $("cutoff")) $("diva-cutoff").value = $("cutoff").value;
+    }
+  }
+
   const currentValues = {
     pos: $("pos")?.value.trim() || "",
     neg: $("neg")?.value.trim() || "",
     blank: $("blank")?.value.trim() || "",
     cutoff: $("cutoff")?.value.trim() || "",
     cutlow: $("cutlow")?.value.trim() || "",
-    mode: $("mode")?.value || "PP"
+    mode: $("mode")?.value || (assay === "SPCE" ? "PI" : "PP")
   };
 
   // Check if all values match defaults
@@ -361,12 +456,29 @@ export async function initPresets() {
     }
   });
 
-  // Track edits on inputs
+  // Track edits on Section 2 inputs
   ["pos", "neg", "blank", "cutoff", "cutlow", "mode"].forEach((id) => {
     const el = $(id);
     if (el) {
       el.addEventListener("input", () => onFieldEdited(id));
       el.addEventListener("change", () => onFieldEdited(id));
+    }
+  });
+
+  // Track edits on Section 1 SPCE & DIVA manual inputs
+  const manualAssayFields = [
+    "spce-antigen", "spce-blank", "spce-pos", "spce-cutoff",
+    "diva-pos", "diva-neg", "diva-blank", "diva-cutoff"
+  ];
+  manualAssayFields.forEach((id) => {
+    const el = $(id);
+    if (el) {
+      const handler = () => {
+        onFieldEdited(id);
+        syncPainterFromInputs();
+      };
+      el.addEventListener("input", handler);
+      el.addEventListener("change", handler);
     }
   });
 

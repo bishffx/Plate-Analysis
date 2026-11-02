@@ -240,6 +240,52 @@ class Core(unittest.TestCase):
         h_wells = [w for w in r2["wells"] if w["well"] in ("H7", "H8")]
         self.assertTrue(all(w["role"] == "Sample" for w in h_wells))
 
+    def test_cyan_channel_and_492nm_wavelength(self):
+        # 1. Cyan channel analysis succeeds and uses (G + B)/2 signal without red
+        r_cyan = A.analyze(self.url, {**CFG, "corners": self.corners, "channel": "CYAN"})
+        self.assertTrue(r_cyan["valid"])
+        self.assertEqual(r_cyan["channel_used"], "CYAN")
+        self.assertEqual(r_cyan["wavelength"], "492nm")
+        self.assertEqual(r_cyan["channel_param"], "492nm")
+
+        # 2. Both SPCE and DIVA return 492nm wavelength parameter
+        r_spce = A.analyze(self.url, {**CFG, "corners": self.corners, "assay": "SPCE", "channel": "CYAN"})
+        self.assertEqual(r_spce["wavelength"], "492nm")
+        self.assertEqual(r_spce["channel_param"], "492nm")
+
+        # 3. User manual override of SPCE antigenic & blank wells
+        od_spce = np.random.default_rng(10).uniform(0.3, 1.4, (ROWS, COLS))
+        od_spce[0:4, 1] = 1.6    # A2-D2 antigen control
+        od_spce[4:6, 1] = 0.0    # E2-F2 blank
+        url_spce, c_spce = make_plate(od_spce, seed=10)
+        r_spce_custom = A.analyze(url_spce, {
+            "corners": c_spce, "assay": "SPCE",
+            "neg": "A2-D2", "blank": "E2-F2"
+        })
+        self.assertTrue(r_spce_custom["valid"], r_spce_custom.get("errors"))
+        custom_antigen = [w for w in r_spce_custom["wells"] if w["well"] in ("A2", "B2", "C2", "D2")]
+        self.assertTrue(all(w["role"] == "Antigen (max-signal) control" for w in custom_antigen))
+        custom_blank = [w for w in r_spce_custom["wells"] if w["well"] in ("E2", "F2")]
+        self.assertTrue(all(w["role"] == "Blank" for w in custom_blank))
+
+        # 4. User manual override of DIVA positive, negative, and blank wells
+        od_diva = np.random.default_rng(20).uniform(0.3, 1.4, (ROWS, COLS))
+        od_diva[0, 0:2] = 1.6    # A1-A2 pos
+        od_diva[0, 2:4] = 0.15   # A3-A4 neg
+        od_diva[0, 4:6] = 0.0    # A5-A6 blank
+        url_diva, c_diva = make_plate(od_diva, seed=20)
+        r_diva_custom = A.analyze(url_diva, {
+            "corners": c_diva, "assay": "DIVA",
+            "pos": "A1-A2", "neg": "A3-A4", "blank": "A5-A6"
+        })
+        self.assertTrue(r_diva_custom["valid"], r_diva_custom.get("errors"))
+        pos_wells = [w for w in r_diva_custom["wells"] if w["well"] in ("A1", "A2")]
+        neg_wells = [w for w in r_diva_custom["wells"] if w["well"] in ("A3", "A4")]
+        blank_wells = [w for w in r_diva_custom["wells"] if w["well"] in ("A5", "A6")]
+        self.assertTrue(all(w["role"] == "Positive ctrl" for w in pos_wells))
+        self.assertTrue(all(w["role"] == "Negative ctrl" for w in neg_wells))
+        self.assertTrue(all(w["role"] == "Blank" for w in blank_wells))
+
     def test_unknown_assay_and_dimensions(self):
         with self.assertRaises(A.AnalysisError):
             A.analyze(self.url, {**CFG, "corners": self.corners, "assay": "NONEXISTENT"})

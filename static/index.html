@@ -651,6 +651,73 @@
                     </button>
                   </div>
                   <div id="assay-info" class="assay-info" aria-live="polite"></div>
+
+                  <!-- Manual Assay Control Inputs (SPCE vs DIVA) -->
+                  <div class="assay-inputs-container" id="assay-inputs-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <!-- SPCE Controls -->
+                    <div id="spce-controls-wrap" class="assay-controls-box" hidden>
+                      <div class="field-label-row" style="margin-bottom: 6px;">
+                        <span style="font-size: 12px; font-weight: 600; color: var(--text-heading, #F8FAFC);">SPCE Protocol Inputs</span>
+                        <span class="field-hint" style="margin: 0; font-size: 11px;">Default: A1-D1 antigen, E1-F1 blank · 492nm</span>
+                      </div>
+                      <div class="form-row-2col">
+                        <div class="form-group">
+                          <label for="spce-antigen">Antigen (max-signal) wells</label>
+                          <input id="spce-antigen" value="A1-D1" placeholder="e.g. A1-D1">
+                          <span class="field-hint">Default: A1-D1</span>
+                        </div>
+                        <div class="form-group">
+                          <label for="spce-blank">Blank wells</label>
+                          <input id="spce-blank" value="E1-F1" placeholder="e.g. E1-F1">
+                          <span class="field-hint">Default: E1-F1</span>
+                        </div>
+                      </div>
+                      <div class="form-row-2col">
+                        <div class="form-group">
+                          <label for="spce-pos">Positive control wells (optional)</label>
+                          <input id="spce-pos" value="" placeholder="Optional, e.g. G1-H1">
+                          <span class="field-hint">Optional for SPCE</span>
+                        </div>
+                        <div class="form-group">
+                          <label for="spce-cutoff">Cutoff (% PI)</label>
+                          <input id="spce-cutoff" type="number" step="0.5" value="65.0">
+                          <span class="field-hint">Inhibition threshold</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- DIVA Controls -->
+                    <div id="diva-controls-wrap" class="assay-controls-box">
+                      <div class="field-label-row" style="margin-bottom: 6px;">
+                        <span style="font-size: 12px; font-weight: 600; color: var(--text-heading, #F8FAFC);">DIVA Protocol Inputs</span>
+                        <span class="field-hint" style="margin: 0; font-size: 11px;">Default: H7-H8 pos, H9-H10 neg, H11-H12 blank · 492nm</span>
+                      </div>
+                      <div class="form-row-2col">
+                        <div class="form-group">
+                          <label for="diva-pos">Positive control wells</label>
+                          <input id="diva-pos" value="H7-H8" placeholder="e.g. H7-H8">
+                          <span class="field-hint">Default: H7-H8</span>
+                        </div>
+                        <div class="form-group">
+                          <label for="diva-neg">Negative control wells</label>
+                          <input id="diva-neg" value="H9-H10" placeholder="e.g. H9-H10">
+                          <span class="field-hint">Default: H9-H10</span>
+                        </div>
+                      </div>
+                      <div class="form-row-2col">
+                        <div class="form-group">
+                          <label for="diva-blank">Blank wells</label>
+                          <input id="diva-blank" value="H11-H12" placeholder="e.g. H11-H12">
+                          <span class="field-hint">Default: H11-H12</span>
+                        </div>
+                        <div class="form-group">
+                          <label for="diva-cutoff">Cutoff (% PP)</label>
+                          <input id="diva-cutoff" type="number" step="0.5" value="40.0">
+                          <span class="field-hint">Positivity threshold</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -763,7 +830,7 @@
 
                   <div class="form-group" id="pos-wrap">
                     <div class="field-label-row">
-                      <label for="pos">Positive control wells</label>
+                      <label for="pos" id="lbl-pos">Positive control wells</label>
                       <span class="field-modified-marker" id="mod-pos" hidden>
                         <span class="amber-dot"></span> Modified
                         <button type="button" class="btn-field-reset" id="reset-field-pos" title="Reset positive control wells to default" aria-label="Reset positive control wells to default">
@@ -773,12 +840,12 @@
                     </div>
                     <input id="pos" value="H7-H8" placeholder="e.g. H7-H8">
                     <div class="field-error" id="pos-err" hidden></div>
-                    <span class="field-hint">High OD reference wells (PP mode) · Optional for SPCE</span>
+                    <span class="field-hint" id="hint-pos">High OD reference wells (PP mode) · Optional for SPCE</span>
                   </div>
 
                   <div class="form-group" id="neg-wrap">
                     <div class="field-label-row">
-                      <label for="neg">Negative control wells</label>
+                      <label for="neg" id="lbl-neg">Negative control wells</label>
                       <span class="field-modified-marker" id="mod-neg" hidden>
                         <span class="amber-dot"></span> Modified
                         <button type="button" class="btn-field-reset" id="reset-field-neg" title="Reset negative control wells to default" aria-label="Reset negative control wells to default">
@@ -788,12 +855,12 @@
                     </div>
                     <input id="neg" value="H9-H10" placeholder="e.g. H9-H10">
                     <div class="field-error" id="neg-err" hidden></div>
-                    <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA</span>
+                    <span class="field-hint" id="hint-neg">Antigen (max-signal) wells in SPCE, negative serum in DIVA</span>
                   </div>
 
                   <div class="form-group" id="blank-wrap">
                     <div class="field-label-row">
-                      <label for="blank">Blank wells (substrate only / empty)</label>
+                      <label for="blank" id="lbl-blank">Blank wells (substrate only / empty)</label>
                       <span class="field-modified-marker" id="mod-blank" hidden>
                         <span class="amber-dot"></span> Modified
                         <button type="button" class="btn-field-reset" id="reset-field-blank" title="Reset blank wells to default" aria-label="Reset blank wells to default">
@@ -803,7 +870,7 @@
                     </div>
                     <input id="blank" value="H11-H12" placeholder="e.g. H11-H12">
                     <div class="field-error" id="blank-err" hidden></div>
-                    <span class="field-hint">Substrate reference wells for optical baseline</span>
+                    <span class="field-hint" id="hint-blank">Substrate reference wells for optical baseline</span>
                   </div>
                 </div>
               </div>
@@ -834,11 +901,12 @@
                     <div class="form-group">
                       <label for="channel">Channel</label>
                       <select id="channel">
-                        <option value="AUTO" selected>Auto (recommended)</option>
-                        <option value="B">B (blue)</option>
-                        <option value="G">G (broad range)</option>
-                        <option value="GRAY">GRAY (luminance)</option>
-                        <option value="R">R (red channel)</option>
+                        <option value="AUTO" selected>Auto (492nm)</option>
+                        <option value="B">B - Blue (492nm)</option>
+                        <option value="G">G - Green (492nm)</option>
+                        <option value="CYAN">CYAN - Cyan signal (492nm)</option>
+                        <option value="GRAY">GRAY - Luminance (492nm)</option>
+                        <option value="R">R - Red (492nm)</option>
                       </select>
                       
                     </div>

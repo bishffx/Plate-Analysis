@@ -33,7 +33,7 @@ export function validateConfig(data) {
   }
   if (c.channel !== undefined) {
     const ch = String(c.channel).trim().toUpperCase();
-    if (!["R", "G", "B", "GRAY", "AUTO"].includes(ch)) throw new Error(`Invalid channel '${c.channel}': must be R, G, B, GRAY or AUTO.`);
+    if (!["R", "G", "B", "CYAN", "C", "GRAY", "AUTO"].includes(ch)) throw new Error(`Invalid channel '${c.channel}': must be R, G, B, CYAN, GRAY or AUTO.`);
   }
   if (c.mode !== undefined) {
     const m = String(c.mode).trim().toUpperCase();

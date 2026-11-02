@@ -13,7 +13,7 @@ import numpy as np
 
 MAX_SIDE = 2400          # larger photos are shrunk (INTER_AREA) before analysis
 LETTERS = "ABCDEFGHIJKLMNOP"
-CHANNELS = {"R": 0, "G": 1, "B": 2, "GRAY": None}
+CHANNELS = {"R": 0, "G": 1, "B": 2, "GRAY": None, "CYAN": "CYAN", "C": "CYAN"}
 LUMA = np.array([0.2126, 0.7152, 0.0722], np.float32)
 MIN_SEP = 0.05           # minimum usable control OD separation / level
 cv2.setNumThreads(2)
@@ -24,6 +24,8 @@ ASSAYS = {
         "description": "Solid Phase Competition ELISA (PI mode)",
         "mode": "PI",
         "cutoff": 65.0,
+        "wavelength": "492nm",
+        "channel_param": "492nm",
         "pos": "",
         "neg": "A1-D1",
         "blank": "E1-F1",
@@ -37,6 +39,8 @@ ASSAYS = {
         "description": "Differentiating Infected from Vaccinated Animals (PP mode)",
         "mode": "PP",
         "cutoff": 40.0,
+        "wavelength": "492nm",
+        "channel_param": "492nm",
         "pos": "H7-H8",
         "neg": "H9-H10",
         "blank": "H11-H12",
@@ -455,7 +459,8 @@ def extract(rgb, ctr, rad, channel, linearize, return_raw: bool = False):
     """Robust per-well intensity (0..1 linear light if linearize). Returns (I, flags) or (I, flags, raw_I)."""
     rows, cols = ctr.shape[:2]
     H, W = rgb.shape[:2]
-    idx = CHANNELS[channel] if channel in CHANNELS else CHANNELS["B"]
+    ch_key = str(channel).strip().upper() if channel else "B"
+    idx = CHANNELS.get(ch_key, CHANNELS["B"])
     I = np.full((rows, cols), np.nan)
     raw_I = np.full((rows, cols), np.nan)
     flags = {}
@@ -493,11 +498,19 @@ def extract(rgb, ctr, rad, channel, linearize, return_raw: bool = False):
                 continue
             sel = px[keep]
             lin = LUT[sel] if linearize else sel.astype(np.float32) / 255.0
-            vals = lin @ LUMA if idx is None else lin[:, idx]
+            if ch_key in ("CYAN", "C"):
+                # Cyan light contains green and blue with zero red; absorbs red light
+                vals = (lin[:, 1] + lin[:, 2]) * 0.5
+                raw_vals = (sel[:, 1].astype(np.float32) + sel[:, 2].astype(np.float32)) * 0.5
+            elif idx is None:
+                vals = lin @ LUMA
+                raw_vals = sel @ LUMA
+            else:
+                vals = lin[:, idx]
+                raw_vals = sel[:, idx]
             v_lo, v_hi = np.percentile(vals, [12, 88])
             v_sel = vals[(vals >= v_lo) & (vals <= v_hi)]
             I[r, c] = float(np.median(v_sel) if len(v_sel) >= 5 else np.median(vals))
-            raw_vals = sel @ LUMA if idx is None else sel[:, idx]
             raw_I[r, c] = float(np.median(raw_vals))
     if return_raw:
         return I, flags, raw_I
@@ -517,7 +530,8 @@ def fit_illumination_surface(
     """
     rows, cols = ctr.shape[:2]
     H, W = rgb.shape[:2]
-    idx = CHANNELS.get(channel, 2)
+    ch_key = str(channel).strip().upper() if channel else "B"
+    idx = CHANNELS.get(ch_key, 2)
 
     # 1. Sample midpoints of every four neighbouring wells
     midpoints = []
@@ -546,7 +560,12 @@ def fit_illumination_surface(
             continue
         # Convert to linear light
         lin = LUT[patch] if linearize else patch.astype(np.float32) / 255.0
-        vals = lin @ LUMA if idx is None else lin[:, :, idx]
+        if ch_key in ("CYAN", "C"):
+            vals = (lin[:, :, 1] + lin[:, :, 2]) * 0.5
+        elif idx is None:
+            vals = lin @ LUMA
+        else:
+            vals = lin[:, :, idx]
         v = float(np.median(vals))
         # Valid sample check: must not be pitch black or blown specular highlight
         if 0.04 <= v <= 0.99:
@@ -672,7 +691,7 @@ def analyze(image_or_id, cfg) -> dict:
     radius = _num(cfg, "radius", 0.28, 0.05, 0.5)
     raw_channel = str(cfg.get("channel") or "B").strip().upper()
     if raw_channel not in CHANNELS and raw_channel != "AUTO":
-        raise AnalysisError("Channel must be R, G, B, GRAY or AUTO.")
+        raise AnalysisError("Channel must be R, G, B, GRAY or AUTO (or CYAN).")
     linearize = bool(cfg.get("linearize", True))
     dark_level = _num(cfg, "dark_level", 0, 0, 100)
 
@@ -1035,6 +1054,8 @@ def analyze(image_or_id, cfg) -> dict:
         "assay": assay_key,
         "channel": channel,
         "channel_used": channel,
+        "wavelength": "492nm",
+        "channel_param": "492nm",
         "reason": (auto_channel_info["reason"] if auto_channel_info else f"Manual channel selection: {channel}"),
         "channel_info": {
             "channel_used": channel,
@@ -1223,8 +1244,8 @@ def validate_config(data: dict) -> dict:
     channel = cfg_data.get("channel")
     if channel is not None:
         ch = str(channel).strip().upper()
-        if ch not in ("R", "G", "B", "GRAY", "AUTO"):
-            raise AnalysisError(f"Invalid configuration file: channel '{channel}' must be R, G, B, GRAY or AUTO.")
+        if ch not in ("R", "G", "B", "CYAN", "C", "GRAY", "AUTO"):
+            raise AnalysisError(f"Invalid configuration file: channel '{channel}' must be R, G, B, GRAY or AUTO (or CYAN).")
 
     # Validate mode
     mode = cfg_data.get("mode")

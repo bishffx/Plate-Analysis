@@ -6420,6 +6420,18 @@ textarea:focus {
   border-radius: var(--radius-sm, 6px);
 }
 
+.assay-controls-box {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  transition: border-color var(--duration-fast, 150ms) ease;
+}
+
+.assay-controls-box:focus-within {
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
 .toggle-switch-wrap {
   display: inline-flex;
   align-items: center;

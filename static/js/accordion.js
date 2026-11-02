@@ -94,13 +94,14 @@ export function updateAccordionStatusChips() {
     const ch = $("channel")?.value || "AUTO";
     const mode = $("mode")?.value || "PP";
     const chLabels = {
-      AUTO: "Auto channel",
+      AUTO: "Auto (492nm)",
       B: "Blue (492nm)",
-      G: "Green (540nm)",
-      GRAY: "Luminance",
-      R: "Red (650nm)"
+      G: "Green (492nm)",
+      CYAN: "Cyan signal (492nm)",
+      GRAY: "Luminance (492nm)",
+      R: "Red (492nm)"
     };
-    chipMeasure.textContent = chLabels[ch] || `${ch} (${mode})`;
+    chipMeasure.textContent = chLabels[ch] || `${ch} (492nm)`;
     chipMeasure.classList.add("is-active");
   }
 
@@ -124,11 +125,12 @@ export function updateRunSummaryLine() {
   const assay = S.selectedAssay || "SPCE";
   const ch = $("channel")?.value || "AUTO";
   const chNames = {
-    AUTO: "Auto channel",
+    AUTO: "Auto (492nm)",
     B: "Blue (492nm)",
-    G: "Green (540nm)",
-    GRAY: "Luminance",
-    R: "Red (650nm)"
+    G: "Green (492nm)",
+    CYAN: "Cyan signal (492nm)",
+    GRAY: "Luminance (492nm)",
+    R: "Red (492nm)"
   };
   const channelText = chNames[ch] || ch;
   const count = countAssignedWells();
