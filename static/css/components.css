@@ -327,20 +327,19 @@
   position: static;
 }
 
-/* Sticky Run Bar (Requirement 7) */
+/* Sticky Run Bar (Requirement 7) - Placed cleanly at bottom of aside without overlapping fields */
 .sticky-run-bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 20;
-  background: rgba(5, 3, 11, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 10px 0 4px;
-  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.18));
-  margin-top: 8px;
+  position: static !important;
+  background: var(--surface-2);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
 }
 
 [data-theme="light"] .sticky-run-bar {
@@ -2323,10 +2322,10 @@ tr:hover td {
 
 /* ---------- 7. SCROLL REVEAL ANIMATIONS ---------- */
 .reveal {
-  opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+  transition: none !important;
 }
 
 .reveal.revealed,
@@ -5274,10 +5273,54 @@ body.analyzing-active #stage {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.ghost-row:first-child .gw:first-child,
-.ghost-row:nth-child(2) .gw:first-child {
-  background: rgba(245, 165, 36, 0.25);
-  border-color: rgba(245, 165, 36, 0.45);
+.ghost-row:nth-child(1) .gw:nth-child(1),
+.ghost-row:nth-child(2) .gw:nth-child(1),
+.ghost-row:nth-child(1) .gw:nth-child(2),
+.ghost-row:nth-child(2) .gw:nth-child(2) {
+  background: rgba(245, 158, 11, 0.85);
+  border-color: #F59E0B;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+.ghost-row:nth-child(3) .gw:nth-child(1),
+.ghost-row:nth-child(4) .gw:nth-child(1) {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.ghost-row:nth-child(5) .gw:nth-child(1),
+.ghost-row:nth-child(6) .gw:nth-child(1),
+.ghost-row:nth-child(7) .gw:nth-child(1),
+.ghost-row:nth-child(8) .gw:nth-child(1) {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+/* Sample well titration gradients across columns */
+.ghost-row .gw:nth-child(3),
+.ghost-row .gw:nth-child(4) {
+  background: rgba(245, 158, 11, 0.6);
+  border-color: rgba(245, 158, 11, 0.8);
+}
+
+.ghost-row .gw:nth-child(5),
+.ghost-row .gw:nth-child(6) {
+  background: rgba(251, 191, 36, 0.4);
+  border-color: rgba(251, 191, 36, 0.6);
+}
+
+.ghost-row .gw:nth-child(7),
+.ghost-row .gw:nth-child(8) {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.ghost-row .gw:nth-child(9),
+.ghost-row .gw:nth-child(10),
+.ghost-row .gw:nth-child(11),
+.ghost-row .gw:nth-child(12) {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(71, 85, 105, 0.4);
 }
 
 .ghost-checklist {
@@ -6599,8 +6642,9 @@ section.workbench-main:focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Soft Fade Shadows at Top and Bottom */
+/* Soft Fade Shadows at Top and Bottom - hidden to prevent black overlays covering fields */
 .panel-scroll-shadow {
+  display: none !important;
   position: absolute;
   left: 0;
   right: 14px; /* Leaves 10px scrollbar clear */

@@ -1061,9 +1061,9 @@
 
             <!-- Toolbar & Readout Strip -->
             <div class="grid-readout-strip" id="grid-readout">
-              <span class="readout-tag" id="readout-dims">8 × 12 plate</span>
+              <span class="readout-tag" id="readout-dims">8 × 12 plate (96 wells)</span>
               <span class="readout-sep">•</span>
-              <span class="readout-tag" id="readout-radius">ROI radius: –</span>
+              <span class="readout-tag" id="readout-radius">ROI radius: 0.28 (28% pitch)</span>
               <span class="readout-sep">•</span>
               <span class="readout-tag readout-handle" id="readout-handle">Click a corner handle to nudge</span>
             </div>
@@ -1259,35 +1259,35 @@
                 </button>
               </div>
 
-              <!-- Shimmering Skeleton KPI Cards -->
+              <!-- Photometric Benchmark Expected Cards -->
               <div class="ghost-kpi-grid">
-                <div class="ghost-kpi-card glass-card shimmer-fx">
+                <div class="ghost-kpi-card glass-card">
                   <div class="ghost-kpi-head">
-                    <span class="ghost-pill-sm"></span>
-                    <span class="ghost-line-xs"></span>
+                    <span class="badge-dot" style="background:#38BDF8;"></span>
+                    <span style="font-size:11px; font-weight:700; color:#38BDF8; letter-spacing:0.05em;">OPTICAL BASELINE</span>
                   </div>
-                  <div class="ghost-line-lg"></div>
-                  <div class="ghost-line-sm"></div>
+                  <div style="font-size:26px; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); margin:6px 0 2px;">0.042 <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">OD</span></div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">Substrate reference background</div>
                   <div class="ghost-kpi-meta">Mean Blank OD · sRGB linearized</div>
                 </div>
 
-                <div class="ghost-kpi-card glass-card shimmer-fx">
+                <div class="ghost-kpi-card glass-card">
                   <div class="ghost-kpi-head">
-                    <span class="ghost-pill-sm"></span>
-                    <span class="ghost-line-xs"></span>
+                    <span class="badge-dot" style="background:#F59E0B;"></span>
+                    <span style="font-size:11px; font-weight:700; color:#F59E0B; letter-spacing:0.05em;">REFERENCE CONTROL</span>
                   </div>
-                  <div class="ghost-line-lg"></div>
-                  <div class="ghost-line-sm"></div>
+                  <div style="font-size:26px; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); margin:6px 0 2px;">1.650 <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">OD</span></div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">Max-signal antibody/antigen tier</div>
                   <div class="ghost-kpi-meta">Positive Control Mean · Max separation</div>
                 </div>
 
-                <div class="ghost-kpi-card glass-card shimmer-fx">
+                <div class="ghost-kpi-card glass-card">
                   <div class="ghost-kpi-head">
-                    <span class="ghost-pill-sm"></span>
-                    <span class="ghost-line-xs"></span>
+                    <span class="badge-dot" style="background:#10B981;"></span>
+                    <span style="font-size:11px; font-weight:700; color:#10B981; letter-spacing:0.05em;">ANALYTICAL CAPACITY</span>
                   </div>
-                  <div class="ghost-line-lg"></div>
-                  <div class="ghost-line-sm"></div>
+                  <div style="font-size:26px; font-weight:700; color:var(--text-primary); font-family:var(--font-mono); margin:6px 0 2px;">96 / 96 <span style="font-size:13px; color:var(--text-secondary); font-weight:500;">wells</span></div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">100% plate coverage quantified</div>
                   <div class="ghost-kpi-meta">Valid sample wells · 96 quantified</div>
                 </div>
               </div>
