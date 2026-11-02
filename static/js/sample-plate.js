@@ -133,39 +133,40 @@ export async function generateSyntheticPlateBlob() {
 
   // 4. Well Density Matrix (SPCE / Clinical Simulation)
   // Optical density values (OD):
-  // Col 1: A1, B1: Positives (~1.85); C1, D1: Negatives (~0.15); E1-H1: Blanks (~0.04)
-  // Cols 2-12: Sample dilution series & varied patient sera
+  // SPCE controls: Col 1 A1-D1 (Antigen max-signal OD ~1.83), E1-F1 (Blank OD ~0.04)
+  // DIVA controls: Row H H7-H8 (Positive OD ~1.64), H9-H10 (Negative OD ~0.145), H11-H12 (Blank OD ~0.04)
+  // Cols 2-12: Clinical sample dilution series & varied titers
   const OD_MATRIX = [
-    // A: High responders
+    // A: High responders / SPCE Antigen controls
     [1.85, 1.72, 1.54, 1.32, 1.10, 0.88, 0.65, 0.44, 0.28, 0.18, 0.12, 0.08],
-    // B: Strong positives
-    [1.89, 1.68, 1.49, 1.28, 1.05, 0.82, 0.60, 0.41, 0.25, 0.16, 0.10, 0.07],
-    // C: Negative controls & moderate titers
-    [0.15, 0.95, 0.84, 0.72, 0.58, 0.46, 0.34, 0.22, 0.15, 0.11, 0.08, 0.06],
-    // D: Negative controls & weak positives
-    [0.14, 0.52, 0.48, 0.42, 0.36, 0.30, 0.24, 0.18, 0.14, 0.10, 0.07, 0.05],
-    // E: Blank reference & borderline gray-zone
+    // B: Strong positives / SPCE Antigen controls
+    [1.82, 1.68, 1.49, 1.28, 1.05, 0.82, 0.60, 0.41, 0.25, 0.16, 0.10, 0.07],
+    // C: SPCE Antigen control & moderate titers
+    [1.84, 0.95, 0.84, 0.72, 0.58, 0.46, 0.34, 0.22, 0.15, 0.11, 0.08, 0.06],
+    // D: SPCE Antigen control & weak positives
+    [1.80, 0.52, 0.48, 0.42, 0.36, 0.30, 0.24, 0.18, 0.14, 0.10, 0.07, 0.05],
+    // E: SPCE Blank reference & borderline gray-zone
     [0.04, 0.38, 0.36, 0.34, 0.32, 0.28, 0.22, 0.16, 0.12, 0.09, 0.06, 0.05],
-    // F: Blank reference & clear negatives
+    // F: SPCE Blank reference & clear negatives
     [0.04, 0.14, 0.13, 0.12, 0.11, 0.10, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04],
     // G: Blank reference & negative screening
     [0.04, 0.12, 0.11, 0.10, 0.09, 0.08, 0.07, 0.07, 0.06, 0.05, 0.05, 0.04],
-    // H: Blank reference & spiked QC check
-    [0.04, 1.45, 1.12, 0.85, 0.62, 0.45, 0.31, 0.21, 0.14, 0.09, 0.06, 0.04]
+    // H: Dilution series + DIVA controls: H7-H8 (Pos), H9-H10 (Neg), H11-H12 (Blank)
+    [0.04, 1.45, 1.12, 0.85, 0.62, 0.45, 1.65, 1.62, 0.15, 0.14, 0.04, 0.04]
   ];
 
-  // Helper to convert OD to TMB Peroxidase yellow-amber color
+  // Helper to convert OD to Beer-Lambert TMB chromogen absorption color
   const odToColor = (od) => {
-    // OD ~ 0.04 (water/blank): pale neutral translucent cream
-    // OD ~ 0.50 (low): golden straw
-    // OD ~ 1.20 (medium): rich honey amber
-    // OD ~ 1.85+ (high): deep amber-orange / brown-gold
-    const t = Math.max(0, Math.min(2.2, od)) / 2.2;
-    const r = Math.round(250 - t * 60);
-    const g = Math.round(245 - t * 140);
-    const b = Math.round(230 - t * 215);
-    const alpha = Math.min(0.96, 0.25 + t * 0.72);
-    return { r, g, b, alpha };
+    // True Beer-Lambert transmission in sRGB
+    // Target transmission in blue channel: T_blue = 10^(-OD)
+    // TMB absorbs primarily in blue (450-492nm), mildly in green, minimally in red
+    const safeOd = Math.max(0, od);
+    const tBlue = Math.pow(10, -safeOd);
+    const tGreen = Math.pow(10, -0.15 * safeOd);
+    const r = Math.round(238 * 0.97);
+    const g = Math.round(238 * tGreen);
+    const b = Math.max(3, Math.min(235, Math.round(235 * tBlue)));
+    return { r, g, b };
   };
 
   // 5. Render 96 Microplate Wells
@@ -184,52 +185,52 @@ export async function generateSyntheticPlateBlob() {
       ctx.fill();
       ctx.restore();
 
-      // Well cylindrical wall shadow
-      const wallGrad = ctx.createRadialGradient(cx, cy - 3, wellRadius * 0.4, cx, cy, wellRadius);
-      wallGrad.addColorStop(0, "rgba(255, 255, 255, 0.85)");
-      wallGrad.addColorStop(0.85, "rgba(226, 232, 240, 0.95)");
-      wallGrad.addColorStop(1, "rgba(100, 116, 139, 0.55)");
+      // Well cylindrical cavity wall (clean lab polystyrene recess)
       ctx.beginPath();
       ctx.arc(cx, cy, wellRadius, 0, Math.PI * 2);
-      ctx.fillStyle = wallGrad;
+      ctx.fillStyle = "#CBD5E1";
       ctx.fill();
 
-      // Liquid body (TMB chromogen)
-      const liqR = wellRadius - 3.5;
+      // Liquid body (TMB chromogen) - fills well cleanly with photometric Beer-Lambert color
+      const liqR = wellRadius - 2.5;
       const liqGrad = ctx.createRadialGradient(
-        cx - liqR * 0.25,
-        cy - liqR * 0.25,
+        cx - liqR * 0.2,
+        cy - liqR * 0.2,
         liqR * 0.1,
         cx,
         cy,
         liqR
       );
-      // Meniscus edge has deeper optical path length -> darker
-      liqGrad.addColorStop(0, `rgba(${col.r + 15}, ${col.g + 15}, ${col.b + 10}, ${Math.max(0.2, col.alpha - 0.15)})`);
-      liqGrad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha})`);
-      liqGrad.addColorStop(1, `rgba(${Math.max(0, col.r - 35)}, ${Math.max(0, col.g - 35)}, ${Math.max(0, col.b - 15)}, ${Math.min(1, col.alpha + 0.15)})`);
+      // Center of well: exact photometric Beer-Lambert color
+      liqGrad.addColorStop(0, `rgb(${col.r}, ${col.g}, ${col.b})`);
+      liqGrad.addColorStop(0.75, `rgb(${col.r}, ${col.g}, ${col.b})`);
+      // Meniscus edge has slightly deeper optical path
+      const edgeR = Math.max(0, col.r - 20);
+      const edgeG = Math.max(0, Math.round(col.g * 0.9));
+      const edgeB = Math.max(0, Math.round(col.b * 0.85));
+      liqGrad.addColorStop(1, `rgb(${edgeR}, ${edgeG}, ${edgeB})`);
 
       ctx.beginPath();
       ctx.arc(cx, cy, liqR, 0, Math.PI * 2);
       ctx.fillStyle = liqGrad;
       ctx.fill();
 
-      // Meniscus ring stroke
-      ctx.lineWidth = 1.8;
-      ctx.strokeStyle = `rgba(${Math.max(0, col.r - 45)}, ${Math.max(0, col.g - 40)}, ${Math.max(0, col.b - 20)}, 0.45)`;
+      // Meniscus rim ring stroke
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(100, 116, 139, 0.4)";
       ctx.stroke();
 
-      // Specular highlight glint (curved reflection in top-left)
+      // Specular highlight glint (curved reflection in top-left, small so extract() filters it out)
       ctx.beginPath();
-      ctx.ellipse(cx - liqR * 0.38, cy - liqR * 0.38, liqR * 0.32, liqR * 0.14, -Math.PI / 4, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+      ctx.ellipse(cx - liqR * 0.42, cy - liqR * 0.42, liqR * 0.22, liqR * 0.10, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
       ctx.fill();
 
       // Secondary soft rim reflection in bottom-right
       ctx.beginPath();
       ctx.arc(cx, cy, liqR - 1, 0.2, 1.2);
       ctx.lineWidth = 1.2;
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
       ctx.stroke();
     }
   }

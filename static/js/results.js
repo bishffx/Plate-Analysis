@@ -1098,26 +1098,36 @@ export function initResultsControls() {
   if (btnPrint) btnPrint.onclick = () => window.print();
 
   // CSV Export
+  const handleExportCsv = () => {
+    if (!S.last) {
+      showToast("Please run analysis before exporting CSV", "warning");
+      return;
+    }
+    const q = S.last;
+    if (!q.wells || !q.wells.length) {
+      showToast("No well data available to export", "warning");
+      return;
+    }
+    const rows = ["well,role,intensity,image_od,calibrated_od," + (q.mode === "PI" ? "PI_percent" : "PP_percent") + ",class,note"];
+    q.wells.forEach((w) => {
+      rows.push([w.well, w.role, w.intensity ?? "", w.od ?? "", w.od_cal ?? "", w.value ?? "", w.class, w.flag || ""].join(","));
+    });
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = el("a");
+    a.href = url;
+    a.download = `plateod-${q.assay || q.mode}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("CSV downloaded successfully", "success");
+  };
+
   const btnExport = $("csv");
-  if (btnExport) {
-    btnExport.onclick = () => {
-      if (!S.last) return;
-      const q = S.last;
-      const rows = ["well,role,intensity,image_od,calibrated_od," + (q.mode === "PI" ? "PI_percent" : "PP_percent") + ",class,note"];
-      q.wells.forEach((w) => {
-        rows.push([w.well, w.role, w.intensity ?? "", w.od ?? "", w.od_cal ?? "", w.value ?? "", w.class, w.flag || ""].join(","));
-      });
-      const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = el("a");
-      a.href = url;
-      a.download = `plateod-${q.assay || q.mode}-${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    };
-  }
+  if (btnExport) btnExport.onclick = handleExportCsv;
+  const btnDownload = $("download");
+  if (btnDownload) btnDownload.onclick = handleExportCsv;
 
   // Copy Table (TSV) to Clipboard
   const btnCopy = $("btn-copy-table");

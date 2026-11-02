@@ -880,7 +880,11 @@ def analyze(image_or_id, cfg) -> dict:
         raise AnalysisError("Blank intensity is not above the dark level.")
     others = np.array([I[r, c] for r in range(rows) for c in range(cols) if role[r, c] != "Blank"])
     others = others[np.isfinite(others)]
-    if not reader_data and others.size and np.median(others) >= Ib * 0.97:
+    brighter_than_blank = others[others > Ib * 1.12] if others.size else np.array([])
+    if not reader_data and others.size and (
+        brighter_than_blank.size >= 2
+        or (mode == "PP" and np.median(others) >= Ib * 0.97)
+    ):
         errors.append("Blank wells are not brighter than the sample wells, so every OD would be about 0. "
                       "Pick wells that contain only substrate/stop solution (or are empty) as the blank.")
     if bl.size > 1 and bl.std(ddof=1) / bl.mean() > 0.15:
