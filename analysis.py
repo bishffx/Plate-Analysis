@@ -656,7 +656,7 @@ def analyze(image_or_id, cfg) -> dict:
         raise AnalysisError("Missing configuration.")
     if image_or_id is None:
         image_or_id = cfg.get("image_id") or cfg.get("image")
-    if not image_or_id and not isinstance(image_or_id, np.ndarray):
+    if image_or_id is None or (isinstance(image_or_id, str) and not image_or_id.strip()):
         raise AnalysisError("No image supplied.")
     if isinstance(image_or_id, np.ndarray):
         rgb = image_or_id

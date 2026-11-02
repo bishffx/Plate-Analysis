@@ -147,8 +147,6 @@ export function resetCanvasPanZoom() {
     btn.classList.toggle("active", Math.abs(bz - 0.8) < 0.05);
   });
   draw();
-});
-  draw();
 }
 
 function applyMagneticSnap(handleIdx) {

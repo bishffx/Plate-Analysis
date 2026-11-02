@@ -95,9 +95,14 @@ class Handler(BaseHTTPRequestHandler):
             self._json(410, {"error": str(e)})
         except A.AnalysisError as e:
             self._json(400, {"error": str(e)})
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass  # client navigated away or aborted request
         except Exception as e:  # never crash the server on one bad request
             traceback.print_exc()
-            self._json(500, {"error": f"Internal error: {type(e).__name__}: {e}"})
+            try:
+                self._json(500, {"error": f"Internal error: {type(e).__name__}: {e}"})
+            except Exception:
+                pass
 
 
 def make_server(host="127.0.0.1", port=8000) -> ThreadingHTTPServer:
