@@ -264,7 +264,7 @@ export function initAccordion() {
     if (trigger) {
       trigger.addEventListener("click", (e) => {
         e.preventDefault();
-        toggleSection(card, true);
+        toggleSection(card, false);
       });
 
       trigger.addEventListener("keydown", (e) => {

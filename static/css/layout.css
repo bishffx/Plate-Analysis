@@ -76,13 +76,13 @@
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(167, 139, 250, 0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .nav-link.active {
   color: #FFFFFF;
-  background: rgba(124, 58, 237, 0.25);
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 /* Header Actions: Theme Switcher, Server Status, Mobile Toggle */
@@ -352,7 +352,7 @@ main {
   border: 1px solid var(--card-border);
   background-color: var(--card-bg);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.18), transparent 45%),
+    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.18), transparent 45%),
     radial-gradient(circle at 90% 80%, rgba(11, 31, 58, 0.45), transparent 50%),
     radial-gradient(var(--card-border) 1.2px, transparent 1.2px);
   background-size: 100% 100%, 100% 100%, 24px 24px;
@@ -376,8 +376,8 @@ main {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: rgba(167, 139, 250, 0.12);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
@@ -520,8 +520,8 @@ main {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: rgba(124, 58, 237, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -631,7 +631,7 @@ main {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: rgba(124, 58, 237, 0.14);
+  background: rgba(56, 189, 248, 0.14);
   color: var(--glow-violet);
   display: flex;
   align-items: center;
@@ -687,9 +687,9 @@ main {
 }
 
 .spce-pill {
-  background: rgba(124, 58, 237, 0.16);
+  background: rgba(56, 189, 248, 0.16);
   color: var(--glow-violet);
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .diva-pill {
@@ -775,7 +775,7 @@ main {
 }
 
 .spec-value code {
-  background: rgba(124, 58, 237, 0.14);
+  background: rgba(56, 189, 248, 0.14);
   color: var(--glow-violet);
   padding: 1px 5px;
   border-radius: 4px;
@@ -1022,8 +1022,8 @@ main {
 }
 
 .notice-box {
-  background: rgba(167, 139, 250, 0.12);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-sm);
   padding: var(--space-4);
   font-size: 13px;

@@ -162,37 +162,28 @@ export function updateAssayDescription() {
 /**
  * Sets the "Edit values" switch state and locks/unlocks fields accordingly.
  */
-export function setEditValues(enabled) {
-  S.isEditingValues = enabled;
+export function setEditValues(enabled = true) {
+  S.isEditingValues = true;
   const chk = $("chk-edit-values");
-  if (chk) chk.checked = enabled;
+  if (chk) chk.checked = true;
 
   const fields = ["pos", "neg", "blank", "cutoff", "cutlow"];
   fields.forEach((id) => {
     const el = $(id);
     if (!el) return;
-    el.readOnly = !enabled;
-    el.classList.toggle("is-locked", !enabled);
+    el.readOnly = false;
+    el.classList.remove("is-locked");
   });
 
   const modeEl = $("mode");
   if (modeEl) {
-    if (S.selectedAssay === "Custom" && enabled) {
-      modeEl.disabled = false;
-      modeEl.classList.remove("is-locked");
-    } else {
-      modeEl.disabled = true;
-      modeEl.classList.add("is-locked");
-    }
+    modeEl.disabled = false;
+    modeEl.classList.remove("is-locked");
   }
 
   const posWrap = $("pos-wrap");
   if (posWrap) {
-    if (S.selectedAssay === "SPCE") {
-      posWrap.hidden = !enabled && !$("pos")?.value.trim();
-    } else {
-      posWrap.hidden = false;
-    }
+    posWrap.hidden = false;
   }
 }
 
@@ -275,24 +266,16 @@ export function selectAssay(name, forceDefault = false) {
   if (modeEl) {
     if (name === "SPCE") {
       modeEl.value = "PI";
-      modeEl.disabled = true;
-      modeEl.classList.add("is-locked");
     } else if (name === "DIVA") {
       modeEl.value = "PP";
-      modeEl.disabled = true;
-      modeEl.classList.add("is-locked");
     } else {
       modeEl.value = valuesToApply.mode || "PP";
-      modeEl.disabled = false;
-      modeEl.classList.remove("is-locked");
     }
+    modeEl.disabled = false;
+    modeEl.classList.remove("is-locked");
   }
 
-  if (name === "Custom") {
-    setEditValues(true);
-  } else {
-    setEditValues(Boolean(S.isEditingValues));
-  }
+  setEditValues(true);
 
   updateAssayDescription();
   updateModifiedMarkers();

@@ -12,7 +12,7 @@ import { S, setState } from "./state.js";
 import { $, el, clearChildren, showToast } from "./dom.js";
 import { uploadImage, analyzePlate } from "./api.js";
 import { isConvexQuad } from "./grid.js";
-import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout, startAnalysisScan, finishAnalysisScan } from "./plate-canvas.js";
+import { draw, initCorners, sizeCanvas, refreshGrid, updateLiveReadout, startAnalysisScan, finishAnalysisScan, resetCanvasPanZoom } from "./plate-canvas.js";
 import { selectAssay } from "./presets.js";
 import { updateStepperValidation, validateWellField, parseAndValidateWells } from "./validation.js";
 import { ensureSectionOpenForElement, updateAccordionStatusChips, updateRunSummaryLine } from "./accordion.js";
@@ -211,6 +211,7 @@ export async function handleFileUpload(file) {
         if (ph) ph.hidden = true;
         if (cv) cv.hidden = false;
         sizeCanvas();
+        resetCanvasPanZoom();
         draw();
         refreshGrid();
         updateLiveReadout();
@@ -233,6 +234,7 @@ export async function handleFileUpload(file) {
         if (ph) ph.hidden = true;
         if (cv) cv.hidden = false;
         sizeCanvas();
+        resetCanvasPanZoom();
         draw();
         refreshGrid();
         updateLiveReadout();

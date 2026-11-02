@@ -189,17 +189,17 @@
             <linearGradient id="mbCrystA" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
               <stop offset="30%" stop-color="#E9D5FF" stop-opacity="0.85"/>
-              <stop offset="70%" stop-color="#8B5CF6" stop-opacity="0.75"/>
+              <stop offset="70%" stop-color="#38BDF8" stop-opacity="0.75"/>
               <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.9"/>
             </linearGradient>
             <linearGradient id="mbCrystB" x1="100%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="#F472B6" stop-opacity="0.95"/>
-              <stop offset="45%" stop-color="#D946EF" stop-opacity="0.8"/>
-              <stop offset="100%" stop-color="#4F46E5" stop-opacity="0.6"/>
+              <stop offset="45%" stop-color="#94A3B8" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#475569" stop-opacity="0.6"/>
             </linearGradient>
             <radialGradient id="mbGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#D946EF" stop-opacity="0.45"/>
-              <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#94A3B8" stop-opacity="0.45"/>
+              <stop offset="100%" stop-color="#334155" stop-opacity="0"/>
             </radialGradient>
           </defs>
           <circle cx="70" cy="70" r="60" fill="url(#mbGlow)"/>
@@ -217,14 +217,14 @@
           <defs>
             <linearGradient id="mbOrbGrad" x1="20%" y1="20%" x2="90%" y2="90%">
               <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
-              <stop offset="25%" stop-color="#A78BFA" stop-opacity="0.75"/>
-              <stop offset="65%" stop-color="#4F46E5" stop-opacity="0.6"/>
+              <stop offset="25%" stop-color="#E2E8F0" stop-opacity="0.75"/>
+              <stop offset="65%" stop-color="#475569" stop-opacity="0.6"/>
               <stop offset="100%" stop-color="#0A0718" stop-opacity="0.95"/>
             </linearGradient>
             <radialGradient id="mbOrbRim" cx="35%" cy="30%" r="65%">
               <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
-              <stop offset="40%" stop-color="#D946EF" stop-opacity="0.4"/>
-              <stop offset="85%" stop-color="#7C3AED" stop-opacity="0.1"/>
+              <stop offset="40%" stop-color="#94A3B8" stop-opacity="0.4"/>
+              <stop offset="85%" stop-color="#334155" stop-opacity="0.1"/>
               <stop offset="100%" stop-color="#22D3EE" stop-opacity="0.5"/>
             </radialGradient>
           </defs>
@@ -542,11 +542,11 @@
               <path d="M25 75 L145 75" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
               <path d="M25 75 L25 15" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
               <line x1="30" y1="70" x2="140" y2="20" stroke="#38BDF8" stroke-width="1.8"/>
-              <circle cx="45" cy="62" r="3" fill="#A78BFA"/>
-              <circle cx="68" cy="55" r="3" fill="#A78BFA"/>
-              <circle cx="92" cy="40" r="3" fill="#A78BFA"/>
-              <circle cx="118" cy="31" r="3" fill="#A78BFA"/>
-              <circle cx="135" cy="22" r="3" fill="#A78BFA"/>
+              <circle cx="45" cy="62" r="3" fill="#38BDF8"/>
+              <circle cx="68" cy="55" r="3" fill="#38BDF8"/>
+              <circle cx="92" cy="40" r="3" fill="#38BDF8"/>
+              <circle cx="118" cy="31" r="3" fill="#38BDF8"/>
+              <circle cx="135" cy="22" r="3" fill="#38BDF8"/>
               <text x="50" y="70" fill="#38BDF8" font-size="8.5" font-family="monospace">R² shown after fitting</text>
             </svg>
           </div>
@@ -614,8 +614,8 @@
 
           <div class="accordion-container" id="accordion-container">
             <!-- 1. Assay type -->
-            <div class="card accordion-card" id="card-assay" hidden>
-              <button type="button" class="accordion-trigger" id="btn-accordion-assay" aria-expanded="false" aria-controls="panel-assay">
+            <div class="card accordion-card is-open" id="card-assay">
+              <button type="button" class="accordion-trigger" id="btn-accordion-assay" aria-expanded="true" aria-controls="panel-assay">
                 <span class="acc-trigger-left">
                   <span class="acc-icon" aria-hidden="true">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -631,7 +631,7 @@
                   </svg>
                 </span>
               </button>
-              <div class="accordion-panel" id="panel-assay" role="region" aria-labelledby="btn-accordion-assay">
+              <div class="accordion-panel is-open" id="panel-assay" role="region" aria-labelledby="btn-accordion-assay">
                 <div class="accordion-panel-inner">
                   <div class="assay-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                     <span class="field-hint" style="margin:0;">Protocol preset:</span>
@@ -644,11 +644,7 @@
                     <button type="button" class="seg-btn" id="btn-assay-custom" role="radio" aria-checked="false">Custom</button>
                   </div>
                   <div class="assay-controls-row">
-                    <label class="toggle-switch-wrap" for="chk-edit-values">
-                      <input type="checkbox" id="chk-edit-values" class="toggle-switch-input" role="switch" aria-checked="false">
-                      <span class="toggle-switch-track"><span class="toggle-switch-thumb"></span></span>
-                      <span class="toggle-switch-label">Edit values</span>
-                    </label>
+                    <span class="field-hint" style="margin:0;">User inputs unlocked · Select preset to populate defaults or customize freely</span>
                     <button type="button" class="sec btn-xs btn-reset-defaults" id="btn-reset-assay-defaults" title="Reset this assay to default preset values">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                       <span>Reset to defaults</span>
@@ -711,8 +707,8 @@
             </div>
 
             <!-- 3. Well roles -->
-            <div class="card accordion-card" id="step-roles">
-              <button type="button" class="accordion-trigger" id="btn-accordion-roles" aria-expanded="false" aria-controls="panel-roles">
+            <div class="card accordion-card is-open" id="step-roles">
+              <button type="button" class="accordion-trigger" id="btn-accordion-roles" aria-expanded="true" aria-controls="panel-roles">
                 <span class="acc-trigger-left">
                   <span class="acc-icon" aria-hidden="true">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -731,7 +727,7 @@
                   </svg>
                 </span>
               </button>
-              <div class="accordion-panel" id="panel-roles" role="region" aria-labelledby="btn-accordion-roles">
+              <div class="accordion-panel is-open" id="panel-roles" role="region" aria-labelledby="btn-accordion-roles">
                 <div class="accordion-panel-inner">
                   <div class="roles-subbar" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="field-hint" style="margin:0">Ranges: <code>E1-H1</code>, <code>A1,A2</code></span>
@@ -775,7 +771,7 @@
                         </button>
                       </span>
                     </div>
-                    <input id="pos" value="H7-H8" placeholder="e.g. H7-H8" class="is-locked" readonly>
+                    <input id="pos" value="H7-H8" placeholder="e.g. H7-H8">
                     <div class="field-error" id="pos-err" hidden></div>
                     <span class="field-hint">High OD reference wells (PP mode) · Optional for SPCE</span>
                   </div>
@@ -790,7 +786,7 @@
                         </button>
                       </span>
                     </div>
-                    <input id="neg" value="H9-H10" placeholder="e.g. H9-H10" class="is-locked" readonly>
+                    <input id="neg" value="H9-H10" placeholder="e.g. H9-H10">
                     <div class="field-error" id="neg-err" hidden></div>
                     <span class="field-hint">Antigen (max-signal) wells in SPCE, negative serum in DIVA</span>
                   </div>
@@ -805,7 +801,7 @@
                         </button>
                       </span>
                     </div>
-                    <input id="blank" value="H11-H12" placeholder="e.g. H11-H12" class="is-locked" readonly>
+                    <input id="blank" value="H11-H12" placeholder="e.g. H11-H12">
                     <div class="field-error" id="blank-err" hidden></div>
                     <span class="field-hint">Substrate reference wells for optical baseline</span>
                   </div>
@@ -871,7 +867,7 @@
                   <div class="form-row-2col">
                     <div class="form-group">
                       <label for="mode">Assay mode</label>
-                      <select id="mode" class="is-locked" disabled>
+                      <select id="mode" disabled>
                         <option value="PP">PP – indirect</option>
                         <option value="PI">PI – competitive</option>
                       </select>
@@ -887,7 +883,7 @@
                           </button>
                         </span>
                       </div>
-                      <input id="cutoff" type="number" step="any" value="40" class="is-locked" readonly>
+                      <input id="cutoff" type="number" step="any" value="40">
                       <div class="field-error" id="cutoff-err" hidden></div>
                       <span class="field-hint">Diagnostic threshold (SPCE Cutoff 65%: default, confirm against your kit insert)</span>
                     </div>
@@ -903,7 +899,7 @@
                         </button>
                       </span>
                     </div>
-                    <input id="cutlow" type="number" step="any" placeholder="none" class="is-locked" readonly>
+                    <input id="cutlow" type="number" step="any" placeholder="none">
                     <div class="field-error" id="cutlow-err" hidden></div>
                     <span class="field-hint">Borderline gray-zone limit (strictly below cutoff)</span>
                   </div>
@@ -1049,10 +1045,10 @@
                 <div class="toolbar-sep"></div>
                 <!-- Zoom Controls -->
                 <div class="zoom-controls" role="group" aria-label="Canvas zoom levels">
-                  <button type="button" class="sec btn-xs zoom-step-btn" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
-                  <button type="button" class="sec btn-xs zoom-btn active" data-zoom="1" id="zoom-100" title="100% Zoom">100%</button>
+                  <button type="button" class="sec btn-xs zoom-step-btn" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">-</button>
+                  <button type="button" class="sec btn-xs zoom-btn active" data-zoom="0.8" id="zoom-fit" title="Fit plate into view (80%)">Fit</button>
+                  <button type="button" class="sec btn-xs zoom-btn" data-zoom="1" id="zoom-100" title="100% Zoom">100%</button>
                   <button type="button" class="sec btn-xs zoom-btn" data-zoom="1.5" id="zoom-150" title="150% Zoom">150%</button>
-                  <button type="button" class="sec btn-xs zoom-btn" data-zoom="2" id="zoom-200" title="200% Zoom">200%</button>
                   <button type="button" class="sec btn-xs zoom-step-btn" id="btn-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
                 </div>
                 <div class="toolbar-sep"></div>

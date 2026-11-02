@@ -20,7 +20,7 @@ let gridAbort = null;
 // Pan, Zoom & Magnifier State
 let panX = 0;
 let panY = 0;
-let zoomScale = 1.0;
+let zoomScale = 0.8;
 let isPanning = false;
 let panStartX = 0;
 let panStartY = 0;
@@ -132,14 +132,22 @@ export function setCanvasZoom(newZoom, originX = null, originY = null) {
 }
 
 export function resetCanvasPanZoom() {
-  panX = 0;
-  panY = 0;
-  zoomScale = 1.0;
-  S.zoomLevel = 1.0;
+  zoomScale = 0.8;
+  S.zoomLevel = 0.8;
+  const cv = $("cv");
+  if (cv && cv.width && cv.height) {
+    panX = (cv.width - cv.width * 0.8) / 2;
+    panY = (cv.height - cv.height * 0.8) / 2;
+  } else {
+    panX = 0;
+    panY = 0;
+  }
   document.querySelectorAll(".zoom-btn").forEach((btn) => {
     const bz = parseFloat(btn.getAttribute("data-zoom")) || 1.0;
-    btn.classList.toggle("active", Math.abs(bz - 1.0) < 0.05);
+    btn.classList.toggle("active", Math.abs(bz - 0.8) < 0.05);
   });
+  draw();
+});
   draw();
 }
 
@@ -349,13 +357,13 @@ function drawDirect() {
 
       g.save();
       if (active) {
-        g.shadowColor = "#8B5CF6";
+        g.shadowColor = "#38BDF8";
         g.shadowBlur = isDragged ? 22 : 14;
       }
 
       // Outer ring
       g.lineWidth = active ? 3 : 2.5;
-      g.strokeStyle = "#A78BFA";
+      g.strokeStyle = "#E2E8F0";
       g.fillStyle = isDragged
         ? "rgba(245, 165, 36, 0.4)"
         : (isSelected ? "rgba(245, 165, 36, 0.22)" : "rgba(11, 15, 20, 0.85)");
@@ -389,7 +397,7 @@ function drawDirect() {
       g.strokeStyle = "rgba(0, 0, 0, 0.85)";
       g.lineWidth = 2.5;
       g.strokeText(lb[i], lx + 13, ly + 9);
-      g.fillStyle = isSelected ? "#D946EF" : "#FFFFFF";
+      g.fillStyle = isSelected ? "#38BDF8" : "#FFFFFF";
       g.fillText(lb[i], lx + 13, ly + 9);
       g.restore();
     });
@@ -451,7 +459,7 @@ function drawDirect() {
 
     // Loupe outer ring
     g.save();
-    g.strokeStyle = "#A78BFA";
+    g.strokeStyle = "#E2E8F0";
     g.lineWidth = 2.5;
     g.beginPath();
     g.arc(lx, ly, loupeR, 0, 6.2832);
@@ -459,7 +467,7 @@ function drawDirect() {
 
     // 4x zoom badge
     g.fillStyle = "rgba(11, 15, 20, 0.9)";
-    g.strokeStyle = "#A78BFA";
+    g.strokeStyle = "#E2E8F0";
     g.lineWidth = 1;
     roundRect(g, lx - 18, ly + loupeR - 12, 36, 16, 4);
     g.fill();
@@ -969,7 +977,7 @@ function renderHeroFrame(now, dt) {
   heroCtx.fill();
 
   heroCtx.lineWidth = 1.5;
-  heroCtx.strokeStyle = "rgba(167, 139, 250, 0.25)";
+  heroCtx.strokeStyle = "rgba(255, 255, 255, 0.25)";
   heroCtx.stroke();
   heroCtx.restore();
 
@@ -983,7 +991,7 @@ function renderHeroFrame(now, dt) {
   heroCtx.closePath();
   heroCtx.fillStyle = "rgba(18, 10, 36, 0.96)";
   heroCtx.fill();
-  heroCtx.strokeStyle = "rgba(217, 70, 239, 0.35)";
+  heroCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
   heroCtx.lineWidth = 1;
   heroCtx.stroke();
   heroCtx.restore();
@@ -1088,7 +1096,7 @@ function renderHeroFrame(now, dt) {
     heroCtx.fillStyle = "rgba(15, 10, 30, 0.92)";
     heroCtx.fill();
     heroCtx.lineWidth = 1.2;
-    heroCtx.strokeStyle = `rgba(167, 139, 250, ${0.12 + well.glow * 0.4})`;
+    heroCtx.strokeStyle = `rgba(255, 255, 255, ${0.12 + well.glow * 0.4})`;
     heroCtx.stroke();
 
     // Well inner glowing liquid disc
