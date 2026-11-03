@@ -50,14 +50,14 @@
   --od-tmb-4: #5B1E08;
 
   /* Dark Glass Surfaces (Black / Charcoal with Backdrop Blur) */
-  --card-bg: rgba(16, 18, 22, 0.72);
-  --card-backdrop: blur(16px);
-  --card-backdrop-filter: blur(16px);
+  --card-bg: #101318;
+  --card-backdrop: none;
+  --card-backdrop-filter: none;
   --card-bg-solid: #0e1014;
   --card-raised: rgba(24, 27, 34, 0.85);
   --surface-hover: rgba(255, 255, 255, 0.06);
   --input-bg: rgba(11, 13, 16, 0.88);
-  --header-bg: rgba(5, 5, 7, 0.85);
+  --header-bg: rgba(8, 10, 14, 0.98);
   --footer-bg: #050507;
   --footer-border: rgba(255, 255, 255, 0.08);
   --readout-bg: rgba(255, 255, 255, 0.03);

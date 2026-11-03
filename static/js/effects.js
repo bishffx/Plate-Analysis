@@ -1,5 +1,7 @@
 "use strict";
 
+import { recordFrameTime } from "./adaptive-quality.js";
+
 /**
  * PlateOD Effects Toolkit (effects.js)
  * 
@@ -43,6 +45,7 @@ function loopTick(timestamp) {
   }
   const delta = timestamp - (lastTimestamp || timestamp);
   lastTimestamp = timestamp;
+  recordFrameTime(delta);
 
   // Execute subscribers
   for (const fn of subscribers) {
@@ -209,23 +212,29 @@ export function observeReveal(element) {
 export function initMagnetic(btn, strength = 0.22) {
   if (!btn || isReducedMotion()) return;
   btn.classList.add("btn-magnetic");
+  let cachedRect = null;
+
+  btn.addEventListener("pointerenter", () => {
+    cachedRect = btn.getBoundingClientRect();
+  });
 
   const onPointerMove = (e) => {
     if (isReducedMotion()) return;
-    const rect = btn.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    if (!cachedRect) cachedRect = btn.getBoundingClientRect();
+    const centerX = cachedRect.left + cachedRect.width / 2;
+    const centerY = cachedRect.top + cachedRect.height / 2;
     const dx = (e.clientX - centerX) * strength;
     const dy = (e.clientY - centerY) * strength;
     btn.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
   };
 
   const onPointerLeave = () => {
+    cachedRect = null;
     btn.style.transform = "translate3d(0, 0, 0)";
   };
 
-  btn.addEventListener("pointermove", onPointerMove);
-  btn.addEventListener("pointerleave", onPointerLeave);
+  btn.addEventListener("pointermove", onPointerMove, { passive: true });
+  btn.addEventListener("pointerleave", onPointerLeave, { passive: true });
 }
 
 export function initAllMagnetics(selector = ".btn-primary, .btn-run, .btn-magnetic") {
@@ -238,23 +247,29 @@ export function initAllMagnetics(selector = ".btn-primary, .btn-run, .btn-magnet
 // -----------------------------------------------------------------------------
 export function initSpotlight(card) {
   if (!card) return;
+  let cachedRect = null;
+
+  card.addEventListener("pointerenter", () => {
+    cachedRect = card.getBoundingClientRect();
+  });
 
   const onPointerMove = (e) => {
     if (isReducedMotion()) return;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    if (!cachedRect) cachedRect = card.getBoundingClientRect();
+    const x = e.clientX - cachedRect.left;
+    const y = e.clientY - cachedRect.top;
     card.style.setProperty("--mouse-x", `${x.toFixed(1)}px`);
     card.style.setProperty("--mouse-y", `${y.toFixed(1)}px`);
   };
 
   const onPointerLeave = () => {
+    cachedRect = null;
     card.style.setProperty("--mouse-x", "-1000px");
     card.style.setProperty("--mouse-y", "-1000px");
   };
 
-  card.addEventListener("pointermove", onPointerMove);
-  card.addEventListener("pointerleave", onPointerLeave);
+  card.addEventListener("pointermove", onPointerMove, { passive: true });
+  card.addEventListener("pointerleave", onPointerLeave, { passive: true });
 }
 
 export function initAllSpotlights(selector = ".card, .preset-card, .kpi-card, .summary-card, .faq-item") {

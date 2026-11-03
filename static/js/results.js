@@ -1,3 +1,48 @@
+// Blob URL cache for annotated photos
+function base64ToBlobUrl(base64) {
+  if (!base64 || typeof base64 !== "string" || !base64.startsWith("data:")) return base64;
+  try {
+    const parts = base64.split(",");
+    const mime = parts[0].match(/:(.*?);/)?.[1] || "image/jpeg";
+    const bstr = atob(parts[1]);
+    let n = bstr.length;
+    const u8 = new Uint8Array(n);
+    while (n--) u8[n] = bstr.charCodeAt(n);
+    return URL.createObjectURL(new Blob([u8], { type: mime }));
+  } catch (_) {
+    return base64;
+  }
+}
+
+function showHeatmapTooltip(clientX, clientY, w, key, isVal, activeCutoff) {
+  const tt = $("heat-tooltip");
+  if (!tt) return;
+  tt.hidden = false;
+  tt.style.display = "block";
+  tt.style.position = "fixed";
+  tt.style.left = `${clientX + 14}px`;
+  tt.style.top = `${clientY + 14}px`;
+  tt.style.zIndex = "99999";
+  tt.style.pointerEvents = "none";
+  
+  clearChildren(tt);
+  const head = el("div", `${w.well} · ${w.role || "Sample"}`, "tooltip-title");
+  const odLine = el("div", `OD: ${w.od_cal !== null ? Number(w.od_cal).toFixed(3) : "–"}`);
+  const valLine = el("div", isVal ? `${w.value !== null ? Number(w.value).toFixed(1) + "%" : "–"}` : `Value: ${w.value !== null ? fmt(w.value, 2) : "–"}`);
+  const clsLine = el("div", `Class: ${w.class || "–"}`, `badge badge-${(w.class || "unknown").toLowerCase()}`);
+  tt.appendChild(head);
+  tt.appendChild(odLine);
+  tt.appendChild(valLine);
+  tt.appendChild(clsLine);
+}
+
+function hideHeatmapTooltip() {
+  const tt = $("heat-tooltip");
+  if (!tt) return;
+  tt.hidden = true;
+  tt.style.display = "none";
+}
+
 import { transitionView } from "./interactions.js";
 "use strict";
 
@@ -19,6 +64,7 @@ import { transitionView } from "./interactions.js";
 import { S, TBL } from "./state.js";
 import { $, $$, el, clearChildren, fmt, showToast } from "./dom.js";
 import { countUp, initSpotlight } from "./effects.js";
+import { getActiveRunTimer } from "./perf.js";
 import { draw } from "./plate-canvas.js";
 
 // Results State
@@ -212,6 +258,7 @@ function renderInspectorCrop(well) {
   if (!cropCv || !S.img || !S.circles) return;
 
   const ctx = cropCv.getContext("2d");
+  if (!ctx) return;
   const cw = cropCv.width;
   const ch = cropCv.height;
   ctx.clearRect(0, 0, cw, ch);
@@ -341,6 +388,7 @@ function renderDonutChart(r) {
   const cv = $("donut-chart-cv");
   if (!cv) return;
   const ctx = cv.getContext("2d");
+  if (!ctx) return;
   const w = cv.width;
   const h = cv.height;
 
@@ -603,7 +651,10 @@ function renderTable(r) {
       return TBL.sortAsc ? diff : -diff;
     });
 
-    list.forEach((x) => {
+    const PAGE_SIZE = 40;
+    const visibleList = list.slice(0, PAGE_SIZE);
+
+    visibleList.forEach((x) => {
       const tr = el("tr");
       tr.setAttribute("data-well", x.well);
       tr.setAttribute("data-class", x.class);
@@ -631,6 +682,44 @@ function renderTable(r) {
 
       tbody.appendChild(tr);
     });
+
+    if (list.length > PAGE_SIZE) {
+      const moreTr = el("tr", undefined, "table-more-row");
+      const moreTd = el("td");
+      moreTd.colSpan = 8;
+      moreTd.style.textAlign = "center";
+      moreTd.style.padding = "8px";
+      const moreBtn = el("button", `Show all ${list.length} wells (${PAGE_SIZE} shown)`, "sec btn-xs");
+      moreBtn.onclick = (e) => {
+        e.preventDefault();
+        moreTr.remove();
+        list.slice(PAGE_SIZE).forEach((x) => {
+          const tr = el("tr");
+          tr.setAttribute("data-well", x.well);
+          tr.setAttribute("data-class", x.class);
+          tr.appendChild(el("td", x.well));
+          tr.appendChild(el("td", x.role));
+          tr.appendChild(el("td", fmt(x.intensity, 2), "num-col"));
+          tr.appendChild(el("td", fmt(x.od, 4), "num-col"));
+          tr.appendChild(el("td", fmt(x.od_cal, 4), "num-col"));
+          tr.appendChild(el("td", fmt(x.value, 1), "num-col"));
+          const tdClass = el("td");
+          const badge = el("span", undefined, "b " + x.class.split(" ")[0]);
+          badge.appendChild(el("span", undefined, "b-dot"));
+          badge.appendChild(document.createTextNode(x.class));
+          tdClass.appendChild(badge);
+          tr.appendChild(tdClass);
+          tr.appendChild(el("td", x.flag || ""));
+          tr.onpointerenter = () => setHighlightedWell(x.well);
+          tr.onpointerleave = () => setHighlightedWell(null);
+          tr.onclick = () => openWellInspector(x);
+          tbody.appendChild(tr);
+        });
+      };
+      moreTd.appendChild(moreBtn);
+      moreTr.appendChild(moreTd);
+      tbody.appendChild(moreTr);
+    }
   }
 
   refreshRows();
@@ -677,10 +766,11 @@ function heat(r, key, nd) {
   scrubSlider.value = scrubThreshold !== null ? scrubThreshold : lo;
   const scrubValText = el("span", scrubThreshold !== null ? fmt(scrubThreshold, 2) : "All", "scrub-val-text");
 
+  let drawCanvasFn = null;
   scrubSlider.oninput = () => {
     scrubThreshold = parseFloat(scrubSlider.value);
     scrubValText.textContent = fmt(scrubThreshold, 2);
-    updateHeatmapScrubHighlights(scrubThreshold);
+    if (drawCanvasFn) drawCanvasFn();
   };
   scrubWrap.appendChild(scrubSlider);
   scrubWrap.appendChild(scrubValText);
@@ -690,70 +780,198 @@ function heat(r, key, nd) {
     scrubThreshold = null;
     scrubSlider.value = lo;
     scrubValText.textContent = "All";
-    updateHeatmapScrubHighlights(null);
+    if (drawCanvasFn) drawCanvasFn();
   };
   scrubWrap.appendChild(resetScrubBtn);
   cBar.appendChild(scrubWrap);
 
   container.appendChild(cBar);
 
-  const g = el("div", undefined, "heat");
+  // SINGLE-CANVAS HEATMAP (Step B.5)
+  const g = el("div", undefined, "heat-canvas-wrap");
   g.id = "active-heatmap-grid";
-  g.style.gridTemplateColumns = `28px repeat(${cols},minmax(38px,1fr))`;
 
-  // Header column numbers
-  g.appendChild(el("div", "", "heat-header"));
-  for (let c = 0; c < cols; c++) g.appendChild(el("div", String(c + 1), "heat-header"));
+  const cv = el("canvas", undefined, "active-heatmap-canvas");
+  cv.id = "active-heatmap-canvas";
+  g.appendChild(cv);
+  container.appendChild(g);
+
+  const W = 620;
+  const H = 340;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(W * dpr);
+  cv.height = Math.round(H * dpr);
+  cv.style.width = "100%";
+  cv.style.maxWidth = `${W}px`;
+  cv.style.height = `${H}px`;
+
+  const ctx = cv.getContext("2d");
+  if (ctx) ctx.scale(dpr, dpr);
+
+  const hw = 28;
+  const hh = 24;
+  const cw = (W - hw) / cols;
+  const ch = (H - hh) / rows;
+  let hoveredWell = null;
 
   const m = {};
   r.wells.forEach((w) => { m[w.row + "," + w.col] = w; });
 
-  for (let i = 0; i < rows; i++) {
-    g.appendChild(el("div", "ABCDEFGHIJKLMNOP"[i], "heat-header"));
+  function drawCanvas() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#8B949E";
+
     for (let c = 0; c < cols; c++) {
-      const w = m[i + "," + c], v = w[key];
-      const cell = el("div", "", "heat-cell");
-      cell.setAttribute("data-well", w.well);
-      cell.setAttribute("data-class", w.class);
-      cell.setAttribute("data-val", String(v));
+      ctx.fillText(String(c + 1), hw + c * cw + cw / 2, hh / 2);
+    }
+    for (let i = 0; i < rows; i++) {
+      ctx.fillText("ABCDEFGHIJKLMNOP"[i], hw / 2, hh + i * ch + ch / 2);
+    }
 
-      if (heatmapViewMode === "values") {
-        cell.textContent = fmt(v, nd);
-        if (v === null || !isFinite(v)) {
-          cell.style.background = "#1E2633";
-          cell.style.color = "#6B778C";
-        } else if (!isVal) {
-          const t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
-          const color = tmbAmberColor(t);
-          cell.style.background = color.bg;
-          cell.style.color = color.fg;
+    for (let i = 0; i < rows; i++) {
+      for (let c = 0; c < cols; c++) {
+        const w = m[i + "," + c];
+        if (!w) continue;
+        const v = w[key];
+        const x = hw + c * cw;
+        const y = hh + i * ch;
+
+        let bg = "#1E2633";
+        let fg = "#6B778C";
+        let isAboveCutoff = false;
+
+        if (heatmapViewMode === "values") {
+          if (v !== null && isFinite(v)) {
+            if (!isVal) {
+              const t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
+              const color = tmbAmberColor(t);
+              bg = color.bg;
+              fg = color.fg;
+            } else {
+              const color = divergingColor(v, activeCutoff, lo, hi);
+              bg = color.bg;
+              fg = color.fg;
+              if (color.isAbove) isAboveCutoff = true;
+            }
+          }
         } else {
-          const color = divergingColor(v, activeCutoff, lo, hi);
-          cell.style.background = color.bg;
-          cell.style.color = color.fg;
-          if (color.isAbove) cell.classList.add("cutoff-outline");
+          bg = getClassColor(w.class);
+          fg = "#FFFFFF";
         }
-      } else {
-        // Classes mode
-        cell.textContent = w.well;
-        cell.style.background = getClassColor(w.class);
-        cell.style.color = "#FFFFFF";
+
+        ctx.fillStyle = bg;
+        roundRect(ctx, x + 2, y + 2, cw - 4, ch - 4, 4);
+        ctx.fill();
+
+        if (isAboveCutoff) {
+          ctx.strokeStyle = "#F5A524";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        if (hoveredWell === w.well) {
+          ctx.strokeStyle = "#38BDF8";
+          ctx.lineWidth = 2.0;
+          ctx.stroke();
+        }
+
+        if (scrubThreshold !== null && (v === null || v < scrubThreshold)) {
+          ctx.fillStyle = "rgba(10, 14, 20, 0.68)";
+          roundRect(ctx, x + 2, y + 2, cw - 4, ch - 4, 4);
+          ctx.fill();
+        }
+
+        if (w.role === "Positive ctrl" || w.role === "Negative ctrl" || (w.role && w.role.includes("Antigen"))) {
+          ctx.fillStyle = "#F5A524";
+          ctx.beginPath();
+          ctx.arc(x + cw - 7, y + 7, 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (w.role === "Blank") {
+          ctx.fillStyle = "#38BDF8";
+          ctx.beginPath();
+          ctx.rect(x + cw - 9, y + 5, 5, 5);
+          ctx.fill();
+        }
+
+        ctx.font = "bold 10.5px system-ui, -apple-system, sans-serif";
+        ctx.fillStyle = fg;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const txt = heatmapViewMode === "values" ? fmt(v, nd) : w.well;
+        ctx.fillText(txt, x + cw / 2, y + ch / 2 + 1);
       }
-
-      if (w.role === "Positive ctrl" || w.role === "Negative ctrl" || (w.role && w.role.includes("Antigen"))) {
-        cell.appendChild(el("span", undefined, "corner-ctl"));
-      } else if (w.role === "Blank") {
-        cell.appendChild(el("span", undefined, "corner-blk"));
-      }
-
-      cell.onpointerenter = () => setHighlightedWell(w.well);
-      cell.onpointerleave = () => setHighlightedWell(null);
-      cell.onclick = () => openWellInspector(w);
-
-      g.appendChild(cell);
     }
   }
-  container.appendChild(g);
+
+  drawCanvasFn = drawCanvas;
+  drawCanvas();
+
+  cv.onpointermove = (e) => {
+    const rect = cv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W / rect.width);
+    const my = (e.clientY - rect.top) * (H / rect.height);
+    if (mx >= hw && my >= hh) {
+      const c = Math.floor((mx - hw) / cw);
+      const r = Math.floor((my - hh) / ch);
+      if (r >= 0 && r < rows && c >= 0 && c < cols) {
+        const w = m[r + "," + c];
+        if (w) {
+          cv.style.cursor = "pointer";
+          if (hoveredWell !== w.well) {
+            hoveredWell = w.well;
+            setHighlightedWell(w.well);
+            drawCanvas();
+          }
+          showHeatmapTooltip(e.clientX, e.clientY, w, key, isVal, activeCutoff);
+          return;
+        }
+      }
+    }
+    cv.style.cursor = "default";
+    if (hoveredWell !== null) {
+      hoveredWell = null;
+      setHighlightedWell(null);
+      drawCanvas();
+    }
+    hideHeatmapTooltip();
+  };
+
+  cv.onpointerleave = () => {
+    if (hoveredWell !== null) {
+      hoveredWell = null;
+      setHighlightedWell(null);
+      drawCanvas();
+    }
+    hideHeatmapTooltip();
+  };
+
+  cv.onclick = (e) => {
+    const rect = cv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W / rect.width);
+    const my = (e.clientY - rect.top) * (H / rect.height);
+    if (mx >= hw && my >= hh) {
+      const c = Math.floor((mx - hw) / cw);
+      const r = Math.floor((my - hh) / ch);
+      const w = m[r + "," + c];
+      if (w) openWellInspector(w);
+    }
+  };
+
+  // Wire PNG export button directly to high-res canvas
+  const btnDownloadPng = $("btn-download-heatmap-png");
+  if (btnDownloadPng) {
+    btnDownloadPng.onclick = () => {
+      const a = document.createElement("a");
+      a.download = `PlateOD_Heatmap_${r.assay || "ELISA"}.png`;
+      a.href = cv.toDataURL("image/png");
+      a.click();
+    };
+  }
 
   // Vertical Colour Legend with Draggable Cutoff Slider
   const leg = el("div", undefined, "heat-legend");
@@ -769,7 +987,6 @@ function heat(r, key, nd) {
     const cutPos = hi > lo ? Math.max(0, Math.min(100, (1 - (activeCutoff - lo) / (hi - lo)) * 100)) : 50;
     bar.style.background = `linear-gradient(180deg, #FF7A59 0%, #F4F1FF ${cutPos}%, #34D3BE 100%)`;
 
-    // Draggable Cutoff Marker
     const cMark = el("div", undefined, "legend-cutoff-draggable");
     cMark.style.top = cutPos + "%";
     cMark.title = "Drag to adjust diagnostic cutoff preview";
@@ -778,7 +995,6 @@ function heat(r, key, nd) {
     cMark.appendChild(labelSpan);
     bWrap.appendChild(cMark);
 
-    // Drag events on cutoff marker
     let isDraggingCutoff = false;
     cMark.onpointerdown = (e) => {
       e.preventDefault();
@@ -804,7 +1020,6 @@ function heat(r, key, nd) {
   leg.appendChild(bWrap);
   leg.appendChild(el("span", fmt(lo, isVal ? 1 : 2), "legend-val"));
 
-  // Reset Cutoff Button if modified
   if (isVal && clientCutoffPreview !== null && clientCutoffPreview !== serverCutoff) {
     const resetWrap = el("div", undefined, "legend-reset-wrap");
     const previewTag = el("span", "Preview (not saved)", "cutoff-preview-tag");
@@ -847,8 +1062,13 @@ function annotatedView(r) {
   const frame = el("div", undefined, "annot-frame");
   const img = el("img");
   img.id = "annot";
-  img.src = r.annotated;
+  const blobUrl = base64ToBlobUrl(r.annotated);
+  img.src = blobUrl;
   img.alt = "Annotated Plate";
+  if (typeof img.decode === "function") {
+    img.decoding = "async";
+    img.decode().catch(() => {});
+  }
   frame.appendChild(img);
 
   frame.onclick = () => {
@@ -920,6 +1140,8 @@ function renderPrintBundle(r) {
 // Main Render Entry
 // -----------------------------------------------------------------------------
 export function renderResults(r) {
+  const perfTimer = getActiveRunTimer();
+  if (perfTimer) perfTimer.markRenderKpiStart();
   const res = $("results");
   if (!res) return;
   res.hidden = false;
@@ -1042,6 +1264,7 @@ export function renderResults(r) {
   // 3. Distribution Strip & Donut Chart
   renderSummaryStrip(r);
   draw();
+  if (perfTimer) perfTimer.markRenderKpiEnd();
 
   // 4. Tabs & Active View
   const names = [
@@ -1078,16 +1301,39 @@ export function renderResults(r) {
     v.setAttribute("role", "tabpanel");
     v.setAttribute("aria-labelledby", "tab-" + S.tab);
     v.setAttribute("tabindex", "0");
-    if (S.tab === "table") v.appendChild(renderTable(r));
-    else if (S.tab === "od") v.appendChild(heat(r, "od_cal", 3));
-    else if (S.tab === "val") v.appendChild(heat(r, "value", 1));
-    else v.appendChild(annotatedView(r));
+    if (S.tab === "table") {
+      if (perfTimer) perfTimer.markRenderTableStart();
+      v.appendChild(renderTable(r));
+      if (perfTimer) perfTimer.markRenderTableEnd();
+    } else if (S.tab === "od") {
+      if (perfTimer) perfTimer.markRenderHeatmapStart();
+      v.appendChild(heat(r, "od_cal", 3));
+      if (perfTimer) perfTimer.markRenderHeatmapEnd();
+    } else if (S.tab === "val") {
+      if (perfTimer) perfTimer.markRenderHeatmapStart();
+      v.appendChild(heat(r, "value", 1));
+      if (perfTimer) perfTimer.markRenderHeatmapEnd();
+    } else {
+      if (perfTimer) perfTimer.markRenderAnnotatedStart();
+      v.appendChild(annotatedView(r));
+      if (perfTimer) perfTimer.markRenderAnnotatedEnd();
+    }
   }
 
-  renderPrintBundle(r);
+  // Defer building hidden print bundle until print is actually requested
+  if (typeof window !== "undefined") {
+    if (!window.__plateod_print_listener) {
+      window.__plateod_print_listener = true;
+      window.addEventListener("beforeprint", () => {
+        if (S.last) renderPrintBundle(S.last);
+      });
+    }
+  }
+
   if (typeof window !== "undefined" && window.updateWorkspaceScroll) {
     window.updateWorkspaceScroll();
   }
+  if (perfTimer) perfTimer.finish();
 }
 
 // -----------------------------------------------------------------------------

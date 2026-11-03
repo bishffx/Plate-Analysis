@@ -48,6 +48,10 @@ function initSparkles() {
   }
 }
 
+import { getQualityState } from "./adaptive-quality.js";
+
+let isHeroSectionVisible = true;
+
 export function initAmbientAurora() {
   canvas = document.getElementById("ambient-aurora-cv");
   if (!canvas) return;
@@ -68,30 +72,47 @@ export function initAmbientAurora() {
   isReducedMotion = mql.matches;
   mql.addEventListener("change", (e) => {
     isReducedMotion = e.matches;
-    if (isReducedMotion) {
-      stopAurora();
-      drawSingleFrame();
-    } else {
-      startAurora();
-    }
+    syncRunningState();
   });
 
   // Page visibility auto-pause
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      stopAurora();
-    } else if (!isReducedMotion) {
-      startAurora();
-    }
-  });
+  document.addEventListener("visibilitychange", syncRunningState);
+
+  // Pause aurora when scrolled past hero section
+  const homeSec = document.getElementById("home") || document.querySelector(".hero-section");
+  if (homeSec && "IntersectionObserver" in window) {
+    const obs = new IntersectionObserver(([entry]) => {
+      isHeroSectionVisible = entry.isIntersecting;
+      syncRunningState();
+    }, { threshold: 0.05 });
+    obs.observe(homeSec);
+  }
+
+  // Adaptive quality listener
+  window.addEventListener("plateod:quality", syncRunningState);
 
   window.addEventListener("resize", handleResize, { passive: true });
   handleResize();
+  syncRunningState();
+}
 
-  if (isReducedMotion) {
-    drawSingleFrame();
-  } else {
+function syncRunningState() {
+  const qState = getQualityState ? getQualityState() : { isStatic: false, isOff: false };
+  const shouldRun = !document.hidden &&
+                    !isReducedMotion &&
+                    isHeroSectionVisible &&
+                    !qState.isStatic &&
+                    !qState.isOff;
+
+  if (shouldRun) {
     startAurora();
+  } else {
+    stopAurora();
+    if (!qState.isOff) {
+      drawSingleFrame();
+    } else if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   }
 }
 

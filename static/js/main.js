@@ -33,6 +33,9 @@ import { initTour } from "./tour.js";
 import { initStatusBar } from "./status-bar.js";
 import { initAesthetics } from "./aesthetics.js";
 import { initWorkspaceScroll } from "./workspace-scroll.js";
+import { initPerfOverlay } from "./perf.js";
+import { initHero3D } from "./hero-3d.js";
+import { initQualityUI } from "./adaptive-quality.js";
 
 // Expose state globally for browser console debugging and testing
 if (typeof window !== "undefined") {
@@ -49,7 +52,13 @@ function bootstrap() {
 
   // 3. Initialize Canvas & Drag Handles
   initCanvasEvents();
-  initHeroPlateCanvas();
+  initQualityUI();
+  try {
+    initHero3D();
+  } catch (err) {
+    console.warn("Falling back to 2D hero plate:", err);
+    initHeroPlateCanvas();
+  }
   initStoryMiniPlate();
 
   // 4. Initialize Presets & Assays
@@ -93,6 +102,7 @@ function bootstrap() {
   initStatusBar();
   initAesthetics();
   initWorkspaceScroll();
+  initPerfOverlay();
 
   console.log("%c[PlateOD]%c Initialized modular frontend (ES modules). Ready.", "color: #F5A524; font-weight: bold;", "color: inherit;");
 }

@@ -44,22 +44,35 @@ function initStickyHeader() {
   const header = $("site-header") || document.querySelector(".site-header");
   const progressBar = $("scroll-progress-bar");
 
+  let ticking = false;
+  let cachedDocHeight = 0;
+  const updateCachedHeight = () => {
+    cachedDocHeight = document.documentElement.scrollHeight - window.innerHeight;
+  };
+  window.addEventListener("resize", updateCachedHeight, { passive: true });
+  updateCachedHeight();
+
   const onScroll = () => {
-    const scrollY = window.scrollY || window.pageYOffset || 0;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? Math.min(100, Math.max(0, (scrollY / docHeight) * 100)) : 0;
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const progress = cachedDocHeight > 0 ? Math.min(100, Math.max(0, (scrollY / cachedDocHeight) * 100)) : 0;
 
-    if (progressBar) {
-      progressBar.style.width = `${progress}%`;
-      progressBar.setAttribute("aria-valuenow", String(Math.round(progress)));
-    }
+        if (progressBar) {
+          progressBar.style.width = `${progress}%`;
+          progressBar.setAttribute("aria-valuenow", String(Math.round(progress)));
+        }
 
-    if (header) {
-      if (scrollY > 30) {
-        header.classList.add("scrolled");
-      } else {
-        header.classList.remove("scrolled");
-      }
+        if (header) {
+          if (scrollY > 30) {
+            header.classList.add("scrolled");
+          } else {
+            header.classList.remove("scrolled");
+          }
+        }
+        ticking = false;
+      });
+      ticking = true;
     }
   };
 

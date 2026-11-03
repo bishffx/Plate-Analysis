@@ -14,6 +14,7 @@ import { selectAssay } from "./presets.js";
 import { applyTheme, getStoredTheme, setStoredTheme } from "./theme.js";
 import { openWellInspector } from "./results.js";
 import { AESTHETIC_STYLES, applyAesthetic } from "./aesthetics.js";
+import { setQuality } from "./adaptive-quality.js";
 
 const RECENT_KEY = "plateod_recent_actions";
 
@@ -35,7 +36,12 @@ const BASE_COMMANDS = [
     if (faq) faq.scrollIntoView({ behavior: "smooth" });
   }},
   { id: "shortcuts", title: "Keyboard Shortcuts Reference", category: "Help", icon: "⌨", shortcut: "?", run: () => window.dispatchEvent(new CustomEvent("plateod:shortcuts")) },
-  { id: "tour", title: "Take Guided Onboarding Tour", category: "Help", icon: "", run: () => window.dispatchEvent(new CustomEvent("plateod:tour")) }
+  { id: "tour", title: "Take Guided Onboarding Tour", category: "Help", icon: "", run: () => window.dispatchEvent(new CustomEvent("plateod:tour")) },
+  { id: "quality_auto", title: "Visual Quality: Auto (Dynamic Frame Monitor)", category: "Performance", icon: "⚡", run: () => setQuality("Auto") },
+  { id: "quality_high", title: "Visual Quality: High (120 particles, DPR 1.5)", category: "Performance", icon: "✦", run: () => setQuality("High") },
+  { id: "quality_medium", title: "Visual Quality: Medium (60 particles, DPR 1.0)", category: "Performance", icon: "◈", run: () => setQuality("Medium") },
+  { id: "quality_low", title: "Visual Quality: Low (Static poster, no particles)", category: "Performance", icon: "◇", run: () => setQuality("Low") },
+  { id: "quality_off", title: "Visual Quality: Off (Zero 3D/canvas animations)", category: "Performance", icon: "⊘", run: () => setQuality("Off") }
 ];
 
 // Dynamic aesthetic style commands for all 19 design movements

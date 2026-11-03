@@ -244,7 +244,9 @@ export function refreshGrid() {
       circlesAnimStart = performance.now();
       draw();
       updateLiveReadout();
-      scheduleLivePreview();
+      if (S.drag < 0) {
+        scheduleLivePreview(1000);
+      }
     } catch (err) {
       if (err.name === "AbortError") return;
       if (t === S.tok) {
@@ -556,6 +558,7 @@ export function initCanvasEvents() {
       draw();
       refreshGrid();
       updateLiveReadout();
+      scheduleLivePreview(1000);
     }
   };
   cv.addEventListener("pointerup", endDrag);
@@ -1410,22 +1413,18 @@ export function startAnalysisScan() {
 export function finishAnalysisScan(isSuccess, onFinished) {
   scanResultStatus = isSuccess ? 'success' : 'fail';
   scanResultStartTime = performance.now();
+  isAnalysisScanning = false;
 
   const cv = $("cv");
   if (!isSuccess && cv) {
     cv.classList.remove("plate-shake");
-    // Force reflow
     void cv.offsetWidth;
     cv.classList.add("plate-shake");
   }
 
-  setTimeout(() => {
-    isAnalysisScanning = false;
-    scanResultStatus = null;
-    draw();
-    if (cv) cv.classList.remove("plate-shake");
-    if (onFinished) onFinished();
-  }, isSuccess ? 350 : 500);
+  draw();
+  if (cv) cv.classList.remove("plate-shake");
+  if (onFinished) onFinished();
 }
 
 export function drawAnalysisScanOverlay(g, cv) {

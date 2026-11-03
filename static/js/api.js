@@ -8,6 +8,7 @@
  */
 
 import { S, setState } from "./state.js";
+import { getActiveRunTimer } from "./perf.js";
 
 /**
  * Low-level JSON API requester.
@@ -26,7 +27,10 @@ export async function api(path, body, signal = null) {
       body: JSON.stringify(body || {})
     };
     if (signal) opts.signal = signal;
+    const runTimer = getActiveRunTimer();
+    if (runTimer && path.includes("analyze")) runTimer.markUploadStart();
     r = await fetch(path, opts);
+    if (runTimer && path.includes("analyze")) runTimer.markTtfb();
   } catch (e) {
     if (e.name === "AbortError") {
       throw e;
@@ -44,8 +48,12 @@ export async function api(path, body, signal = null) {
   }
 
   let j;
+  const runTimer = getActiveRunTimer();
   try {
-    j = await r.json();
+    const rawText = await r.text();
+    if (runTimer && path.includes("analyze")) runTimer.markDownloadEnd();
+    j = JSON.parse(rawText);
+    if (runTimer && path.includes("analyze")) runTimer.markJsonEnd();
   } catch (e) {
     throw new Error(`Server sent an unreadable response (HTTP ${r.status})`);
   }

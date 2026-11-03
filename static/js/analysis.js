@@ -9,6 +9,7 @@
  */
 
 import { S, setState } from "./state.js";
+import { startRunTimer, getActiveRunTimer } from "./perf.js";
 import { $, el, clearChildren, showToast } from "./dom.js";
 import { uploadImage, analyzePlate } from "./api.js";
 import { isConvexQuad } from "./grid.js";
@@ -96,37 +97,71 @@ export function cfg() {
   };
 }
 
+// In-memory analysis result cache per photo + settings
+const analysisResultCache = new Map();
+let isRunInProgress = false;
+let activeRunAbort = null;
+
 /**
- * Downscale image in browser to at most maxDim pixels before uploading.
+ * Downscale image in browser to at most maxDim pixels (default 2000)
+ * using createImageBitmap + canvas with JPEG quality 0.92.
  */
-async function downscaleImageFile(file, maxDim = 2400) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Could not read image file"));
-    reader.onload = () => {
-      const img = new Image();
+async function downscaleImageFile(file, maxDim = 2000) {
+  let source = null;
+  let origW = 0;
+  let origH = 0;
+
+  if (typeof createImageBitmap === "function") {
+    try {
+      source = await createImageBitmap(file);
+      origW = source.width;
+      origH = source.height;
+    } catch (_) {
+      source = null;
+    }
+  }
+
+  if (!source) {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read image file"));
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
       img.onerror = () => reject(new Error("Invalid image format"));
-      img.onload = () => {
-        let w = img.naturalWidth || img.width;
-        let h = img.naturalHeight || img.height;
-        if (Math.max(w, h) <= maxDim) {
-          resolve({ dataUrl: reader.result, width: w, height: h });
-          return;
-        }
-        let scale = maxDim / Math.max(w, h);
-        let nw = Math.round(w * scale);
-        let nh = Math.round(h * scale);
-        const oc = document.createElement("canvas");
-        oc.width = nw;
-        oc.height = nh;
-        const octx = oc.getContext("2d");
-        octx.drawImage(img, 0, 0, nw, nh);
-        resolve({ dataUrl: oc.toDataURL("image/jpeg", 0.92), width: nw, height: nh });
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
+      img.src = dataUrl;
+    });
+    source = img;
+    origW = img.naturalWidth || img.width;
+    origH = img.naturalHeight || img.height;
+  }
+
+  const maxSide = Math.max(origW, origH);
+  if (maxSide <= maxDim) {
+    const oc = document.createElement("canvas");
+    oc.width = origW;
+    oc.height = origH;
+    const octx = oc.getContext("2d");
+    octx.drawImage(source, 0, 0, origW, origH);
+    const dataUrl = oc.toDataURL("image/jpeg", 0.92);
+    if (source.close) source.close();
+    return { dataUrl, width: origW, height: origH, origW, origH, scale: 1.0 };
+  }
+
+  const scale = maxDim / maxSide;
+  const nw = Math.round(origW * scale);
+  const nh = Math.round(origH * scale);
+  const oc = document.createElement("canvas");
+  oc.width = nw;
+  oc.height = nh;
+  const octx = oc.getContext("2d");
+  octx.drawImage(source, 0, 0, nw, nh);
+  const dataUrl = oc.toDataURL("image/jpeg", 0.92);
+  if (source.close) source.close();
+  return { dataUrl, width: nw, height: nh, origW, origH, scale };
 }
 
 export async function handleFileUpload(file) {
@@ -159,9 +194,12 @@ export async function handleFileUpload(file) {
 
     // Fast preview via object URL
     const previewUrl = URL.createObjectURL(file);
-    const scaled = await downscaleImageFile(file, 2400);
+    const scaled = await downscaleImageFile(file, 2000);
 
     S.dataUrl = scaled.dataUrl;
+    S.origW = scaled.origW;
+    S.origH = scaled.origH;
+    S.downscaleScale = scaled.scale;
 
     // Upload to server cache
     const res = await uploadImage(S.dataUrl);
@@ -170,9 +208,14 @@ export async function handleFileUpload(file) {
     setState("w", res.width || scaled.width);
     setState("h", res.height || scaled.height);
 
-    // Update chip with dimensions
+    // Scale existing corners if any
+    if (S.corners && scaled.scale !== 1.0) {
+      S.corners = S.corners.map(([x, y]) => [x * scaled.scale, y * scaled.scale]);
+    }
+
+    // Update chip with original dimensions as information
     const szEl = $("file-chip-size");
-    if (szEl) szEl.textContent = `(${szStr} • ${S.w} × ${S.h} px)`;
+    if (szEl) szEl.textContent = `(${szStr} • ${scaled.origW} × ${scaled.origH} px)`;
 
     const img = new Image();
     await new Promise((resolve, reject) => {
@@ -272,6 +315,19 @@ export async function handleFileUpload(file) {
 }
 
 export async function run() {
+  if (isRunInProgress) {
+    console.log("[Run] Click ignored: analysis already in progress");
+    return;
+  }
+  isRunInProgress = true;
+
+  if (activeRunAbort) {
+    activeRunAbort.abort();
+  }
+  activeRunAbort = new AbortController();
+
+  const perfRunTimer = startRunTimer(S.selectedAssay || "Run");
+  perfRunTimer.markPrepStart();
   if (!S.dataUrl && !S.imageId) {
     const fileInp = $("file") || $("stage");
     if (fileInp) ensureSectionOpenForElement(fileInp);
@@ -373,33 +429,41 @@ export async function run() {
   const scanStart = performance.now();
 
   try {
+    perfRunTimer.markPrepEnd();
     const currentCfg = cfg();
-    let res;
-    try {
-      res = await analyzePlate({
-        image_id: S.imageId,
-        image: S.dataUrl,
-        config: currentCfg
-      });
-    } catch (apiErr) {
-      // 410 Expired: automatically re-upload and retry
-      if (apiErr.status === 410 && S.dataUrl) {
-        const up = await uploadImage(S.dataUrl);
-        S.imageId = up.id;
-        res = await analyzePlate({
-          image_id: S.imageId,
-          image: S.dataUrl,
-          config: currentCfg
-        });
-      } else {
-        throw apiErr;
-      }
-    }
 
-    // Ensure scanning runs for at least 900ms
-    const elapsed = performance.now() - scanStart;
-    if (elapsed < 900) {
-      await new Promise((r) => setTimeout(r, 900 - elapsed));
+    // Check in-memory result cache per photo + settings
+    const cacheKey = `${S.imageId || S.dataUrl?.slice(0, 48)}_${JSON.stringify(currentCfg)}`;
+    let res = analysisResultCache.get(cacheKey);
+
+    if (res) {
+      console.log("[Run] Serving result from in-memory cache");
+      perfRunTimer.markUploadStart();
+      perfRunTimer.markTtfb();
+      perfRunTimer.markDownloadEnd();
+      perfRunTimer.markJsonEnd();
+    } else {
+      // Send image_id only when available; fallback to image only if image_id is absent
+      const payload = S.imageId
+        ? { image_id: S.imageId, config: currentCfg }
+        : { image: S.dataUrl, config: currentCfg };
+
+      try {
+        res = await analyzePlate(payload, activeRunAbort.signal);
+      } catch (apiErr) {
+        // 410 Expired: automatically re-upload and retry
+        if (apiErr.status === 410 && S.dataUrl) {
+          const up = await uploadImage(S.dataUrl);
+          S.imageId = up.id;
+          res = await analyzePlate({
+            image_id: S.imageId,
+            config: currentCfg
+          }, activeRunAbort.signal);
+        } else {
+          throw apiErr;
+        }
+      }
+      analysisResultCache.set(cacheKey, res);
     }
 
     finishAnalysisScan(res.valid, () => {
@@ -434,6 +498,7 @@ export async function run() {
     const emptyState = $("results-empty-state");
     if (emptyState) emptyState.hidden = false;
   } finally {
+    isRunInProgress = false;
     if (skeleton) skeleton.hidden = true;
     if (runBtn) {
       runBtn.disabled = false;
