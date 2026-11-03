@@ -377,7 +377,6 @@ html[data-style="skeuomorphism"] .btn-run {
   border-bottom: 2px solid #995000 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 3px 6px rgba(0,0,0,0.4) !important;
   color: #1a0f00 !important;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 html[data-style="skeuomorphism"] .btn-primary:active,

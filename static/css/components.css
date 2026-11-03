@@ -5488,7 +5488,6 @@ body.analyzing-active #stage {
   font-weight: 800 !important;
   letter-spacing: -0.035em !important;
   margin: 0 !important;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
 }
 
 .gradient-text,

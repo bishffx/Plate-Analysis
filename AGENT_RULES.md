@@ -1,36 +1,31 @@
 # AGENT_RULES.md
 
-This document defines mandatory safeguards and engineering rules for all development on the PlateOD project. Every agent and contributor must follow these rules strictly.
+This document defines mandatory safeguards and engineering rules for all development on the PlateOD project. Every agent and contributor must follow these rules strictly for the whole project:
 
----
+1. **FRONTEND ONLY**:
+   - Never modify `analysis.py`, `server.py`, `tests/`, any API endpoint, request payload, response field, or any calculation (OD, PP, PI, calibration, QC, channel logic).
 
-### Core Safeguards & Operating Rules
+2. **DOM ID PRESERVATION**:
+   - Never remove or rename an element `id` used by the analyzer or its scripts. Add new `id`s instead.
 
-1. **Analysis Maths Integrity**:
-   - Never change analysis maths (formulas, thresholds, QC rules, absorbance calculation, standard error equations) unless a user task explicitly requests it.
-   - Always add a dedicated test in `tests/test_analysis.py` for any mathematical or algorithmic modification.
+3. **OFFLINE & ZERO EXTERNAL CDNs**:
+   - No CDNs or remote assets. Everything works offline from `static/`.
+   - Three.js is loaded from `static/vendor/three/` (MIT).
 
-2. **DOM & API Stability**:
-   - Never remove or rename an existing HTML element `id` in `static/index.html`.
-   - Never remove or rename any existing API endpoint, request parameter, or response field.
-   - Always add new elements or optional parameters instead of altering existing contracts.
+4. **DOM SECURITY & DYNAMIC TEXT**:
+   - Dynamic text goes in with `textContent`, never `innerHTML` with data.
 
-3. **Offline & Dependency Constraints**:
-   - Backend: Standard-library Python plus `numpy` and `opencv-python` (`cv2`) only.
-   - Frontend: Vanilla modern JavaScript, HTML5, and CSS3 only.
-   - Absolutely no external CDNs, remote fonts, or external JavaScript/CSS libraries; the application must operate completely offline in air-gapped environments.
+5. **AESTHETIC & TYPOGRAPHIC RULES**:
+   - No `text-shadow` anywhere in stylesheets or inline styles.
+   - No decorative numbering (e.g. "01 /", "Step 1", "1.", "2.").
+   - No emojis.
+   - Real data numbers (e.g. OD values, "8 x 12", "96 wells") stay.
 
-4. **DOM Security & Dynamic Rendering**:
-   - All dynamic text and user/file-provided content must be injected into the DOM using `textContent` or `document.createElement()`, never `innerHTML`.
+6. **FACTUAL DESCRIPTIONS ONLY**:
+   - Do not invent accuracy or performance claims (no "98%", "0.001 OD", "100% concordance", "validated", "within 2% of a spectrophotometer").
+   - Describe what the tool does clearly and factually.
+   - Mark demo values explicitly as demo.
 
-5. **Test-Driven Rigor & UI Verification**:
-   - Every new analytical or server feature requires at least one automated unit test in `tests/`.
-   - Every new UI control or user workflow requires an end-to-end browser verification.
-   - After completing any task, execute:
-     ```bash
-     python -m unittest discover -s tests
-     ```
-     and only commit when all tests pass.
-
-6. **Failure Safeguard**:
-   - If an automated test fails and cannot be fixed in two attempts, stop and report the issue to the user immediately instead of weakening or disabling the test assertion.
+7. **TEST INTEGRITY & COMMIT GATE**:
+   - After every task: run `python -m unittest discover -s tests`.
+   - Commit only if all tests are green (passing).

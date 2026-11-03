@@ -19,23 +19,23 @@ const RECENT_KEY = "plateod_recent_actions";
 
 const BASE_COMMANDS = [
   { id: "run", title: "Run Analysis", category: "Analysis", icon: "▶", shortcut: "R", run: () => $("run")?.click() },
-  { id: "upload", title: "Upload Plate Photo", category: "File", icon: "📁", shortcut: "U", run: () => $("file")?.click() },
-  { id: "detect_grid", title: "Auto-detect Grid Corners", category: "Grid", icon: "🎯", run: () => $("detect-grid")?.click() },
+  { id: "upload", title: "Upload Plate Photo", category: "File", icon: "", shortcut: "U", run: () => $("file")?.click() },
+  { id: "detect_grid", title: "Auto-detect Grid Corners", category: "Grid", icon: "", run: () => $("detect-grid")?.click() },
   { id: "reset_grid", title: "Reset Grid Handles to Default", category: "Grid", icon: "↺", run: () => $("btn-reset-grid")?.click() },
   { id: "toggle_circles", title: "Toggle Well Circle Overlays", category: "View", icon: "◎", shortcut: "G", run: () => $("btn-toggle-circles")?.click() },
-  { id: "assay_spce", title: "Switch Assay to SPCE (PI %)", category: "Assay", icon: "🧪", run: () => { $("btn-assay-spce")?.click(); selectAssay("SPCE"); } },
-  { id: "assay_diva", title: "Switch Assay to DIVA (PP %)", category: "Assay", icon: "🧪", run: () => { $("btn-assay-diva")?.click(); selectAssay("DIVA"); } },
+  { id: "assay_spce", title: "Switch Assay to SPCE (PI %)", category: "Assay", icon: "", run: () => { $("btn-assay-spce")?.click(); selectAssay("SPCE"); } },
+  { id: "assay_diva", title: "Switch Assay to DIVA (PP %)", category: "Assay", icon: "", run: () => { $("btn-assay-diva")?.click(); selectAssay("DIVA"); } },
   { id: "tab_heatmap", title: "View Heatmap (OD)", category: "Results", icon: "▦", shortcut: "H", run: () => $("tab-od")?.click() },
   { id: "tab_val", title: "View Heatmap (PI / PP)", category: "Results", icon: "▦", run: () => $("tab-val")?.click() },
-  { id: "tab_table", title: "View Wells Table", category: "Results", icon: "📋", shortcut: "T", run: () => $("tab-table")?.click() },
-  { id: "download_csv", title: "Download Results CSV", category: "Export", icon: "📥", run: () => ($("csv") || $("download"))?.click() },
-  { id: "toggle_theme", title: "Toggle Theme (Light / Dark)", category: "Preferences", icon: "🌓", run: () => toggleThemeMode() },
+  { id: "tab_table", title: "View Wells Table", category: "Results", icon: "", shortcut: "T", run: () => $("tab-table")?.click() },
+  { id: "download_csv", title: "Download Results CSV", category: "Export", icon: "", run: () => ($("csv") || $("download"))?.click() },
+  { id: "toggle_theme", title: "Toggle Theme (Light / Dark)", category: "Preferences", icon: "", run: () => toggleThemeMode() },
   { id: "goto_faq", title: "Go to Best Practices & FAQ", category: "Navigation", icon: "❓", run: () => {
     const faq = $("faq");
     if (faq) faq.scrollIntoView({ behavior: "smooth" });
   }},
   { id: "shortcuts", title: "Keyboard Shortcuts Reference", category: "Help", icon: "⌨", shortcut: "?", run: () => window.dispatchEvent(new CustomEvent("plateod:shortcuts")) },
-  { id: "tour", title: "Take Guided Onboarding Tour", category: "Help", icon: "🚀", run: () => window.dispatchEvent(new CustomEvent("plateod:tour")) }
+  { id: "tour", title: "Take Guided Onboarding Tour", category: "Help", icon: "", run: () => window.dispatchEvent(new CustomEvent("plateod:tour")) }
 ];
 
 // Dynamic aesthetic style commands for all 19 design movements
@@ -44,7 +44,7 @@ AESTHETIC_STYLES.forEach((style) => {
     id: `style_${style.id}`,
     title: `Style: ${style.name} (${style.era})`,
     category: "Design Aesthetic",
-    icon: "🎨",
+    icon: "",
     run: () => {
       applyAesthetic(style.id);
       showToast(`Activated ${style.name} aesthetic`, "info");
@@ -220,7 +220,7 @@ function renderPaletteList(query) {
       id: "well_" + well,
       title: `Open well ${well}`,
       category: "Well Navigation",
-      icon: "🔍",
+      icon: "",
       run: () => {
         // If results are available, switch to od tab and open well inspector
         if (S.last && S.last.wells) {
