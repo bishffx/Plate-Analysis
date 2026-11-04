@@ -62,7 +62,7 @@ import { transitionView } from "./interactions.js";
  */
 
 import { S, TBL } from "./state.js";
-import { $, $$, el, clearChildren, fmt, showToast } from "./dom.js";
+import { $, $$, el, clearChildren, fmt, showToast, roundRect } from "./dom.js";
 import { countUp, initSpotlight } from "./effects.js";
 import { getActiveRunTimer } from "./perf.js";
 import { draw } from "./plate-canvas.js";
@@ -536,6 +536,480 @@ function renderSummaryStrip(r) {
 }
 
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Zero-Dependency Client-Side ZIP Generator & Export Utilities
+// -----------------------------------------------------------------------------
+const CRC_TABLE = new Uint32Array(256);
+for (let n = 0; n < 256; n++) {
+  let c = n;
+  for (let k = 0; k < 8; k++) {
+    c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+  }
+  CRC_TABLE[n] = c >>> 0;
+}
+
+function calcCrc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) {
+    c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+export class ZipBuilder {
+  constructor() {
+    this.entries = [];
+  }
+
+  add(name, data) {
+    let bytes;
+    if (typeof data === "string") {
+      bytes = new TextEncoder().encode(data);
+    } else if (data instanceof Uint8Array) {
+      bytes = data;
+    } else if (data instanceof ArrayBuffer) {
+      bytes = new Uint8Array(data);
+    } else {
+      bytes = new Uint8Array(0);
+    }
+    this.entries.push({ name, bytes, crc: calcCrc32(bytes) });
+  }
+
+  buildBlob() {
+    const encoder = new TextEncoder();
+    const parts = [];
+    const centralDirs = [];
+    let offset = 0;
+
+    for (const entry of this.entries) {
+      const nameBytes = encoder.encode(entry.name);
+      const size = entry.bytes.length;
+
+      // Local file header (30 bytes + name)
+      const lfh = new Uint8Array(30 + nameBytes.length);
+      const lView = new DataView(lfh.buffer);
+      lView.setUint32(0, 0x04034b50, true);
+      lView.setUint16(4, 10, true);
+      lView.setUint16(6, 0, true);
+      lView.setUint16(8, 0, true);
+      lView.setUint16(10, 0, true);
+      lView.setUint16(12, 0, true);
+      lView.setUint32(14, entry.crc, true);
+      lView.setUint32(18, size, true);
+      lView.setUint32(22, size, true);
+      lView.setUint16(26, nameBytes.length, true);
+      lView.setUint16(28, 0, true);
+      lfh.set(nameBytes, 30);
+
+      parts.push(lfh);
+      parts.push(entry.bytes);
+
+      // Central directory header (46 bytes + name)
+      const cdh = new Uint8Array(46 + nameBytes.length);
+      const cView = new DataView(cdh.buffer);
+      cView.setUint32(0, 0x02014b50, true);
+      cView.setUint16(4, 20, true);
+      cView.setUint16(6, 10, true);
+      cView.setUint16(8, 0, true);
+      cView.setUint16(10, 0, true);
+      cView.setUint16(12, 0, true);
+      cView.setUint16(14, 0, true);
+      cView.setUint32(16, entry.crc, true);
+      cView.setUint32(20, size, true);
+      cView.setUint32(24, size, true);
+      cView.setUint16(28, nameBytes.length, true);
+      cView.setUint16(30, 0, true);
+      cView.setUint16(32, 0, true);
+      cView.setUint16(34, 0, true);
+      cView.setUint16(36, 0, true);
+      cView.setUint32(38, 0, true);
+      cView.setUint32(42, offset, true);
+      cdh.set(nameBytes, 46);
+
+      centralDirs.push(cdh);
+      offset += lfh.length + size;
+    }
+
+    const cdOffset = offset;
+    let cdSize = 0;
+    for (const cdh of centralDirs) {
+      parts.push(cdh);
+      cdSize += cdh.length;
+    }
+
+    // End of central directory record (22 bytes)
+    const eocd = new Uint8Array(22);
+    const eView = new DataView(eocd.buffer);
+    eView.setUint32(0, 0x06054b50, true);
+    eView.setUint16(4, 0, true);
+    eView.setUint16(6, 0, true);
+    eView.setUint16(8, this.entries.length, true);
+    eView.setUint16(10, this.entries.length, true);
+    eView.setUint32(12, cdSize, true);
+    eView.setUint32(16, cdOffset, true);
+    eView.setUint16(20, 0, true);
+    parts.push(eocd);
+
+    return new Blob(parts, { type: "application/zip" });
+  }
+}
+
+export function createDownloadSvgIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "13");
+  svg.setAttribute("height", "13");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p1.setAttribute("d", "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4");
+  const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  poly.setAttribute("points", "7 10 12 15 17 10");
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", "12");
+  line.setAttribute("y1", "15");
+  line.setAttribute("x2", "12");
+  line.setAttribute("y2", "3");
+  svg.appendChild(p1);
+  svg.appendChild(poly);
+  svg.appendChild(line);
+  return svg;
+}
+
+export function drawHeatmapToExportCanvas(r, key = "od_cal", decimals = 3, viewMode = "values", scrubThreshold = null) {
+  if (!r || !r.wells) return null;
+  const cols = r.cols || 12;
+  const rows = r.rows || 8;
+  const W = 960;
+  const H = 580;
+  const dpr = 2;
+
+  const cv = document.createElement("canvas");
+  cv.width = W * dpr;
+  cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  if (!ctx) return null;
+  ctx.scale(dpr, dpr);
+
+  // Solid dark background
+  ctx.fillStyle = "#0B1017";
+  ctx.fillRect(0, 0, W, H);
+
+  // Title & Metadata
+  const isVal = key === "value";
+  const title = `PlateOD · ${r.assay || "ELISA"} (${isVal ? (r.mode === "PI" ? "% Inhibition (PI)" : "% Positivity (PP)") : "Calibrated Optical Density (OD)"})`;
+  ctx.fillStyle = "#F5A524";
+  ctx.font = "bold 15px system-ui, -apple-system, sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText(title, 36, 28);
+
+  const dateStr = new Date().toLocaleString();
+  const qcText = r.valid ? "QC: PASS" : "QC: REVIEW";
+  const channelText = r.channel_used || r.channel || "AUTO";
+  const sub = `Generated: ${dateStr}   |   ${qcText}   |   Channel: ${channelText}   |   Mode: ${r.mode || "PP"} (Cutoff: ${r.cutoff || 40}%)`;
+  ctx.fillStyle = "#8B949E";
+  ctx.font = "11.5px system-ui, -apple-system, sans-serif";
+  ctx.fillText(sub, 36, 48);
+
+  const hw = 36;
+  const hh = 70;
+  const footerH = 46;
+  const gridW = W - hw - 36;
+  const gridH = H - hh - footerH;
+  const cw = gridW / cols;
+  const ch = gridH / rows;
+
+  const vs = r.wells.map((w) => w[key]).filter((v) => v !== null && isFinite(v));
+  const lo = vs.length ? Math.min(...vs) : 0;
+  const hi = vs.length ? Math.max(...vs) : 1;
+  const activeCutoff = r.cutoff || 40;
+
+  const m = {};
+  r.wells.forEach((w) => { m[w.row + "," + w.col] = w; });
+
+  // Column numbers (1..cols)
+  ctx.fillStyle = "#8B949E";
+  ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let c = 0; c < cols; c++) {
+    ctx.fillText(String(c + 1), hw + c * cw + cw / 2, hh - 12);
+  }
+
+  // Row letters (A..rows)
+  for (let i = 0; i < rows; i++) {
+    ctx.fillText("ABCDEFGHIJKLMNOP"[i], hw - 14, hh + i * ch + ch / 2);
+  }
+
+  // Draw cells
+  for (let i = 0; i < rows; i++) {
+    for (let c = 0; c < cols; c++) {
+      const w = m[i + "," + c];
+      if (!w) continue;
+      const v = w[key];
+      const x = hw + c * cw;
+      const y = hh + i * ch;
+
+      let bg = "#1E2633";
+      let fg = "#6B778C";
+      let isAboveCutoff = false;
+
+      if (viewMode === "values") {
+        if (v !== null && isFinite(v)) {
+          if (!isVal) {
+            const t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
+            const color = tmbAmberColor(t);
+            bg = color.bg;
+            fg = color.fg;
+          } else {
+            const color = divergingColor(v, activeCutoff, lo, hi);
+            bg = color.bg;
+            fg = color.fg;
+            if (color.isAbove) isAboveCutoff = true;
+          }
+        }
+      } else {
+        bg = getClassColor(w.class);
+        fg = "#FFFFFF";
+      }
+
+      ctx.fillStyle = bg;
+      roundRect(ctx, x + 2, y + 2, cw - 4, ch - 4, 4);
+      ctx.fill();
+
+      if (isAboveCutoff) {
+        ctx.strokeStyle = "#F5A524";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      if (scrubThreshold !== null && (v === null || v < scrubThreshold)) {
+        ctx.fillStyle = "rgba(10, 14, 20, 0.68)";
+        roundRect(ctx, x + 2, y + 2, cw - 4, ch - 4, 4);
+        ctx.fill();
+      }
+
+      // Role dots
+      if (w.role === "Positive ctrl" || w.role === "Negative ctrl" || (w.role && w.role.includes("Antigen"))) {
+        ctx.fillStyle = "#F5A524";
+        ctx.beginPath();
+        ctx.arc(x + cw - 7, y + 7, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (w.role === "Blank") {
+        ctx.fillStyle = "#38BDF8";
+        ctx.beginPath();
+        ctx.rect(x + cw - 9, y + 5, 5, 5);
+        ctx.fill();
+      }
+
+      ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = fg;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const txt = viewMode === "values" ? fmt(v, decimals) : w.well;
+      ctx.fillText(txt, x + cw / 2, y + ch / 2 + 1);
+    }
+  }
+
+  // Footer Legend
+  const legY = H - 22;
+  ctx.font = "11px system-ui, -apple-system, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#8B949E";
+  ctx.fillText("Controls:  Orange = Control Wells   Blue = Blank Reference", 36, legY);
+
+  ctx.textAlign = "right";
+  ctx.fillText(`Range: ${fmt(lo, isVal ? 1 : 2)} to ${fmt(hi, isVal ? 1 : 2)} ${isVal ? "%" : "OD"}`, W - 36, legY);
+
+  return cv;
+}
+
+export function downloadActiveHeatmapImage(r, key = "od_cal", decimals = 3, viewMode = "values", scrubThreshold = null) {
+  if (!r || !r.wells) {
+    showToast("No heatmap data available to download", "warning");
+    return;
+  }
+  const cv = drawHeatmapToExportCanvas(r, key, decimals, viewMode, scrubThreshold);
+  if (!cv) return;
+  cv.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const modeName = viewMode === "classes" ? "Classes" : (key === "od_cal" ? "OD" : "Values");
+    a.download = `PlateOD_Heatmap_${r.assay || "ELISA"}_${modeName}_${new Date().toISOString().slice(0, 10)}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    showToast("Heatmap image downloaded (PNG)", "success");
+  }, "image/png");
+}
+
+export function downloadResultsTableCsv(r) {
+  if (!r || !r.wells || !r.wells.length) {
+    showToast("No table data available to download", "warning");
+    return;
+  }
+  const valHeader = r.mode === "PI" ? "PI_Percent" : "PP_Percent";
+  const rows = [
+    "Well,Row,Column,Role,Raw_Intensity,Image_OD,Calibrated_OD," + valHeader + ",Cutoff,Classification,Note"
+  ];
+  r.wells.forEach((w) => {
+    rows.push([
+      w.well,
+      w.row + 1,
+      w.col + 1,
+      `"${w.role || "Sample"}"`,
+      w.intensity !== undefined && w.intensity !== null ? Number(w.intensity).toFixed(4) : "",
+      w.od !== undefined && w.od !== null ? Number(w.od).toFixed(4) : "",
+      w.od_cal !== undefined && w.od_cal !== null ? Number(w.od_cal).toFixed(4) : "",
+      w.value !== undefined && w.value !== null ? Number(w.value).toFixed(2) : "",
+      r.cutoff !== undefined && r.cutoff !== null ? Number(r.cutoff).toFixed(1) : "",
+      `"${w.class || ""}"`,
+      `"${w.flag || ""}"`
+    ].join(","));
+  });
+  const blob = new Blob([rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `PlateOD_Results_Table_${r.assay || r.mode || "ELISA"}_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  showToast("Results table downloaded as CSV", "success");
+}
+
+export async function downloadAllResultsPackage(r) {
+  if (!r || !r.wells || !r.wells.length) {
+    showToast("Please run analysis before downloading results", "warning");
+    return;
+  }
+
+  showToast("Packaging complete results bundle...", "info");
+
+  try {
+    const zip = new ZipBuilder();
+    const assayName = r.assay || r.mode || "ELISA";
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    // 1. Table CSV
+    const valHeader = r.mode === "PI" ? "PI_Percent" : "PP_Percent";
+    const csvRows = [
+      "Well,Row,Column,Role,Raw_Intensity,Image_OD,Calibrated_OD," + valHeader + ",Cutoff,Classification,Note"
+    ];
+    r.wells.forEach((w) => {
+      csvRows.push([
+        w.well,
+        w.row + 1,
+        w.col + 1,
+        `"${w.role || "Sample"}"`,
+        w.intensity !== undefined && w.intensity !== null ? Number(w.intensity).toFixed(4) : "",
+        w.od !== undefined && w.od !== null ? Number(w.od).toFixed(4) : "",
+        w.od_cal !== undefined && w.od_cal !== null ? Number(w.od_cal).toFixed(4) : "",
+        w.value !== undefined && w.value !== null ? Number(w.value).toFixed(2) : "",
+        r.cutoff !== undefined && r.cutoff !== null ? Number(r.cutoff).toFixed(1) : "",
+        `"${w.class || ""}"`,
+        `"${w.flag || ""}"`
+      ].join(","));
+    });
+    zip.add(`1_Results_Table_${assayName}.csv`, csvRows.join("\r\n"));
+
+    // 2. Optical Density Heatmap PNG
+    const odCv = drawHeatmapToExportCanvas(r, "od_cal", 3, "values");
+    if (odCv) {
+      const blob = await new Promise((res) => odCv.toBlob(res, "image/png"));
+      if (blob) {
+        const buf = await blob.arrayBuffer();
+        zip.add(`2_Heatmap_OD_${assayName}.png`, new Uint8Array(buf));
+      }
+    }
+
+    // 3. Values / Diagnostic Heatmap PNG
+    const valCv = drawHeatmapToExportCanvas(r, "value", 1, "values");
+    if (valCv) {
+      const blob = await new Promise((res) => valCv.toBlob(res, "image/png"));
+      if (blob) {
+        const buf = await blob.arrayBuffer();
+        zip.add(`3_Heatmap_Values_${assayName}.png`, new Uint8Array(buf));
+      }
+    }
+
+    // 4. Annotated Plate Photograph
+    if (r.annotated) {
+      try {
+        let b64 = r.annotated;
+        if (b64.includes(",")) b64 = b64.split(",")[1];
+        const binaryStr = atob(b64);
+        const imgBytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          imgBytes[i] = binaryStr.charCodeAt(i);
+        }
+        zip.add(`4_Annotated_Plate_${assayName}.jpg`, imgBytes);
+      } catch (e) {
+        console.warn("Could not add annotated plate to zip", e);
+      }
+    }
+
+    // 5. Summary Report Text
+    const s = r.summary || {};
+    const reportText = [
+      "==================================================",
+      " PLATEOD ANALYSIS LABORATORY REPORT",
+      "==================================================",
+      `Protocol / Assay:  ${assayName}`,
+      `Date / Timestamp:  ${new Date().toLocaleString()}`,
+      `QC Validation:     ${r.valid ? "PASS" : "REVIEW / ALERTS"}`,
+      `Channel Used:      ${r.channel_used || r.channel || "AUTO"}`,
+      `Wavelength:        ${r.wavelength || r.channel_param || "492nm"}`,
+      `Flat-Field:        ${r.flat_field_applied ? "Enabled" : "Disabled"}`,
+      `Diagnostic Mode:   ${r.mode || "PP"}`,
+      `Cutoff Threshold:  ${r.cutoff || 40}%`,
+      "",
+      "--- CONTROL WELL VALUES ---",
+      `Blank Mean:        ${s.blank_od !== undefined ? Number(s.blank_od).toFixed(4) : "N/A"} OD`,
+      `Positive Control:  ${s.pos_od !== undefined ? Number(s.pos_od).toFixed(4) : "N/A"} OD`,
+      `Negative Control:  ${s.neg_od !== undefined ? Number(s.neg_od).toFixed(4) : "N/A"} OD`,
+      `Delta Signal:      ${s.delta_od !== undefined ? Number(s.delta_od).toFixed(4) : "N/A"} OD`,
+      "",
+      "--- SAMPLE CLASSIFICATION COUNTS ---",
+      `Positive Wells:    ${s.positive ?? 0}`,
+      `Negative Wells:    ${s.negative ?? 0}`,
+      `Doubtful Wells:    ${s.doubtful ?? 0}`,
+      `Invalid Wells:     ${s.invalid ?? 0}`,
+      `Total Wells:       ${r.wells.length}`,
+      "",
+      "--- WARNINGS / QC CHECKS ---",
+      ...(r.warnings && r.warnings.length ? r.warnings.map((w) => `• ${w}`) : ["No QC warnings detected."]),
+      "",
+      "Generated by PlateOD · Automated Microplate Photometry"
+    ].join("\r\n");
+    zip.add(`5_Summary_Report_${assayName}.txt`, reportText);
+
+    const zipBlob = zip.buildBlob();
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `PlateOD_Complete_Results_${assayName}_${dateStr}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    showToast("Complete results package downloaded (ZIP)", "success");
+  } catch (err) {
+    console.error("Universal download failed", err);
+    showToast("Universal download failed: " + err.message, "error");
+  }
+}
+
 // Interactive Table View
 // -----------------------------------------------------------------------------
 function renderTable(r) {
@@ -584,6 +1058,19 @@ function renderTable(r) {
 
   const countSpan = el("span", "", "tbl-count");
   tb.appendChild(countSpan);
+
+  // Dedicated Table Download Button
+  const btnDlTable = el("button", undefined, "sec btn-xs btn-table-download");
+  btnDlTable.id = "btn-download-table-section";
+  btnDlTable.type = "button";
+  btnDlTable.title = "Download complete results table as CSV";
+  btnDlTable.appendChild(createDownloadSvgIcon());
+  btnDlTable.appendChild(el("span", "Download Table (CSV)"));
+  btnDlTable.onclick = () => {
+    downloadResultsTableCsv(r);
+  };
+  tb.appendChild(btnDlTable);
+
   wrap.appendChild(tb);
 
   const tblWrap = el("div", undefined, "tbl");
@@ -784,6 +1271,18 @@ function heat(r, key, nd) {
   };
   scrubWrap.appendChild(resetScrubBtn);
   cBar.appendChild(scrubWrap);
+
+  // Dedicated Heatmap Download Button inside Heatmap Section
+  const btnDlHeatmap = el("button", undefined, "sec btn-xs btn-heatmap-download");
+  btnDlHeatmap.id = "btn-download-heatmap-section";
+  btnDlHeatmap.type = "button";
+  btnDlHeatmap.title = "Download active heatmap image (PNG)";
+  btnDlHeatmap.appendChild(createDownloadSvgIcon());
+  btnDlHeatmap.appendChild(el("span", "Download Heatmap"));
+  btnDlHeatmap.onclick = () => {
+    downloadActiveHeatmapImage(r, key, nd, heatmapViewMode, scrubThreshold);
+  };
+  cBar.appendChild(btnDlHeatmap);
 
   container.appendChild(cBar);
 
@@ -1342,6 +1841,18 @@ export function renderResults(r) {
 export function initResultsControls() {
   const btnPrint = $("btn-print-report");
   if (btnPrint) btnPrint.onclick = () => window.print();
+
+  // Universal Download Button (All tables, heatmaps, annotated plate, report in ZIP)
+  const btnUniversal = $("btn-universal-download");
+  if (btnUniversal) {
+    btnUniversal.onclick = () => {
+      if (!S.last) {
+        showToast("Please run analysis before downloading results", "warning");
+        return;
+      }
+      downloadAllResultsPackage(S.last);
+    };
+  }
 
   // CSV Export
   const handleExportCsv = () => {

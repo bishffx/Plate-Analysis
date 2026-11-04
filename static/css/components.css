@@ -1338,6 +1338,34 @@ button.sec:disabled,
   padding: 7px 14px;
 }
 
+.btn-universal-download {
+  background: linear-gradient(135deg, #F5A524 0%, #D97706 100%) !important;
+  color: #0B0F17 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(245, 165, 36, 0.4) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.btn-universal-download:hover {
+  background: linear-gradient(135deg, #FBBF24 0%, #F5A524 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 165, 36, 0.35);
+}
+
+.btn-heatmap-download,
+.btn-table-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 /* ---------- KPI Cards with Subtle Gradient Borders & Icons ---------- */
 .kpi-cards-grid {
   display: grid;
