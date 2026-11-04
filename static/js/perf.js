@@ -168,8 +168,18 @@ class RunTimer {
     perfMark("plateod:run-complete");
 
     const imgPrep = Math.max(0, this.t_prep_end - this.t_prep_start);
-    const uploadTime = Math.max(0, (this.t_ttfb || this.t_upload_start) - this.t_upload_start);
-    const serverWait = Math.max(0, (this.t_ttfb && this.t_upload_start) ? (this.t_ttfb - this.t_upload_start) : 0);
+    let uploadTime = 1.0;
+    let serverWait = Math.max(0, (this.t_ttfb && this.t_upload_start) ? (this.t_ttfb - this.t_upload_start) : 0);
+    try {
+      const entries = performance.getEntriesByType("resource").filter(e => e.name.includes("/api/analyze"));
+      if (entries.length) {
+        const last = entries[entries.length - 1];
+        if (last.responseStart > 0 && last.requestStart > 0) {
+          uploadTime = Math.max(0.5, last.responseStart - last.startTime > 0 ? (last.requestStart - last.startTime) : 1.0);
+          serverWait = Math.max(0, last.responseStart - last.requestStart);
+        }
+      }
+    } catch (_) {}
     const downloadTime = Math.max(0, this.t_download_end - (this.t_ttfb || this.t_download_end));
     const jsonParse = Math.max(0, this.t_json_end - (this.t_download_end || this.t_json_end));
     

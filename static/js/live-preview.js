@@ -15,23 +15,40 @@ import { cfg } from "./analysis.js";
 let debounceTimer = null;
 let activeAbortController = null;
 
-export function scheduleLivePreview(delayMs = 600) {
+export function cancelLivePreview() {
+  clearTimeout(debounceTimer);
+  debounceTimer = null;
+  if (activeAbortController) {
+    try {
+      activeAbortController.abort();
+    } catch (_) {}
+    activeAbortController = null;
+  }
+}
+
+export function scheduleLivePreview(delayMs = 1000) {
+  if (window.__isAnalysisRunning) return;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    executeLivePreview();
+    if (!window.__isAnalysisRunning) {
+      executeLivePreview();
+    }
   }, delayMs);
 }
 
 export async function executeLivePreview() {
-  if (!S.img || !S.corners) {
+  if (window.__isAnalysisRunning) return;
+  if (!S.img || !S.corners || !S.imageId) {
     const strip = $("live-preview-strip");
-    if (strip) strip.hidden = true;
+    if (strip && !S.img) strip.hidden = true;
     return;
   }
 
   // Cancel prior in-flight preview request
   if (activeAbortController) {
-    activeAbortController.abort();
+    try {
+      activeAbortController.abort();
+    } catch (_) {}
   }
   activeAbortController = new AbortController();
 
@@ -49,11 +66,12 @@ export async function executeLivePreview() {
 
   try {
     const payload = cfg();
-    if (!payload.image_id && S.imageId) {
-      payload.image_id = S.imageId;
-    }
-    if (!payload.image_id && S.dataUrl) {
-      payload.image = S.dataUrl;
+    payload.image_id = S.imageId;
+    if (S.downscaleScale && S.downscaleScale !== 1.0 && payload.corners) {
+      payload.corners = payload.corners.map(([x, y]) => [
+        x * S.downscaleScale,
+        y * S.downscaleScale
+      ]);
     }
 
     const res = await fetch("/api/analyze", {

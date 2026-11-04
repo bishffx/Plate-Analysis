@@ -18,6 +18,7 @@ import { selectAssay } from "./presets.js";
 import { updateStepperValidation, validateWellField, parseAndValidateWells } from "./validation.js";
 import { ensureSectionOpenForElement, updateAccordionStatusChips, updateRunSummaryLine } from "./accordion.js";
 import { renderResults } from "./results.js";
+import { cancelLivePreview } from "./live-preview.js";
 import { updateProblemsCard } from "./toast-system.js";
 
 const val = (id, def) => {
@@ -106,7 +107,7 @@ let activeRunAbort = null;
  * Downscale image in browser to at most maxDim pixels (default 2000)
  * using createImageBitmap + canvas with JPEG quality 0.92.
  */
-async function downscaleImageFile(file, maxDim = 2000) {
+async function downscaleImageFile(file, maxDim = 1400) {
   let source = null;
   let origW = 0;
   let origH = 0;
@@ -146,7 +147,7 @@ async function downscaleImageFile(file, maxDim = 2000) {
     oc.height = origH;
     const octx = oc.getContext("2d");
     octx.drawImage(source, 0, 0, origW, origH);
-    const dataUrl = oc.toDataURL("image/jpeg", 0.92);
+    const dataUrl = oc.toDataURL("image/jpeg", 0.88);
     if (source.close) source.close();
     return { dataUrl, width: origW, height: origH, origW, origH, scale: 1.0 };
   }
@@ -159,13 +160,14 @@ async function downscaleImageFile(file, maxDim = 2000) {
   oc.height = nh;
   const octx = oc.getContext("2d");
   octx.drawImage(source, 0, 0, nw, nh);
-  const dataUrl = oc.toDataURL("image/jpeg", 0.92);
+  const dataUrl = oc.toDataURL("image/jpeg", 0.88);
   if (source.close) source.close();
   return { dataUrl, width: nw, height: nh, origW, origH, scale };
 }
 
 export async function handleFileUpload(file) {
   if (!file) return;
+  const tUploadStart = performance.now();
 
   // Detect HEIC/HEIF
   const name = file.name.toLowerCase();
@@ -192,37 +194,38 @@ export async function handleFileUpload(file) {
     const runBtn = $("run");
     if (runBtn) runBtn.disabled = true;
 
-    // Fast preview via object URL
+    // 1. Instant visual display via Object URL (< 25 ms)
     const previewUrl = URL.createObjectURL(file);
-    const scaled = await downscaleImageFile(file, 2000);
-
-    S.dataUrl = scaled.dataUrl;
-    S.origW = scaled.origW;
-    S.origH = scaled.origH;
-    S.downscaleScale = scaled.scale;
-
-    // Upload to server cache
-    const res = await uploadImage(S.dataUrl);
-    S.imageId = res.id;
-    S.imageFileSize = szStr;
-    setState("w", res.width || scaled.width);
-    setState("h", res.height || scaled.height);
-
-    // Scale existing corners if any
-    if (S.corners && scaled.scale !== 1.0) {
-      S.corners = S.corners.map(([x, y]) => [x * scaled.scale, y * scaled.scale]);
-    }
-
-    // Update chip with original dimensions as information
-    const szEl = $("file-chip-size");
-    if (szEl) szEl.textContent = `(${szStr} • ${scaled.origW} × ${scaled.origH} px)`;
-
     const img = new Image();
+
+    // 2. Concurrently start downscaling & server upload in background
+    S.uploadPromise = (async () => {
+      try {
+        const scaled = await downscaleImageFile(file, 1400);
+        S.dataUrl = scaled.dataUrl;
+        S.downscaleScale = scaled.scale;
+        S.origW = scaled.origW;
+        S.origH = scaled.origH;
+        const res = await uploadImage(scaled.dataUrl);
+        S.imageId = res.id;
+        S.imageFileSize = szStr;
+        const szEl = $("file-chip-size");
+        if (szEl) szEl.textContent = `(${szStr} • ${scaled.origW} × ${scaled.origH} px)`;
+        return res;
+      } catch (err) {
+        console.warn("[Upload] Background upload failed:", err);
+        return null;
+      }
+    })();
+
     await new Promise((resolve, reject) => {
       img.onload = () => {
-        URL.revokeObjectURL(previewUrl);
-      S.img = img;
-      initCorners();
+        S.img = img;
+        S.origW = img.naturalWidth;
+        S.origH = img.naturalHeight;
+        setState("w", img.naturalWidth);
+        setState("h", img.naturalHeight);
+        initCorners();
 
       const ph = $("ph");
       const cv = $("cv");
@@ -239,7 +242,7 @@ export async function handleFileUpload(file) {
         flying.style.left = `${startRect.left}px`;
         flying.style.width = `${startRect.width}px`;
         flying.style.height = `${startRect.height}px`;
-        flying.style.backgroundImage = `url(${S.dataUrl})`;
+        flying.style.backgroundImage = `url(${previewUrl})`;
         flying.style.backgroundSize = "contain";
         flying.style.backgroundRepeat = "no-repeat";
         flying.style.backgroundPosition = "center";
@@ -258,6 +261,7 @@ export async function handleFileUpload(file) {
         draw();
         refreshGrid();
         updateLiveReadout();
+        console.log(`[Upload Time] File to canvas display: ${(performance.now() - tUploadStart).toFixed(1)} ms`);
 
         const endRect = cv.getBoundingClientRect();
         const dx = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
@@ -281,6 +285,7 @@ export async function handleFileUpload(file) {
         draw();
         refreshGrid();
         updateLiveReadout();
+        console.log(`[Upload Time] File to canvas display: ${(performance.now() - tUploadStart).toFixed(1)} ms`);
       }
 
       const cardAssay = $("card-assay");
@@ -320,6 +325,10 @@ export async function run() {
     return;
   }
   isRunInProgress = true;
+  window.__isAnalysisRunning = true;
+
+  // Cancel any active or scheduled live preview to prevent server concurrency contention
+  cancelLivePreview();
 
   if (activeRunAbort) {
     activeRunAbort.abort();
@@ -430,7 +439,21 @@ export async function run() {
 
   try {
     perfRunTimer.markPrepEnd();
+
+    // Ensure background upload finishes
+    if (S.uploadPromise) {
+      try {
+        await S.uploadPromise;
+      } catch (_) {}
+    }
+
     const currentCfg = cfg();
+    if (S.downscaleScale && S.downscaleScale !== 1.0 && currentCfg.corners) {
+      currentCfg.corners = currentCfg.corners.map(([x, y]) => [
+        x * S.downscaleScale,
+        y * S.downscaleScale
+      ]);
+    }
 
     // Check in-memory result cache per photo + settings
     const cacheKey = `${S.imageId || S.dataUrl?.slice(0, 48)}_${JSON.stringify(currentCfg)}`;
@@ -447,6 +470,7 @@ export async function run() {
       const payload = S.imageId
         ? { image_id: S.imageId, config: currentCfg }
         : { image: S.dataUrl, config: currentCfg };
+      console.log("[Run Payload]", { hasImageId: !!payload.image_id, imageId: payload.image_id, hasImage: !!payload.image, imageLen: payload.image?.length });
 
       try {
         res = await analyzePlate(payload, activeRunAbort.signal);
@@ -498,6 +522,7 @@ export async function run() {
     const emptyState = $("results-empty-state");
     if (emptyState) emptyState.hidden = false;
   } finally {
+    window.__isAnalysisRunning = false;
     isRunInProgress = false;
     if (skeleton) skeleton.hidden = true;
     if (runBtn) {

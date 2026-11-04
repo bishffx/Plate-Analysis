@@ -231,20 +231,27 @@ export function refreshGrid() {
     gridAbort = new AbortController();
     const t = ++S.tok;
     try {
+      const scale = S.downscaleScale || 1.0;
+      const scaledCorners = (scale !== 1.0 && S.corners)
+        ? S.corners.map(([x, y]) => [x * scale, y * scale])
+        : S.corners;
+
       const g = await fetchGrid({
         image_id: S.imageId,
-        corners: S.corners,
+        corners: scaledCorners,
         rows: +($("rows").value),
         cols: +($("cols").value),
         radius: +($("radius").value)
       }, gridAbort.signal);
 
       if (t !== S.tok) return;
-      S.circles = g.wells;
+      S.circles = (scale !== 1.0 && g.wells)
+        ? g.wells.map(([cx, cy]) => [cx / scale, cy / scale])
+        : g.wells;
       circlesAnimStart = performance.now();
       draw();
       updateLiveReadout();
-      if (S.drag < 0) {
+      if (S.drag < 0 && !window.__isAnalysisRunning) {
         scheduleLivePreview(1000);
       }
     } catch (err) {
