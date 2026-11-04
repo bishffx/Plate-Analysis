@@ -101,6 +101,12 @@
   --bg-warning: rgba(251, 191, 36, 0.12);
   --bg-info: rgba(96, 165, 250, 0.12);
 
+  /* Base Ink System */
+  --color-ink-100: #F3F0FF;
+  --color-ink-200: #D1CEE2;
+  --color-ink-300: #A8A3C0;
+  --color-ink-400: #6B7280;
+
   /* Component Radii */
   --radius-xs: 4px;
   --radius-sm: 6px;
@@ -123,36 +129,57 @@
 }
 
 /* Light Theme Overrides */
+/* Light Theme Overrides (High-Contrast Bold Black Typography) */
 [data-theme="light"] {
+  color-scheme: light;
   --bg-page: #F8FAFC;
   --bg-page-start: #FFFFFF;
   --bg-page-mid: #F1F5F9;
   --bg-page-end: #E2E8F0;
-  --brand-navy: #0F172A;
+  --brand-navy: #000000;
 
   --page-gradient:
-    radial-gradient(1200px 600px at 50% -80px, rgba(15, 23, 42, 0.04) 0%, transparent 70%),
+    radial-gradient(1200px 600px at 50% -80px, rgba(0, 0, 0, 0.03) 0%, transparent 70%),
     linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 45%, #F1F5F9 100%);
 
-  --card-bg: rgba(255, 255, 255, 0.85);
+  --brand-gradient: linear-gradient(135deg, #000000 0%, #0F172A 50%, #1E293B 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #000000 100%);
+  --headline-gradient: linear-gradient(135deg, #000000 0%, #0F172A 40%, #1E293B 75%, #0F172A 100%);
+
+  --card-bg: #FFFFFF;
   --card-bg-solid: #FFFFFF;
   --card-raised: #FFFFFF;
-  --surface-hover: rgba(15, 23, 42, 0.04);
+  --surface-hover: rgba(0, 0, 0, 0.05);
   --input-bg: #FFFFFF;
-  --header-bg: rgba(255, 255, 255, 0.88);
-  --footer-bg: #F8FAFC;
-  --footer-border: rgba(15, 23, 42, 0.08);
+  --header-bg: #FFFFFF;
+  --footer-bg: #F1F5F9;
+  --footer-border: rgba(0, 0, 0, 0.12);
 
-  --card-border: rgba(15, 23, 42, 0.09);
-  --border-subtle: rgba(15, 23, 42, 0.07);
-  --border-strong: rgba(15, 23, 42, 0.2);
-  --input-border: rgba(15, 23, 42, 0.16);
-  --line: rgba(15, 23, 42, 0.08);
+  --card-border: rgba(0, 0, 0, 0.15);
+  --border-subtle: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.28);
+  --input-border: rgba(0, 0, 0, 0.26);
+  --line: rgba(0, 0, 0, 0.12);
 
-  --text-primary: #0F172A;
-  --text-secondary: #334155;
-  --text-muted: #64748B;
-  --text-subtle: #94A3B8;
-  --input-color: #0F172A;
-  --placeholder-color: #94A3B8;
+  /* Bold Black Typography for Light Theme */
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #000000;
+  --text-subtle: #0A0E17;
+  --input-color: #000000;
+  --placeholder-color: #334155;
+  --accent-text: #FFFFFF;
+
+  /* Ink Tokens in Light Theme: Deep High-Contrast Blacks */
+  --color-ink-100: #000000;
+  --color-ink-200: #000000;
+  --color-ink-300: #000000;
+  --color-ink-400: #0A0E17;
+
+  --readout-bg: rgba(0, 0, 0, 0.04);
+  --table-stripe: rgba(0, 0, 0, 0.02);
+  --table-hover: rgba(0, 0, 0, 0.05);
+  --heat-container-bg: #FFFFFF;
+  --heat-legend-bg: rgba(0, 0, 0, 0.04);
+  --stat-bg: #FFFFFF;
 }
