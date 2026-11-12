@@ -108,9 +108,10 @@ export function updateAccordionStatusChips() {
   // 5. Calibration chip
   const chipCal = $("chip-status-cal");
   if (chipCal) {
-    const model = S.calMode || $("cal-model")?.value || "linear";
-    chipCal.textContent = model === "quadratic" ? "Quadratic" : "Linear";
-    chipCal.classList.toggle("is-active", model === "quadratic" || $("chk-use-reader")?.checked);
+    const model = S.selectedCalibrationModel || S.calMode || $("cal-model")?.value || "linear";
+    const calLabels = { linear: "Linear", quadratic: "Quadratic", svr: "SVR", ann: "ANN / MLP" };
+    chipCal.textContent = calLabels[model] || "Linear";
+    chipCal.classList.toggle("is-active", model !== "linear" || Boolean($("chk-use-reader")?.checked));
   }
 
   // Update sticky run summary line

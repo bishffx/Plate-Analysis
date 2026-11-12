@@ -14,8 +14,76 @@ import { cfg } from "./analysis.js";
 import { validateConfig } from "./config.js";
 import { draw, refreshGrid, updateLiveReadout } from "./plate-canvas.js";
 import { renderResults } from "./results.js";
+import {
+  computeWellLinearQuadraticModels,
+  fetchAndAttachMlPredictions,
+  applySelectedCalibrationModel,
+  getCalibrationModelLabel
+} from "./calibration.js";
 
 let batchResults = [];
+
+function appendBatchSuccessRow(tbody, entry) {
+  if (!tbody) return;
+  const { name, result: r, dataUrl, needsReview } = entry;
+  const tr = document.createElement("tr");
+
+  const tdName = document.createElement("td");
+  const strongName = document.createElement("strong");
+  strongName.textContent = name;
+  tdName.appendChild(strongName);
+  tr.appendChild(tdName);
+
+  const tdQC = document.createElement("td");
+  const qcText = r.valid ? "PASS" : "FAIL";
+  const pillQC = el("span", qcText, `qc-status-pill ${r.valid ? "qc-pass" : "qc-fail"}`);
+  tdQC.appendChild(pillQC);
+  if (needsReview) {
+    const reviewBadge = el("span", "Needs Review", "badge");
+    reviewBadge.style.marginLeft = "6px";
+    reviewBadge.style.background = "var(--bg-warning)";
+    reviewBadge.style.color = "var(--color-warning)";
+    tdQC.appendChild(reviewBadge);
+  }
+  tr.appendChild(tdQC);
+
+  tr.appendChild(el("td", String(r.summary.positive || 0), "num-col"));
+  tr.appendChild(el("td", String(r.summary.negative || 0), "num-col"));
+  tr.appendChild(el("td", String(r.summary.invalid || 0), "num-col"));
+
+  const tdAction = document.createElement("td");
+  const btnOpen = document.createElement("button");
+  btnOpen.type = "button";
+  btnOpen.className = "sec btn-xs";
+  btnOpen.textContent = "Open Results";
+  btnOpen.onclick = () => {
+    S.last = r;
+    S.dataUrl = dataUrl;
+    if (r.image) {
+      S.w = r.image.width;
+      S.h = r.image.height;
+    }
+    const img = new Image();
+    img.onload = () => {
+      S.img = img;
+      draw();
+      refreshGrid();
+      updateLiveReadout();
+    };
+    img.src = dataUrl;
+    renderResults(r);
+    showToast(`Loaded full results for ${name}`, "success");
+    const resSection = $("results");
+    if (resSection) {
+      resSection.hidden = false;
+      resSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  tdAction.appendChild(btnOpen);
+  tr.appendChild(tdAction);
+
+  tbody.appendChild(tr);
+}
 
 export async function runBatch(files) {
   if (!files || !files.length) return;
@@ -85,68 +153,19 @@ export async function runBatch(files) {
         plateCfg.corners = baseCfg.corners;
       }
 
+      const backendCal = plateCfg.model === "quadratic" ? "quadratic" : "linear";
+      plateCfg.model = backendCal;
+      plateCfg.cal_mode = backendCal;
+
       r = await analyzePlate({ image_id: up.id, config: plateCfg });
-      batchResults.push({ name: file.name, result: r, dataUrl, needsReview });
+      computeWellLinearQuadraticModels(r);
+      if (statusText) statusText.textContent = `Running ML calibration for ${file.name}…`;
+      await fetchAndAttachMlPredictions(r);
+      applySelectedCalibrationModel(r, S.selectedCalibrationModel || "linear");
 
-      if (tbody) {
-        const tr = document.createElement("tr");
-
-        const tdName = document.createElement("td");
-        const strongName = document.createElement("strong");
-        strongName.textContent = file.name;
-        tdName.appendChild(strongName);
-        tr.appendChild(tdName);
-
-        const tdQC = document.createElement("td");
-        const qcText = r.valid ? "PASS" : "FAIL";
-        const pillQC = el("span", qcText, `qc-status-pill ${r.valid ? "qc-pass" : "qc-fail"}`);
-        tdQC.appendChild(pillQC);
-        if (needsReview) {
-          const reviewBadge = el("span", "Needs Review", "badge");
-          reviewBadge.style.marginLeft = "6px";
-          reviewBadge.style.background = "var(--bg-warning)";
-          reviewBadge.style.color = "var(--color-warning)";
-          tdQC.appendChild(reviewBadge);
-        }
-        tr.appendChild(tdQC);
-
-        tr.appendChild(el("td", String(r.summary.positive || 0), "num-col"));
-        tr.appendChild(el("td", String(r.summary.negative || 0), "num-col"));
-        tr.appendChild(el("td", String(r.summary.invalid || 0), "num-col"));
-
-        const tdAction = document.createElement("td");
-        const btnOpen = document.createElement("button");
-        btnOpen.type = "button";
-        btnOpen.className = "sec btn-xs";
-        btnOpen.textContent = "Open Results";
-        btnOpen.onclick = () => {
-          S.last = r;
-          S.dataUrl = dataUrl;
-          if (r.image) {
-            S.w = r.image.width;
-            S.h = r.image.height;
-          }
-          const img = new Image();
-          img.onload = () => {
-            S.img = img;
-            draw();
-            refreshGrid();
-            updateLiveReadout();
-          };
-          img.src = dataUrl;
-          renderResults(r);
-          showToast(`Loaded full results for ${file.name}`, "success");
-          const resSection = $("results");
-          if (resSection) {
-            resSection.hidden = false;
-            resSection.scrollIntoView({ behavior: "smooth" });
-          }
-        };
-        tdAction.appendChild(btnOpen);
-        tr.appendChild(tdAction);
-
-        tbody.appendChild(tr);
-      }
+      const entry = { name: file.name, result: r, dataUrl, needsReview };
+      batchResults.push(entry);
+      appendBatchSuccessRow(tbody, entry);
     } catch (err) {
       if (tbody) {
         const tr = document.createElement("tr");
@@ -276,14 +295,31 @@ export function initBatchControls() {
     };
   }
 
+  if (typeof window !== "undefined") {
+    window.addEventListener("plateod:calibration-changed", (e) => {
+      if (!batchResults.length) return;
+      const model = (e && e.detail && e.detail.model) || S.selectedCalibrationModel || "linear";
+      const tbody = $("batch-tbody");
+      if (tbody) clearChildren(tbody);
+      batchResults.forEach((entry) => {
+        if (!entry || !entry.result) return;
+        computeWellLinearQuadraticModels(entry.result);
+        applySelectedCalibrationModel(entry.result, model);
+        appendBatchSuccessRow(tbody, entry);
+      });
+    });
+  }
+
   if (batchCsvBtn) {
     batchCsvBtn.onclick = () => {
       if (!batchResults.length) return;
+      const calLabel = getCalibrationModelLabel(S.selectedCalibrationModel || "linear");
       const rows = [
-        ["plate", "well", "row", "col", "role", "intensity", "image_od", "calibrated_od", "value", "class", "flag"].join(",")
+        ["plate", "well", "row", "col", "role", "intensity", "image_od", "calibrated_od", "calibration_model", "value", "class", "flag"].join(",")
       ];
       batchResults.forEach(({ name, result }) => {
         if (!result || !result.wells) return;
+        const rowCalLabel = getCalibrationModelLabel(result.selectedCalibrationModel || result.model || S.selectedCalibrationModel || "linear");
         result.wells.forEach((w) => {
           rows.push([
             `"${name.replace(/"/g, '""')}"`,
@@ -294,6 +330,7 @@ export function initBatchControls() {
             w.intensity !== null && w.intensity !== undefined ? w.intensity : "",
             w.od !== null && w.od !== undefined ? w.od : "",
             w.od_cal !== null && w.od_cal !== undefined ? w.od_cal : "",
+            `"${rowCalLabel}"`,
             w.value !== null && w.value !== undefined ? w.value : "",
             `"${(w.class || "").replace(/"/g, '""')}"`,
             `"${(w.flag || "").replace(/"/g, '""')}"`
@@ -303,7 +340,7 @@ export function initBatchControls() {
       const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `plateod_batch_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `plateod_batch_${calLabel.replace(/[^a-zA-Z0-9]+/g, "_")}_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(a.href);
       showToast("Combined batch CSV downloaded.", "success");

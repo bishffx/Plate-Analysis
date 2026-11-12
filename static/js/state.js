@@ -27,6 +27,7 @@ export const S = {
   zoomLevel: 1.0,
   tab: "table",
   selectedAssay: null,
+  selectedCalibrationModel: "linear",
   isCustomised: false,
   presets: null,
   // Batch processing

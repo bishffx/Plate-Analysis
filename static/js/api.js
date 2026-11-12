@@ -7,6 +7,7 @@
  * error normalization, and performance latency logging.
  */
 
+import "./runtime-config.js";
 import { S, setState } from "./state.js";
 import { getActiveRunTimer } from "./perf.js";
 
@@ -154,4 +155,66 @@ export async function validateConfigFile(config) {
 
 export async function runBatch(plates, config, autoDetect = true) {
   return await api("/api/batch", { plates, config, auto_detect: autoDetect });
+}
+
+/**
+ * Sends per-well Image OD values to the external FastAPI ML calibration backend
+ * (SVR & ANN/MLP). Never uses local same-origin api() or checkServerHealth().
+ * @param {Array<{well: string, image_od: number}>} wellsPayload
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<{count: number, models: string[], results: Array<{well: string, image_od: number, svr_calibrated_od: number, ann_mlp_calibrated_od: number}>}>}
+ */
+export async function predictMlCalibration(wellsPayload, signal = null) {
+  const baseUrl = String(window.PLATEOD_CONFIG?.ML_API_BASE_URL || "").trim().replace(/\/+$/, "");
+  if (!baseUrl) {
+    throw new Error("ML calibration backend URL is not configured.");
+  }
+  if (!Array.isArray(wellsPayload) || wellsPayload.length === 0) {
+    throw new Error("No valid Image OD values available for ML calibration.");
+  }
+
+  const endpoint = `${baseUrl}/calibrate/batch`;
+  let response;
+  try {
+    const opts = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ wells: wellsPayload })
+    };
+    if (signal) opts.signal = signal;
+    response = await fetch(endpoint, opts);
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      throw err;
+    }
+    throw new Error(`Unable to reach ML calibration backend at ${baseUrl}.`);
+  }
+
+  let rawText;
+  try {
+    rawText = await response.text();
+  } catch (_) {
+    throw new Error(`Failed to read response from ML calibration backend (HTTP ${response.status}).`);
+  }
+
+  let data = null;
+  if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch (_) {
+      throw new Error(`ML calibration backend returned invalid JSON (HTTP ${response.status}).`);
+    }
+  }
+
+  if (!response.ok) {
+    const detail = data && (data.detail || data.error || data.message);
+    const detailMsg = typeof detail === "string" ? detail : (Array.isArray(detail) ? detail.map((d) => d?.msg || JSON.stringify(d)).join("; ") : "");
+    throw new Error(detailMsg || `ML calibration backend returned HTTP ${response.status}.`);
+  }
+
+  if (!data || typeof data !== "object" || !Array.isArray(data.results)) {
+    throw new Error("Malformed response from ML calibration backend: missing 'results' array.");
+  }
+
+  return data;
 }

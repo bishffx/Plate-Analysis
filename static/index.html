@@ -1006,12 +1006,14 @@
               <div class="accordion-panel" id="panel-cal" role="region" aria-labelledby="btn-accordion-cal">
                 <div class="accordion-panel-inner">
                   <div class="form-group" style="margin-bottom:8px;">
-                    <label for="cal-model" style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Model selector</label>
+                    <label for="cal-model" style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">Model</label>
                     <select id="cal-model" style="margin-bottom:8px;">
                       <option value="linear">Linear (y = m·x + c)</option>
                       <option value="quadratic">Quadratic (y = a·x² + b·x + c)</option>
+                      <option value="svr">SVR</option>
+                      <option value="ann">ANN / MLP</option>
                     </select>
-                    <div class="segmented-control" role="radiogroup" aria-label="Calibration model">
+                    <div class="segmented-control" role="radiogroup" aria-label="Calibration model" hidden>
                       <button type="button" class="seg-btn active" id="btn-cal-linear" role="radio" aria-checked="true">Linear</button>
                       <button type="button" class="seg-btn" id="btn-cal-quad" role="radio" aria-checked="false">Quadratic</button>
                     </div>
@@ -1043,6 +1045,10 @@
                       <label for="cal-c">c</label>
                       <input id="cal-c" type="number" step="any" value="0">
                     </div>
+                  </div>
+
+                  <div id="ml-params" class="form-group" hidden style="margin-bottom:8px;">
+                    <span class="field-hint" id="ml-cal-status" aria-live="polite" style="display:block; margin-top:2px;">Image OD is automatically sent to the ML calibration backend on Run.</span>
                   </div>
 
                   <div class="form-group">
@@ -1557,7 +1563,7 @@
                   <div class="inspector-metric"><span class="metric-label">Role</span><strong id="inspector-val-role" class="metric-val">–</strong></div>
                   <div class="inspector-metric"><span class="metric-label">Raw Intensity</span><strong id="inspector-val-intensity" class="metric-val">–</strong></div>
                   <div class="inspector-metric"><span class="metric-label">Image OD</span><strong id="inspector-val-od" class="metric-val">–</strong></div>
-                  <div class="inspector-metric"><span class="metric-label">Calibrated OD</span><strong id="inspector-val-od-cal" class="metric-val">–</strong></div>
+                  <div class="inspector-metric"><span class="metric-label" id="inspector-lbl-od-cal">Calibrated OD</span><strong id="inspector-val-od-cal" class="metric-val">–</strong></div>
                   <div class="inspector-metric"><span class="metric-label" id="inspector-lbl-value">Value (%)</span><strong id="inspector-val-value" class="metric-val">–</strong></div>
                 </div>
                 <!-- Cutoff Gauge -->
@@ -2886,6 +2892,7 @@
     </div>
   </footer>
 
+  <script src="js/runtime-config.js"></script>
   <script type="module" src="js/main.js"></script>
 <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
   <!-- Fixed Bottom Status Bar -->

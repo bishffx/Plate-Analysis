@@ -14,6 +14,12 @@ function base64ToBlobUrl(base64) {
   }
 }
 
+function fmtOdOrDash(v, n = 4) {
+  if (v === null || v === undefined || v === "") return "—";
+  const num = Number(v);
+  return Number.isFinite(num) ? num.toFixed(n) : "—";
+}
+
 function showHeatmapTooltip(clientX, clientY, w, key, isVal, activeCutoff) {
   const tt = $("heat-tooltip");
   if (!tt) return;
@@ -26,11 +32,15 @@ function showHeatmapTooltip(clientX, clientY, w, key, isVal, activeCutoff) {
   tt.style.pointerEvents = "none";
   
   clearChildren(tt);
+  const calLabel = getCalibrationModelLabel(S.last?.selectedCalibrationModel || S.selectedCalibrationModel || "linear");
   const head = el("div", `${w.well} · ${w.role || "Sample"}`, "tooltip-title");
-  const odLine = el("div", `OD: ${w.od_cal !== null ? Number(w.od_cal).toFixed(3) : "–"}`);
-  const valLine = el("div", isVal ? `${w.value !== null ? Number(w.value).toFixed(1) + "%" : "–"}` : `Value: ${w.value !== null ? fmt(w.value, 2) : "–"}`);
-  const clsLine = el("div", `Class: ${w.class || "–"}`, `badge badge-${(w.class || "unknown").toLowerCase()}`);
+  const imgOdLine = el("div", `Image OD: ${fmtOdOrDash(w.od, 3)}`);
+  const odLine = el("div", `Calibrated OD (${calLabel}): ${fmtOdOrDash(w.od_cal, 3)}`);
+  const valStr = fmtOdOrDash(w.value, isVal ? 1 : 2);
+  const valLine = el("div", isVal ? (valStr === "—" ? "—" : `${valStr}%`) : `Value: ${valStr}`);
+  const clsLine = el("div", `Class: ${w.class || "—"}`, `badge badge-${(w.class || "unknown").toLowerCase()}`);
   tt.appendChild(head);
+  tt.appendChild(imgOdLine);
   tt.appendChild(odLine);
   tt.appendChild(valLine);
   tt.appendChild(clsLine);
@@ -66,6 +76,7 @@ import { $, $$, el, clearChildren, fmt, showToast, roundRect } from "./dom.js";
 import { countUp, initSpotlight } from "./effects.js";
 import { getActiveRunTimer } from "./perf.js";
 import { draw } from "./plate-canvas.js";
+import { getCalibrationModelLabel } from "./calibration.js";
 
 // Results State
 let activeInspectorWell = null;
@@ -218,16 +229,21 @@ export function openWellInspector(well) {
   }
 
   // Metrics
+  const calLabel = getCalibrationModelLabel(S.last?.selectedCalibrationModel || S.selectedCalibrationModel || "linear");
   $("inspector-val-role") && ($("inspector-val-role").textContent = well.role);
-  $("inspector-val-intensity") && ($("inspector-val-intensity").textContent = fmt(well.intensity, 2));
-  $("inspector-val-od") && ($("inspector-val-od").textContent = fmt(well.od, 4));
-  $("inspector-val-od-cal") && ($("inspector-val-od-cal").textContent = fmt(well.od_cal, 4));
+  $("inspector-val-intensity") && ($("inspector-val-intensity").textContent = fmtOdOrDash(well.intensity, 2));
+  $("inspector-val-od") && ($("inspector-val-od").textContent = fmtOdOrDash(well.od, 4));
+  $("inspector-lbl-od-cal") && ($("inspector-lbl-od-cal").textContent = `Calibrated OD (${calLabel})`);
+  $("inspector-val-od-cal") && ($("inspector-val-od-cal").textContent = fmtOdOrDash(well.od_cal, 4));
 
   const isPI = S.last.mode === "PI";
   const lblVal = $("inspector-lbl-value");
   const valVal = $("inspector-val-value");
   if (lblVal) lblVal.textContent = isPI ? "Inhibition (PI)" : "Positivity (PP)";
-  if (valVal) valVal.textContent = `${fmt(well.value, 1)}%`;
+  if (valVal) {
+    const valStr = fmtOdOrDash(well.value, 1);
+    valVal.textContent = valStr === "—" ? "—" : `${valStr}%`;
+  }
 
   // Cutoff Gauge
   const cutoff = clientCutoffPreview !== null ? clientCutoffPreview : (S.last.cutoff || 40);
@@ -238,7 +254,7 @@ export function openWellInspector(well) {
   const fill = $("inspector-gauge-fill");
   const cutoffLine = $("inspector-gauge-cutoff-line");
 
-  const pct = Math.max(0, Math.min(100, well.value !== null ? well.value : 0));
+  const pct = Math.max(0, Math.min(100, well.value !== null && well.value !== undefined && Number.isFinite(Number(well.value)) ? Number(well.value) : 0));
   if (needle) needle.style.left = `${pct}%`;
   if (fill) {
     fill.style.width = `${pct}%`;
@@ -251,6 +267,17 @@ export function openWellInspector(well) {
 
   // Set highlighted in views
   setHighlightedWell(well.well);
+}
+
+export function refreshOpenInspector() {
+  const drawer = $("well-inspector-drawer");
+  if (!drawer || !drawer.classList.contains("open") || !activeInspectorWell || !S.last || !Array.isArray(S.last.wells)) {
+    return;
+  }
+  const updated = S.last.wells.find((w) => w && w.well === activeInspectorWell.well);
+  if (updated) {
+    openWellInspector(updated);
+  }
 }
 
 function renderInspectorCrop(well) {
@@ -852,14 +879,17 @@ export function downloadActiveHeatmapImage(r, key = "od_cal", decimals = 3, view
   }, "image/png");
 }
 
-export function downloadResultsTableCsv(r) {
-  if (!r || !r.wells || !r.wells.length) {
-    showToast("No table data available to download", "warning");
-    return;
-  }
+function formatCsvNum(v, decimals) {
+  if (v === undefined || v === null || v === "") return "";
+  const num = Number(v);
+  return Number.isFinite(num) ? num.toFixed(decimals) : "";
+}
+
+function buildFullResultsCsv(r) {
   const valHeader = r.mode === "PI" ? "PI_Percent" : "PP_Percent";
+  const calModel = getCalibrationModelLabel(r.selectedCalibrationModel || r.model || S.selectedCalibrationModel || "linear");
   const rows = [
-    "Well,Row,Column,Role,Raw_Intensity,Image_OD,Calibrated_OD," + valHeader + ",Cutoff,Classification,Note"
+    "Well,Row,Column,Role,Raw_Intensity,Image_OD,Calibrated_OD,Calibration_Model," + valHeader + ",Cutoff,Classification,Note"
   ];
   r.wells.forEach((w) => {
     rows.push([
@@ -867,20 +897,30 @@ export function downloadResultsTableCsv(r) {
       w.row + 1,
       w.col + 1,
       `"${w.role || "Sample"}"`,
-      w.intensity !== undefined && w.intensity !== null ? Number(w.intensity).toFixed(4) : "",
-      w.od !== undefined && w.od !== null ? Number(w.od).toFixed(4) : "",
-      w.od_cal !== undefined && w.od_cal !== null ? Number(w.od_cal).toFixed(4) : "",
-      w.value !== undefined && w.value !== null ? Number(w.value).toFixed(2) : "",
-      r.cutoff !== undefined && r.cutoff !== null ? Number(r.cutoff).toFixed(1) : "",
+      formatCsvNum(w.intensity, 4),
+      formatCsvNum(w.od, 4),
+      formatCsvNum(w.od_cal, 4),
+      `"${calModel}"`,
+      formatCsvNum(w.value, 2),
+      formatCsvNum(r.cutoff, 1),
       `"${w.class || ""}"`,
       `"${w.flag || ""}"`
     ].join(","));
   });
-  const blob = new Blob([rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  return rows.join("\r\n");
+}
+
+export function downloadResultsTableCsv(r) {
+  if (!r || !r.wells || !r.wells.length) {
+    showToast("No table data available to download", "warning");
+    return;
+  }
+  const calLabel = getCalibrationModelLabel(r.selectedCalibrationModel || r.model || S.selectedCalibrationModel || "linear").replace(/[^a-zA-Z0-9]+/g, "_");
+  const blob = new Blob([buildFullResultsCsv(r)], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `PlateOD_Results_Table_${r.assay || r.mode || "ELISA"}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `PlateOD_Results_Table_${r.assay || r.mode || "ELISA"}_${calLabel}_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -902,26 +942,7 @@ export async function downloadAllResultsPackage(r) {
     const dateStr = new Date().toISOString().slice(0, 10);
 
     // 1. Table CSV
-    const valHeader = r.mode === "PI" ? "PI_Percent" : "PP_Percent";
-    const csvRows = [
-      "Well,Row,Column,Role,Raw_Intensity,Image_OD,Calibrated_OD," + valHeader + ",Cutoff,Classification,Note"
-    ];
-    r.wells.forEach((w) => {
-      csvRows.push([
-        w.well,
-        w.row + 1,
-        w.col + 1,
-        `"${w.role || "Sample"}"`,
-        w.intensity !== undefined && w.intensity !== null ? Number(w.intensity).toFixed(4) : "",
-        w.od !== undefined && w.od !== null ? Number(w.od).toFixed(4) : "",
-        w.od_cal !== undefined && w.od_cal !== null ? Number(w.od_cal).toFixed(4) : "",
-        w.value !== undefined && w.value !== null ? Number(w.value).toFixed(2) : "",
-        r.cutoff !== undefined && r.cutoff !== null ? Number(r.cutoff).toFixed(1) : "",
-        `"${w.class || ""}"`,
-        `"${w.flag || ""}"`
-      ].join(","));
-    });
-    zip.add(`1_Results_Table_${assayName}.csv`, csvRows.join("\r\n"));
+    zip.add(`1_Results_Table_${assayName}.csv`, buildFullResultsCsv(r));
 
     // 2. Optical Density Heatmap PNG
     const odCv = drawHeatmapToExportCanvas(r, "od_cal", 3, "values");
@@ -961,11 +982,13 @@ export async function downloadAllResultsPackage(r) {
 
     // 5. Summary Report Text
     const s = r.summary || {};
+    const calLabel = getCalibrationModelLabel(r.selectedCalibrationModel || r.model || S.selectedCalibrationModel || "linear");
     const reportText = [
       "==================================================",
       " PLATEOD ANALYSIS LABORATORY REPORT",
       "==================================================",
       `Protocol / Assay:  ${assayName}`,
+      `Calibration Model: ${calLabel}`,
       `Date / Timestamp:  ${new Date().toLocaleString()}`,
       `QC Validation:     ${r.valid ? "PASS" : "REVIEW / ALERTS"}`,
       `Channel Used:      ${r.channel_used || r.channel || "AUTO"}`,
@@ -1077,12 +1100,13 @@ function renderTable(r) {
   const t = el("table");
   const thead = el("thead"), thr = el("tr");
 
+  const calLabel = getCalibrationModelLabel(r.selectedCalibrationModel || r.model || S.selectedCalibrationModel || "linear");
   const cols = [
     { key: "well", label: "Well", num: false },
     { key: "role", label: "Role", num: false },
     { key: "intensity", label: "Intensity", num: true },
     { key: "od", label: "Image OD", num: true },
-    { key: "od_cal", label: "Calibrated OD", num: true },
+    { key: "od_cal", label: `Calibrated OD (${calLabel})`, num: true },
     { key: "value", label: r.mode === "PI" ? "PI %" : "PP %", num: true },
     { key: "class", label: "Class", num: false },
     { key: "flag", label: "Note", num: false }
@@ -1115,6 +1139,34 @@ function renderTable(r) {
   tblWrap.appendChild(t);
   wrap.appendChild(tblWrap);
 
+  function buildRow(x) {
+    const tr = el("tr");
+    tr.setAttribute("data-well", x.well);
+    tr.setAttribute("data-class", x.class);
+
+    tr.appendChild(el("td", x.well));
+    tr.appendChild(el("td", x.role));
+    tr.appendChild(el("td", fmtOdOrDash(x.intensity, 2), "num-col"));
+    tr.appendChild(el("td", fmtOdOrDash(x.od, 4), "num-col"));
+    tr.appendChild(el("td", fmtOdOrDash(x.od_cal, 4), "num-col"));
+    tr.appendChild(el("td", fmtOdOrDash(x.value, 1), "num-col"));
+
+    const tdClass = el("td");
+    const badge = el("span", undefined, "b " + x.class.split(" ")[0]);
+    badge.appendChild(el("span", undefined, "b-dot"));
+    badge.appendChild(document.createTextNode(x.class));
+    tdClass.appendChild(badge);
+    tr.appendChild(tdClass);
+
+    tr.appendChild(el("td", x.flag || ""));
+
+    // Linked hover & click
+    tr.onpointerenter = () => setHighlightedWell(x.well);
+    tr.onpointerleave = () => setHighlightedWell(null);
+    tr.onclick = () => openWellInspector(x);
+    return tr;
+  }
+
   function refreshRows() {
     clearChildren(tbody);
 
@@ -1142,38 +1194,13 @@ function renderTable(r) {
     const visibleList = list.slice(0, PAGE_SIZE);
 
     visibleList.forEach((x) => {
-      const tr = el("tr");
-      tr.setAttribute("data-well", x.well);
-      tr.setAttribute("data-class", x.class);
-
-      tr.appendChild(el("td", x.well));
-      tr.appendChild(el("td", x.role));
-      tr.appendChild(el("td", fmt(x.intensity, 2), "num-col"));
-      tr.appendChild(el("td", fmt(x.od, 4), "num-col"));
-      tr.appendChild(el("td", fmt(x.od_cal, 4), "num-col"));
-      tr.appendChild(el("td", fmt(x.value, 1), "num-col"));
-
-      const tdClass = el("td");
-      const badge = el("span", undefined, "b " + x.class.split(" ")[0]);
-      badge.appendChild(el("span", undefined, "b-dot"));
-      badge.appendChild(document.createTextNode(x.class));
-      tdClass.appendChild(badge);
-      tr.appendChild(tdClass);
-
-      tr.appendChild(el("td", x.flag || ""));
-
-      // Linked hover & click
-      tr.onpointerenter = () => setHighlightedWell(x.well);
-      tr.onpointerleave = () => setHighlightedWell(null);
-      tr.onclick = () => openWellInspector(x);
-
-      tbody.appendChild(tr);
+      tbody.appendChild(buildRow(x));
     });
 
     if (list.length > PAGE_SIZE) {
       const moreTr = el("tr", undefined, "table-more-row");
       const moreTd = el("td");
-      moreTd.colSpan = 8;
+      moreTd.colSpan = cols.length;
       moreTd.style.textAlign = "center";
       moreTd.style.padding = "8px";
       const moreBtn = el("button", `Show all ${list.length} wells (${PAGE_SIZE} shown)`, "sec btn-xs");
@@ -1181,26 +1208,7 @@ function renderTable(r) {
         e.preventDefault();
         moreTr.remove();
         list.slice(PAGE_SIZE).forEach((x) => {
-          const tr = el("tr");
-          tr.setAttribute("data-well", x.well);
-          tr.setAttribute("data-class", x.class);
-          tr.appendChild(el("td", x.well));
-          tr.appendChild(el("td", x.role));
-          tr.appendChild(el("td", fmt(x.intensity, 2), "num-col"));
-          tr.appendChild(el("td", fmt(x.od, 4), "num-col"));
-          tr.appendChild(el("td", fmt(x.od_cal, 4), "num-col"));
-          tr.appendChild(el("td", fmt(x.value, 1), "num-col"));
-          const tdClass = el("td");
-          const badge = el("span", undefined, "b " + x.class.split(" ")[0]);
-          badge.appendChild(el("span", undefined, "b-dot"));
-          badge.appendChild(document.createTextNode(x.class));
-          tdClass.appendChild(badge);
-          tr.appendChild(tdClass);
-          tr.appendChild(el("td", x.flag || ""));
-          tr.onpointerenter = () => setHighlightedWell(x.well);
-          tr.onpointerleave = () => setHighlightedWell(null);
-          tr.onclick = () => openWellInspector(x);
-          tbody.appendChild(tr);
+          tbody.appendChild(buildRow(x));
         });
       };
       moreTd.appendChild(moreBtn);
@@ -1865,15 +1873,16 @@ export function initResultsControls() {
       showToast("No well data available to export", "warning");
       return;
     }
-    const rows = ["well,role,intensity,image_od,calibrated_od," + (q.mode === "PI" ? "PI_percent" : "PP_percent") + ",class,note"];
+    const calModel = getCalibrationModelLabel(q.selectedCalibrationModel || q.model || S.selectedCalibrationModel || "linear");
+    const rows = ["well,role,intensity,image_od,calibrated_od,calibration_model," + (q.mode === "PI" ? "PI_percent" : "PP_percent") + ",class,note"];
     q.wells.forEach((w) => {
-      rows.push([w.well, w.role, w.intensity ?? "", w.od ?? "", w.od_cal ?? "", w.value ?? "", w.class, w.flag || ""].join(","));
+      rows.push([w.well, w.role, w.intensity ?? "", w.od ?? "", w.od_cal ?? "", `"${calModel}"`, w.value ?? "", w.class, w.flag || ""].join(","));
     });
     const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = el("a");
     a.href = url;
-    a.download = `plateod-${q.assay || q.mode}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `plateod-${q.assay || q.mode}-${calModel.replace(/[^a-zA-Z0-9]+/g, "_")}-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1893,16 +1902,18 @@ export function initResultsControls() {
       if (!S.last || !S.last.wells) return;
       const q = S.last;
       const valHeader = q.mode === "PI" ? "PI_Percent" : "PP_Percent";
-      const lines = [`Well\tRole\tIntensity\tImage_OD\tCalibrated_OD\t${valHeader}\tClass\tNote`];
+      const calModel = getCalibrationModelLabel(q.selectedCalibrationModel || q.model || S.selectedCalibrationModel || "linear");
+      const lines = [`Well\tRole\tIntensity\tImage_OD\tCalibrated_OD\tCalibration_Model\t${valHeader}\tClass\tNote`];
 
       q.wells.forEach((w) => {
         lines.push([
           w.well,
           w.role,
-          fmt(w.intensity, 4),
-          fmt(w.od, 4),
-          fmt(w.od_cal, 4),
-          fmt(w.value, 1),
+          fmtOdOrDash(w.intensity, 4),
+          fmtOdOrDash(w.od, 4),
+          fmtOdOrDash(w.od_cal, 4),
+          calModel,
+          fmtOdOrDash(w.value, 1),
           w.class,
           w.flag || ""
         ].join("\t"));

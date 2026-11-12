@@ -51,7 +51,7 @@ export function validateConfig(data) {
   const mod = c.model || c.cal_mode;
   if (mod !== undefined) {
     const mStr = String(mod).trim().toLowerCase();
-    if (!["linear", "quadratic"].includes(mStr)) throw new Error(`Calibration model must be 'linear' or 'quadratic', got '${mod}'.`);
+    if (!["linear", "quadratic", "svr", "ann"].includes(mStr)) throw new Error(`Calibration model must be 'linear', 'quadratic', 'svr', or 'ann', got '${mod}'.`);
     if (mStr === "linear" && c.slope !== undefined) {
       const sl = Number(c.slope);
       if (!Number.isFinite(sl)) throw new Error("Calibration slope must be a number.");
@@ -95,14 +95,14 @@ export function applyConfigToUI(c, dataName, version) {
   if (c.intercept !== undefined && $("icpt")) $("icpt").value = c.intercept;
 
   const calModel = (c.model || c.cal_mode || "linear").toLowerCase();
-  if (calModel === "quadratic") {
-    setCalibrationModel("quadratic");
-    if (c.cal_a !== undefined && $("cal-a")) $("cal-a").value = c.cal_a;
-    else if (c.a !== undefined && $("cal-a")) $("cal-a").value = c.a;
-    if (c.cal_b !== undefined && $("cal-b")) $("cal-b").value = c.cal_b;
-    else if (c.b !== undefined && $("cal-b")) $("cal-b").value = c.b;
-    if (c.cal_c !== undefined && $("cal-c")) $("cal-c").value = c.cal_c;
-    else if (c.c !== undefined && $("cal-c")) $("cal-c").value = c.c;
+  if (c.cal_a !== undefined && $("cal-a")) $("cal-a").value = c.cal_a;
+  else if (c.a !== undefined && $("cal-a")) $("cal-a").value = c.a;
+  if (c.cal_b !== undefined && $("cal-b")) $("cal-b").value = c.cal_b;
+  else if (c.b !== undefined && $("cal-b")) $("cal-b").value = c.b;
+  if (c.cal_c !== undefined && $("cal-c")) $("cal-c").value = c.cal_c;
+  else if (c.c !== undefined && $("cal-c")) $("cal-c").value = c.c;
+  if (["linear", "quadratic", "svr", "ann"].includes(calModel)) {
+    setCalibrationModel(calModel);
   } else {
     setCalibrationModel("linear");
   }
@@ -130,6 +130,9 @@ export function initConfigControls() {
     btnSave.onclick = () => {
       const name = prompt("Name this configuration:", (S.selectedAssay || "PlateOD") + "_Config") || "PlateOD_Config";
       const c = cfg();
+      const selModel = S.selectedCalibrationModel || S.calMode || "linear";
+      c.model = selModel;
+      c.cal_mode = selModel;
       c.version = "2.0";
       const payload = {
         app: "PlateOD",

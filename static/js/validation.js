@@ -360,12 +360,22 @@ export function updateStepperValidation() {
   if (!hasCutoffError && !hasCutlowError) s3Score += 33.4;
   updateProgressRing(3, s3Score);
 
-  // Step 4: Calibration
-  const slopeVal = parseFloat($("slope")?.value);
-  const icptVal = parseFloat($("icpt")?.value);
+  // Calibration validation
+  const selectedCal = S.selectedCalibrationModel || S.calMode || $("cal-model")?.value || "linear";
   let s4Score = 0;
-  if (!isNaN(slopeVal)) s4Score += 50;
-  if (!isNaN(icptVal)) s4Score += 50;
+  if (selectedCal === "svr" || selectedCal === "ann") {
+    s4Score = 100;
+  } else if (selectedCal === "quadratic") {
+    const qa = parseFloat($("cal-a")?.value);
+    const qb = parseFloat($("cal-b")?.value);
+    const qc = parseFloat($("cal-c")?.value);
+    if (!isNaN(qa) && !isNaN(qb) && !isNaN(qc)) s4Score = 100;
+  } else {
+    const slopeVal = parseFloat($("slope")?.value);
+    const icptVal = parseFloat($("icpt")?.value);
+    if (!isNaN(slopeVal)) s4Score += 50;
+    if (!isNaN(icptVal)) s4Score += 50;
+  }
   updateProgressRing(4, s4Score);
 
   // Enable/disable Run button - strictly disabled until all fields are valid

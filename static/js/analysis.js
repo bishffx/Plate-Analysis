@@ -20,6 +20,13 @@ import { ensureSectionOpenForElement, updateAccordionStatusChips, updateRunSumma
 import { renderResults } from "./results.js";
 import { cancelLivePreview } from "./live-preview.js";
 import { updateProblemsCard } from "./toast-system.js";
+import {
+  computeWellLinearQuadraticModels,
+  fetchAndAttachMlPredictions,
+  applySelectedCalibrationModel,
+  resetPlateMlPredictions,
+  updateMlStatusUI
+} from "./calibration.js";
 
 const val = (id, def) => {
   const elem = $(id);
@@ -64,7 +71,9 @@ export function showMsgs(errs, warns) {
 export function cfg() {
   const useReader = Boolean($("chk-use-reader") && $("chk-use-reader").checked);
   const flatField = Boolean($("chk-flat-field") ? $("chk-flat-field").checked : true);
-  const calMode = S.calMode || "linear";
+  const selected = S.selectedCalibrationModel || S.calMode || "linear";
+  // Backend image-analysis endpoint expects 'linear' or 'quadratic'; SVR/ANN use identity on backend and calibrate downstream
+  const backendCalMode = selected === "quadratic" ? "quadratic" : "linear";
 
   return {
     rows: val("rows", 8),
@@ -81,10 +90,10 @@ export function cfg() {
     mode: $("mode")?.value || "PP",
     cutoff: val("cutoff", null),
     cutoff_low: val("cutlow", null),
-    model: calMode,
-    slope: val("slope", 1),
-    intercept: val("icpt", 0),
-    cal_mode: calMode,
+    model: backendCalMode,
+    slope: selected === "linear" ? val("slope", 1) : 1,
+    intercept: selected === "linear" ? val("icpt", 0) : 0,
+    cal_mode: backendCalMode,
     a: val("cal-a", 0),
     b: val("cal-b", 1),
     c: val("cal-c", 0),
@@ -168,6 +177,13 @@ async function downscaleImageFile(file, maxDim = 1400) {
 export async function handleFileUpload(file) {
   if (!file) return;
   const tUploadStart = performance.now();
+
+  // Clear previous plate results and ML predictions so stale values never persist across plates
+  S.last = null;
+  S.imageId = null;
+  S.dataUrl = null;
+  analysisResultCache.clear();
+  resetPlateMlPredictions();
 
   // Detect HEIC/HEIF
   const name = file.name.toLowerCase();
@@ -337,10 +353,17 @@ export async function run() {
 
   const perfRunTimer = startRunTimer(S.selectedAssay || "Run");
   perfRunTimer.markPrepStart();
-  if (!S.dataUrl && !S.imageId) {
+
+  const releaseRunLock = () => {
+    window.__isAnalysisRunning = false;
+    isRunInProgress = false;
+  };
+
+  if (!S.dataUrl && !S.imageId && !S.uploadPromise) {
     const fileInp = $("file") || $("stage");
     if (fileInp) ensureSectionOpenForElement(fileInp);
     showToast("Please upload a plate photo before running analysis.", "warning");
+    releaseRunLock();
     return;
   }
 
@@ -350,6 +373,7 @@ export async function run() {
     if (cardPlate) ensureSectionOpenForElement(cardPlate);
     showToast("Grid corners are crossed or invalid. Please adjust the orange handles.", "error");
     showMsgs(["Grid corners are self-intersecting or degenerate. Please position A1, A12, H12, H1 onto the well corners."], []);
+    releaseRunLock();
     return;
   }
 
@@ -362,16 +386,19 @@ export async function run() {
   if (posEl && !validateWellField(posEl, $("pos-err"), isSpce)) {
     ensureSectionOpenForElement(posEl);
     showToast("Invalid Positive control well address (e.g. A1, A1-B2)", "error");
+    releaseRunLock();
     return;
   }
   if (negEl && !validateWellField(negEl, $("neg-err"), false)) {
     ensureSectionOpenForElement(negEl);
     showToast("Invalid Negative control well address (e.g. C1-D1)", "error");
+    releaseRunLock();
     return;
   }
   if (blankEl && !validateWellField(blankEl, $("blank-err"), false)) {
     ensureSectionOpenForElement(blankEl);
     showToast("Invalid Blank reference well address (e.g. E1-H1)", "error");
+    releaseRunLock();
     return;
   }
 
@@ -385,6 +412,7 @@ export async function run() {
   if (overlap.length > 0) {
     ensureSectionOpenForElement(negEl || posEl);
     showToast(`Well ${overlap.join(", ")} assigned to multiple roles`, "error");
+    releaseRunLock();
     return;
   }
 
@@ -392,6 +420,7 @@ export async function run() {
   if (cutoffEl && (isNaN(parseFloat(cutoffEl.value)) || parseFloat(cutoffEl.value) <= 0)) {
     ensureSectionOpenForElement(cutoffEl);
     showToast("Invalid Cutoff percentage threshold", "error");
+    releaseRunLock();
     return;
   }
 
@@ -402,32 +431,39 @@ export async function run() {
     if (isNaN(val) || (!isNaN(cutVal) && val >= cutVal)) {
       ensureSectionOpenForElement(cutlowEl);
       showToast("Doubtful lower cutoff must be below cutoff", "error");
+      releaseRunLock();
       return;
     }
   }
 
+  const selectedCal = S.selectedCalibrationModel || S.calMode || "linear";
   const slopeEl = $("slope");
   const icptEl = $("icpt");
-  if (slopeEl && isNaN(parseFloat(slopeEl.value))) {
-    ensureSectionOpenForElement(slopeEl);
-    showToast("Invalid Calibration slope value", "error");
-    return;
-  }
-  if (icptEl && isNaN(parseFloat(icptEl.value))) {
-    ensureSectionOpenForElement(icptEl);
-    showToast("Invalid Calibration intercept value", "error");
-    return;
+  if (selectedCal === "linear") {
+    if (slopeEl && isNaN(parseFloat(slopeEl.value))) {
+      ensureSectionOpenForElement(slopeEl);
+      showToast("Invalid Calibration slope value", "error");
+      releaseRunLock();
+      return;
+    }
+    if (icptEl && isNaN(parseFloat(icptEl.value))) {
+      ensureSectionOpenForElement(icptEl);
+      showToast("Invalid Calibration intercept value", "error");
+      releaseRunLock();
+      return;
+    }
   }
 
   const runBtn = $("run");
+  let runBtnText = null;
   if (runBtn) {
     runBtn.disabled = true;
     clearChildren(runBtn);
     const spinner = el("span", undefined, "btn-spinner");
     spinner.setAttribute("aria-hidden", "true");
-    const textSpan = el("span", "Analysing…");
+    runBtnText = el("span", "Analysing…");
     runBtn.appendChild(spinner);
-    runBtn.appendChild(textSpan);
+    runBtn.appendChild(runBtnText);
   }
 
   const skeleton = $("skeleton-loader");
@@ -446,6 +482,9 @@ export async function run() {
         await S.uploadPromise;
       } catch (_) {}
     }
+    if (!S.dataUrl && !S.imageId) {
+      throw new Error("Please upload a plate photo before running analysis.");
+    }
 
     const currentCfg = cfg();
     if (S.downscaleScale && S.downscaleScale !== 1.0 && currentCfg.corners) {
@@ -455,7 +494,7 @@ export async function run() {
       ]);
     }
 
-    // Check in-memory result cache per photo + settings
+    // Check in-memory result cache per photo + backend settings
     const cacheKey = `${S.imageId || S.dataUrl?.slice(0, 48)}_${JSON.stringify(currentCfg)}`;
     let res = analysisResultCache.get(cacheKey);
 
@@ -466,7 +505,6 @@ export async function run() {
       perfRunTimer.markDownloadEnd();
       perfRunTimer.markJsonEnd();
     } else {
-      // Send image_id only when available; fallback to image only if image_id is absent
       const payload = S.imageId
         ? { image_id: S.imageId, config: currentCfg }
         : { image: S.dataUrl, config: currentCfg };
@@ -475,7 +513,6 @@ export async function run() {
       try {
         res = await analyzePlate(payload, activeRunAbort.signal);
       } catch (apiErr) {
-        // 410 Expired: automatically re-upload and retry
         if (apiErr.status === 410 && S.dataUrl) {
           const up = await uploadImage(S.dataUrl);
           S.imageId = up.id;
@@ -489,6 +526,17 @@ export async function run() {
       }
       analysisResultCache.set(cacheKey, res);
     }
+
+    // 1. Store independent Linear & Quadratic predictions without modifying w.od
+    computeWellLinearQuadraticModels(res);
+
+    // 2. Fetch SVR & ANN/MLP predictions once in one batch request and store w.od_svr / w.od_ann
+    if (runBtnText) runBtnText.textContent = "Calibrating (SVR / ANN)...";
+    await fetchAndAttachMlPredictions(res, activeRunAbort.signal);
+
+    // 3. Apply the single selected calibration model to w.od_cal and downstream PP/PI/Class/QC
+    applySelectedCalibrationModel(res, S.selectedCalibrationModel || "linear");
+    updateMlStatusUI(res);
 
     finishAnalysisScan(res.valid, () => {
       document.body.classList.remove("analyzing-active");
@@ -505,6 +553,9 @@ export async function run() {
     }
     if (res.channel_used && currentCfg.channel === "AUTO") {
       warns.push(`Auto Channel: used ${res.channel_used}${res.channel_reason ? " (" + res.channel_reason + ")" : ""}`);
+    }
+    if (res.mlCalibration && res.mlCalibration.ok === false) {
+      warns.push("ML calibration unavailable. Linear and Quadratic remain available.");
     }
     showMsgs(res.problems || [], warns);
 
