@@ -18,6 +18,14 @@ const MIN_SEP = 0.05;
 
 export const ALLOWED_CALIBRATION_MODELS = ["linear", "quadratic", "svr", "ann"];
 
+export const DEFAULT_CALIBRATION_COEFFS = Object.freeze({
+  slope: 0.7622,
+  intercept: 0.0795,
+  a: 0.0614,
+  b: 0.6408,
+  c: 0.0959
+});
+
 const MODEL_LABELS = {
   linear: "Linear",
   quadratic: "Quadratic",
@@ -36,8 +44,22 @@ const val = (id, def) => {
   return Number.isFinite(n) ? n : def;
 };
 
-const round4 = (v) => (v !== null && v !== undefined && Number.isFinite(Number(v)) ? Math.round(Number(v) * 10000) / 10000 : null);
+const round6 = (v) => (v !== null && v !== undefined && Number.isFinite(Number(v)) ? Math.round(Number(v) * 1e6) / 1e6 : null);
 const round2 = (v) => (v !== null && v !== undefined && Number.isFinite(Number(v)) ? Math.round(Number(v) * 100) / 100 : null);
+
+export function restoreDefaultCalibrationParams() {
+  const slopeEl = $("slope");
+  const icptEl = $("icpt");
+  const calAEl = $("cal-a");
+  const calBEl = $("cal-b");
+  const calCEl = $("cal-c");
+
+  if (slopeEl) slopeEl.value = String(DEFAULT_CALIBRATION_COEFFS.slope);
+  if (icptEl) icptEl.value = String(DEFAULT_CALIBRATION_COEFFS.intercept);
+  if (calAEl) calAEl.value = String(DEFAULT_CALIBRATION_COEFFS.a);
+  if (calBEl) calBEl.value = String(DEFAULT_CALIBRATION_COEFFS.b);
+  if (calCEl) calCEl.value = String(DEFAULT_CALIBRATION_COEFFS.c);
+}
 
 export function normalizeCalibrationModel(mode) {
   const raw = String(mode || "linear").trim().toLowerCase();
@@ -54,11 +76,11 @@ export function getCalibrationModelLabel(mode) {
 export function readLinearQuadCoeffs(res = null) {
   const snap = res && res._coeffs ? res._coeffs : null;
   return {
-    slope: val("slope", snap ? snap.slope : 1),
-    intercept: val("icpt", snap ? snap.intercept : 0),
-    a: val("cal-a", snap ? snap.a : 0),
-    b: val("cal-b", snap ? snap.b : 1),
-    c: val("cal-c", snap ? snap.c : 0)
+    slope: val("slope", snap ? snap.slope : DEFAULT_CALIBRATION_COEFFS.slope),
+    intercept: val("icpt", snap ? snap.intercept : DEFAULT_CALIBRATION_COEFFS.intercept),
+    a: val("cal-a", snap ? snap.a : DEFAULT_CALIBRATION_COEFFS.a),
+    b: val("cal-b", snap ? snap.b : DEFAULT_CALIBRATION_COEFFS.b),
+    c: val("cal-c", snap ? snap.c : DEFAULT_CALIBRATION_COEFFS.c)
   };
 }
 
@@ -84,8 +106,8 @@ export function computeWellLinearQuadraticModels(res, coeffs = null) {
     if (!w || typeof w !== "object") return;
     if (w.od !== null && w.od !== undefined && Number.isFinite(Number(w.od))) {
       const x = Number(w.od);
-      w.od_linear = round4(c.slope * x + c.intercept);
-      w.od_quadratic = round4(c.a * (x * x) + c.b * x + c.c);
+      w.od_linear = round6(c.slope * x + c.intercept);
+      w.od_quadratic = round6(c.a * (x * x) + c.b * x + c.c);
     } else {
       w.od_linear = null;
       w.od_quadratic = null;
@@ -578,16 +600,27 @@ export function initCalibration() {
     btnQuad.onclick = () => setCalibrationModel("quadratic");
   }
 
+  // Ensure default parameter inputs are populated if empty
+  if (!$("slope")?.value) $("slope").value = String(DEFAULT_CALIBRATION_COEFFS.slope);
+  if (!$("icpt")?.value) $("icpt").value = String(DEFAULT_CALIBRATION_COEFFS.intercept);
+  if (!$("cal-a")?.value) $("cal-a").value = String(DEFAULT_CALIBRATION_COEFFS.a);
+  if (!$("cal-b")?.value) $("cal-b").value = String(DEFAULT_CALIBRATION_COEFFS.b);
+  if (!$("cal-c")?.value) $("cal-c").value = String(DEFAULT_CALIBRATION_COEFFS.c);
+
   // Keep linear/quadratic edits synchronized with already-analyzed wells
   ["slope", "icpt", "cal-a", "cal-b", "cal-c"].forEach((id) => {
-    $(id)?.addEventListener("change", () => {
+    const el = $(id);
+    if (!el) return;
+    const onParamUpdate = () => {
       if (S.last && (S.selectedCalibrationModel === "linear" || S.selectedCalibrationModel === "quadratic")) {
         computeWellLinearQuadraticModels(S.last);
         applySelectedCalibrationModel(S.last, S.selectedCalibrationModel);
         renderResults(S.last);
         refreshOpenInspector();
       }
-    });
+    };
+    el.addEventListener("input", onParamUpdate);
+    el.addEventListener("change", onParamUpdate);
   });
 
   const fitBtn = $("fit");

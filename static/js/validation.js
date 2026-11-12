@@ -394,7 +394,7 @@ export function initValidation() {
     "rows", "cols", "radius",
     "pos", "neg", "blank",
     "channel", "dark", "lin", "chk-flat-field", "mode", "cutoff", "cutlow",
-    "slope", "icpt", "reader"
+    "slope", "icpt", "cal-a", "cal-b", "cal-c", "reader"
   ];
 
   inputIds.forEach((id) => {

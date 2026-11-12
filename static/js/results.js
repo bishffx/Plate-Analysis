@@ -17,7 +17,12 @@ function base64ToBlobUrl(base64) {
 function fmtOdOrDash(v, n = 4) {
   if (v === null || v === undefined || v === "") return "—";
   const num = Number(v);
-  return Number.isFinite(num) ? num.toFixed(n) : "—";
+  if (!Number.isFinite(num)) return "—";
+  const s = String(v);
+  const dotIdx = s.indexOf(".");
+  const decCount = dotIdx >= 0 ? s.length - dotIdx - 1 : 0;
+  const prec = Math.min(6, Math.max(n, decCount));
+  return num.toFixed(prec);
 }
 
 function showHeatmapTooltip(clientX, clientY, w, key, isVal, activeCutoff) {

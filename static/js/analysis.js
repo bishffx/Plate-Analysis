@@ -25,6 +25,7 @@ import {
   fetchAndAttachMlPredictions,
   applySelectedCalibrationModel,
   resetPlateMlPredictions,
+  restoreDefaultCalibrationParams,
   updateMlStatusUI
 } from "./calibration.js";
 
@@ -91,15 +92,15 @@ export function cfg() {
     cutoff: val("cutoff", null),
     cutoff_low: val("cutlow", null),
     model: backendCalMode,
-    slope: selected === "linear" ? val("slope", 1) : 1,
-    intercept: selected === "linear" ? val("icpt", 0) : 0,
+    slope: selected === "linear" ? val("slope", 0.7622) : 0.7622,
+    intercept: selected === "linear" ? val("icpt", 0.0795) : 0.0795,
     cal_mode: backendCalMode,
-    a: val("cal-a", 0),
-    b: val("cal-b", 1),
-    c: val("cal-c", 0),
-    cal_a: val("cal-a", 0),
-    cal_b: val("cal-b", 1),
-    cal_c: val("cal-c", 0),
+    a: val("cal-a", 0.0614),
+    b: val("cal-b", 0.6408),
+    c: val("cal-c", 0.0959),
+    cal_a: val("cal-a", 0.0614),
+    cal_b: val("cal-b", 0.6408),
+    cal_c: val("cal-c", 0.0959),
     assay: S.selectedAssay === "Custom" ? "" : (S.selectedAssay || "DIVA"),
     blank_correction: $("blank-correction") ? $("blank-correction").checked : true,
     use_reader: useReader,
@@ -184,6 +185,7 @@ export async function handleFileUpload(file) {
   S.dataUrl = null;
   analysisResultCache.clear();
   resetPlateMlPredictions();
+  restoreDefaultCalibrationParams();
 
   // Detect HEIC/HEIF
   const name = file.name.toLowerCase();
