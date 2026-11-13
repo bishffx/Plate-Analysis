@@ -1088,11 +1088,14 @@ button.sec:disabled,
 
 #cv {
   display: block;
-  max-width: none;
+  max-width: 100%;
+  max-height: 676px;
+  width: auto;
   height: auto;
+  margin: 0 auto;
   cursor: default;
   touch-action: none;
-  transition: width 200ms ease;
+  box-sizing: border-box;
 }
 
 /* Toasts Container */
@@ -1548,7 +1551,7 @@ button.sec:disabled,
   transition: all 160ms ease;
 }
 
-.seg-btn:hover:not(.active) {
+.seg-btn:hover:not(.active):not([aria-checked="true"]) {
   background: rgba(255, 255, 255, 0.12);
   color: var(--text-primary);
   transform: none;
@@ -1556,9 +1559,27 @@ button.sec:disabled,
   filter: none;
 }
 
-.seg-btn.active {
+.seg-btn:focus-visible {
+  outline: 2px solid var(--accent-amber, #F2B01E);
+  outline-offset: 1px;
+}
+
+.seg-btn.active,
+.seg-btn[aria-checked="true"],
+.seg-btn.active:hover,
+.seg-btn[aria-checked="true"]:hover,
+.seg-btn.active:focus,
+.seg-btn[aria-checked="true"]:focus,
+.seg-btn.active:focus-visible,
+.seg-btn[aria-checked="true"]:focus-visible,
+.segmented-control .seg-btn.active,
+.segmented-control .seg-btn[aria-checked="true"],
+.segmented-control .seg-btn.active:hover,
+.segmented-control .seg-btn[aria-checked="true"]:hover,
+.segmented-control .seg-btn.active:focus,
+.segmented-control .seg-btn[aria-checked="true"]:focus {
   background: var(--gradient-accent);
-  color: #111111;
+  color: #FFFFFF !important;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.45);
   transform: none;
 }
@@ -1752,9 +1773,11 @@ button.sec:disabled,
   filter: none;
 }
 
-.tabs button.on {
+.tabs button.on,
+.tabs button.on:hover,
+.tabs button.on:focus {
   background: var(--gradient-accent);
-  color: #111111;
+  color: #FFFFFF !important;
   box-shadow: 0 2px 8px rgba(255, 255, 255, 0.45);
   transform: none;
 }
@@ -7393,12 +7416,17 @@ section.workbench-main::-webkit-scrollbar-track {
   border: 1.5px solid rgba(0, 0, 0, 0.22) !important;
 }
 
-[data-theme="light"] .segmented-control .seg-btn {
+[data-theme="light"] .segmented-control .seg-btn:not(.active):not([aria-checked="true"]) {
   color: #000000 !important;
   font-weight: 800 !important;
 }
 
-[data-theme="light"] .segmented-control .seg-btn.active {
+[data-theme="light"] .segmented-control .seg-btn.active,
+[data-theme="light"] .segmented-control .seg-btn[aria-checked="true"],
+[data-theme="light"] .segmented-control .seg-btn.active:hover,
+[data-theme="light"] .segmented-control .seg-btn[aria-checked="true"]:hover,
+[data-theme="light"] .segmented-control .seg-btn.active:focus,
+[data-theme="light"] .segmented-control .seg-btn[aria-checked="true"]:focus {
   background: #000000 !important;
   color: #FFFFFF !important;
   font-weight: 800 !important;

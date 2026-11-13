@@ -500,8 +500,10 @@ export function draw() {
 function ptInImg(e) {
   const cv = $("cv");
   const r = cv.getBoundingClientRect();
-  const cx = e.clientX - r.left;
-  const cy = e.clientY - r.top;
+  const scaleX = r.width > 0 ? (cv.width / r.width) : 1;
+  const scaleY = r.height > 0 ? (cv.height / r.height) : 1;
+  const cx = (e.clientX - r.left) * scaleX;
+  const cy = (e.clientY - r.top) * scaleY;
   return [
     Math.max(0, Math.min(S.w, (cx - panX) / (S.scale * zoomScale))),
     Math.max(0, Math.min(S.h, (cy - panY) / (S.scale * zoomScale)))
@@ -537,19 +539,32 @@ export function initCanvasEvents() {
       updateLiveReadout();
     } else {
       S.selHandle = -1;
+      isPanning = true;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
       draw();
       updateLiveReadout();
     }
   });
 
   cv.addEventListener("pointermove", (e) => {
-    const [x, y] = ptInImg(e);
     if (S.drag >= 0) {
+      const [x, y] = ptInImg(e);
       S.corners[S.drag] = [x, y];
       draw();
       refreshGrid();
       updateLiveReadout();
+    } else if (isPanning) {
+      const r = cv.getBoundingClientRect();
+      const scaleX = r.width > 0 ? (cv.width / r.width) : 1;
+      const scaleY = r.height > 0 ? (cv.height / r.height) : 1;
+      panX += (e.clientX - panStartX) * scaleX;
+      panY += (e.clientY - panStartY) * scaleY;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      draw();
     } else {
+      const [x, y] = ptInImg(e);
       const best = hitHandle(x, y);
       if (S.hoverHandle !== best) {
         S.hoverHandle = best;
@@ -567,6 +582,7 @@ export function initCanvasEvents() {
       updateLiveReadout();
       scheduleLivePreview(1000);
     }
+    isPanning = false;
   };
   cv.addEventListener("pointerup", endDrag);
   cv.addEventListener("pointercancel", endDrag);
